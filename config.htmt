@@ -1,0 +1,10 @@
+%[** Configurator **]%
+%[*sqlloop,&cont,iter,="select * from wtreports"]%
+%[*block,&iter,^END]%
+   <tr><td><input name="%[wtreports.reportid]%_checked" type="checkbox"></td><td>%[wtreports.repname]%</td></tr>
+END
+<form>
+<table>
+%[cont]%
+</table>
+</form>

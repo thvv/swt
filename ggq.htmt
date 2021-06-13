@@ -1,0 +1,71 @@
+%[** Generate globalqueries.htmt, that will in turn generate wtglobals.sh **]%
+%[** .. by executing global queries defined in table xx **]%
+%[**  **]%
+%[** Written 2006 by Tom Van Vleck **]%
+%[** THVV 04/20/06 **]%
+%[** THVV 12/20/06 if any item is blank, set it to 0 **]%
+%[** ================================================================ **]%
+%[*include,=wtxmacros.htmi]%
+%[*set,&pct,="%"]%
+%[*set,&x,=""]%
+%[*sqlloop,&junk,iter,="SELECT * FROM wtglobvar ORDER BY gvquery"]%
+%[*block,&iter,^END]%
+%[*if,ne,x,wtglobvar.gvquery,*expandv,&j1,flush]%
+%[*set,&x,wtglobvar.gvquery]%
+%[*concat,&body,pct]%
+%[*concat,&body,="[*set,&"]%
+%[*concat,&body,wtglobvar.gvname]%
+%[*concat,&body,=","]%
+%[*concat,&body,wtglobvar.gvqueryvar]%
+%[*concat,&body,="]"]%
+%[*concat,&body,pct]%
+%[*concat,&body,="\\n"]%
+%[*concat,&body,pct]%
+%[*concat,&body,="[*concat,&list,="]%
+%[*concat,&body,wtglobvar.gvname]%
+%[*concat,&body,="]"]%
+%[*concat,&body,pct]%
+%[*concat,&body,="\\n"]%
+%[*concat,&body,pct]%
+%[*concat,&body,="[*concat,&list,=\" \"]"]%
+%[*concat,&body,pct]%
+%[*concat,&body,="\\n"]%
+%[*if,ne,wtglobvar.gvfactor,=1,*concat,&body,pct]%
+%[*if,ne,wtglobvar.gvfactor,=1,*concat,&body,="[*quotient,&"]%
+%[*if,ne,wtglobvar.gvfactor,=1,*concat,&body,wtglobvar.gvname]%
+%[*if,ne,wtglobvar.gvfactor,=1,*concat,&body,=","]%
+%[*if,ne,wtglobvar.gvfactor,=1,*concat,&body,wtglobvar.gvname]%
+%[*if,ne,wtglobvar.gvfactor,=1,*concat,&body,=",="]%
+%[*if,ne,wtglobvar.gvfactor,=1,*concat,&body,wtglobvar.gvfactor]%
+%[*if,ne,wtglobvar.gvfactor,=1,*concat,&body,="]"]%
+%[*if,ne,wtglobvar.gvfactor,=1,*concat,&body,pct]%
+%[*if,ne,wtglobvar.gvfactor,=1,*concat,&body,="\\n"]%
+END
+%[*block,&flush,^END]%
+%[*set,&x,wtglobvar.gvquery]%
+%[*concat,&body,pct]%
+%[*concat,&body,="[*callv,getquery,=rpt_heading,="]%
+%[*concat,&body,wtglobvar.gvquery]%
+%[*concat,&body,="]"]%
+%[*concat,&body,pct]%
+%[*concat,&body,="\\n"]%
+%[*concat,&body,pct]%
+%[*concat,&body,="[*sqlloop,&junk,=x,x0]"]%
+%[*concat,&body,pct]%
+%[*concat,&body,="\\n"]%
+END
+%[** ================================================================ **]%
+%[pct]%[** ================ Generated %[timestamp]% by ggq.htmt ================ **]%[pct]%
+%[pct]%[*include,=wtxmacros.htmi]%[pct]%
+%[pct]%[*set,&list,=""]%[pct]%
+%[body]%
+%[pct]%[** ================================================================ **]%[pct]%
+%[pct]%[*ssvloop,&temp,globaltpt2,list]%[pct]%
+%[pct]%[*block,&globaltpt2,^XEND$]%[pct]%
+%[pct]%[*set,&x,%[pct]%[_xf_ssvitem]%[pct]%]%[pct]%
+%[pct]%[*if,eq,x,="",*set,&x,="0"]%[pct]%
+export %[pct]%[_xf_ssvitem]%[pct]%="%[pct]%[x]%[pct]%"
+XEND
+#!/bin/sh
+# generated %[pct]%[timestamp]%[pct]% from globalqueries.htmt geneated by ggq.htmt
+%[pct]%[temp]%[pct]%

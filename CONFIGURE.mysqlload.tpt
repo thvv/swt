@@ -1,0 +1,6 @@
+%[** Template for SWT file 'mysqlload' expanded by 'configure' **]%
+%[** ================================================================ **]%
+#!/bin/sh
+# Command to invoke mysql to load data into a database.
+# This command can get the password from .my.cnf if you have only one database.
+%[MYSQLPATH]% --defaults-file=sql.cnf --execute="source $1"

@@ -1,0 +1,27 @@
+%[** Template for SWT file 'mys' expanded by 'configure' **]%
+%[** THVV 02/25/15 **]%
+%[**  **]%
+%[** Assumes that SWTDB and SWTTABLES have been set in the shell environment by configure **]%
+%[**  **]%
+%[** Configure does expandfile -config ../swtconfig.htmi CONFIGURE.check-tables.tpt > check-tables.sql **]%
+%[**  **]%
+%[** Install creates the tables and then does mysql --skip-column-names < check-tables.sql **]%
+%[** ================================================================ **]%
+%[*if,=,SWTTABLES,="",*warn,ERROR: 'configure' did not set SWTTABLES, check-tables.sql not generated]%
+%[*if,=,SWTDB,="",*warn,ERROR: 'configure' did not set SWTDB, check-tables.sql not generated]%
+%[*ssvloop,&out,iter,SWTTABLES]%
+%[*block,&iter,^END]%
+%[*set,&q,="SELECT IF((SELECT COUNT(*) AS x FROM information_schema.tables WHERE table_schema = '"]%
+%[*concat,&q,=%[SWTDB]%]%
+%[*concat,&q,="' AND table_name = '"]%
+%[*concat,&q,=%[_xf_ssvitem]%]%
+%[*concat,&q,="'),'"]%
+%[*concat,&q,=%[_xf_ssvitem]%]%
+%[*concat,&q,=" ok','** "]%
+%[*concat,&q,=%[_xf_ssvitem]%]%
+%[*concat,&q,=" not created');"]%
+%[q]%
+%[*sqlloop,&junk,junk,q]%
+%[*if,=,.x,=1,echo %[_xf_ssvitem]% not created]%
+END
+%[out]%

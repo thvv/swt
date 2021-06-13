@@ -1,0 +1,84 @@
+%[** What domain is repeatedly loading the same file **]%
+%[** Horizontal bar graph of filename, domainname, browser and one numeric column,  with barchart **]%
+%[** .. derived from localquery.htmt but someday we may want to stripe the bars **]%
+%[** .. trim the name to 40 chars **]%
+%[** assumes that full scale of the bars is the first value in col1]%
+%[** Parameters **]%
+%[** - nameanchor - report name (used for getting query) **]%
+%[** - charttitle - graph title **]%
+%[** - subtitle - graph subtitle **]%
+%[** - %[nameanchor]%_a1head - title for label column 1 - path **]%
+%[** - %[nameanchor]%_a1var - varname for label table col1  **]%
+%[** - %[nameanchor]%_a2head - title for label column 2 - domain **]%
+%[** - %[nameanchor]%_a2var - varname for label table col2 **]%
+%[** - %[nameanchor]%_a3head - title for label column 3 - browser **]%
+%[** - %[nameanchor]%_a3var - varname for label table col3 **]%
+%[** - %[nameanchor]%_col1v - varname for column 1 - this is bar graphed **]%
+%[** - %[nameanchor]%_col1t - title for column 1 **]%
+%[** - %[nameanchor]%_col1tv - count for title for column 2 **]%
+%[** - %[nameanchor]%_cutoff - if fewer than this number of hits, do not show it **]%
+%[** - glb_bar_graph_width - global width in pixels for bar graph **]%
+%[** - glb_bar_graph_height - global height in pixels for bar graph **]%
+%[**  **]%
+%[** Written 2009 by Tom Van Vleck **]%
+%[**  THVV 03/29/09 **]%
+%[** ================================================================ **]%
+%[*include,=wtxmacros.htmi]%
+%[*set,&fullscale,=""]%
+%[*if,ne,subtitle,="",*expandv,&s00,subtitle]%
+%[*set,&numlines,=0]%
+%[*callv,getquery,nameanchor,="query1"]%
+%[*sqlloop,&chartout,chartiter,x0]%
+%[*set,&totalnum,%[%[nameanchor]%_col1tv]%]%
+%[** ================================================================ **]%
+%[*block,&chartiter,^END$]%
+%[*if,ge,%[%[nameanchor]%_col1v]%,%[nameanchor]%_cutoff,*expand,chartiter1]%
+END
+%[*block,&chartiter1,^END$]%
+%[*set,&ugh,=0]%
+%[*if,=~,%[nameanchor]%_skip,%[%[nameanchor]%_skipvar]%,*set,&ugh,=1]%
+%[*if,eq,ugh,=0,*expand,chartiter2]%
+END
+%[*block,&chartiter2,^END$]%
+%[*increment,&numlines,=1]%
+%[*if,eq,fullscale,="",*set,&fullscale,%[%[nameanchor]%_col1v]%]%
+%[*set,&y,%[%[nameanchor]%_col1v]%]%
+%[*scale,&z1,y,fullscale,glb_bar_graph_width]%
+%[*set,&a1,%[%[nameanchor]%_a1var]%]%
+%[*subst,&a1,="^(........................................).*$",="\\1"]%
+%[*set,&a2,%[%[nameanchor]%_a2var]%]%
+%[*subst,&a2,="^(........................................).*$",="\\1"]%
+%[*set,&a3,%[%[nameanchor]%_a3var]%]%
+%[*subst,&a3,="^(........................................).*$",="\\1"]%
+%[*if,eq,fa1,="",*set,&f1,y]%
+%[*if,eq,fa1,="",*set,&fa3,a3]%
+%[*if,eq,fa1,="",*set,&fa2,a2]%
+%[*if,eq,fa1,="",*set,&fa1,a1]%
+    <tr><td>%[a1]%</td><td>%[a2]%</td><td>%[a3]%</td><td class="numcol">%[y]%</td><td><img src="redpix.gif" alt="" width=%[z1]% height=%[glb_bar_graph_height]%></td></tr>
+END
+%[** ================================================================ **]%
+%[*block,&shortrep,^END]%
+  <p>%[totalnum]% %[%[nameanchor]%_col1t]%; <b>%[fa1]% %[fa2]% %[fa3]%, %[f1]% %[%[nameanchor]%_col1t]%</b></p>
+END
+%[*block,&nullrep,^END]%
+  <p>No repeats.</p>
+END
+%[** ================================================================ **]%
+%[*include,=rptheader.htmi]%
+<div class="chart%[longhidden]%" id="%[nameanchor]%_a1">
+%[*if,ne,%[nameanchor]%_skip,="",*concat,&s00,=" Excluding: "]%
+%[*if,ne,%[nameanchor]%_skip,="",*concat,&s00,%[nameanchor]%_skip]%
+%[*if,ne,s00,="",*expand,="<p class=\"subtitle\">%[s00]%</p>"]%
+%[*if,ne,%[nameanchor]%_a1head,="",*expandv,&a1,%[nameanchor]%_a1head]%
+%[*if,ne,%[nameanchor]%_a2head,="",*expandv,&a2,%[nameanchor]%_a2head]%
+%[*if,ne,%[nameanchor]%_a3head,="",*expandv,&a3,%[nameanchor]%_a3head]%
+  <table>
+    <tr><th></th><th></th><th></th><th class="numcol">%[%[%[nameanchor]%_col1tv]%]%</th><th></th></tr>
+    <tr><th>%[a1]%</th><th>%[a2]%</th><th>%[a3]%</th><th class="numcol">%[%[nameanchor]%_col1t]%</th><th>%[%[nameanchor]%_cutoff]% or more hits</th></tr>
+%[chartout]%
+  </table>
+</div>
+<div class="short%[shorthidden]%" id="%[nameanchor]%_a2">
+%[*if,ne,numlines,=0,*expand,shortrep]%
+%[*if,eq,numlines,=0,*expand,nullrep]%
+</div>

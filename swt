@@ -1,0 +1,122 @@
+#!/bin/sh
+# Super Webtrax
+# Written 2006-2020, Tom Van Vleck
+########################################################################
+# A modular system is one that falls apart easily! -- Ted Glaser, 1965 #
+########################################################################
+# Begin execution of Super Webtrax
+#################################################################
+# Check argument
+if [ $# -ne 1 ]; then
+   echo 1>&2 "**** Usage:" $0 logfile
+   exit 127
+fi
+if [ ! -f $1 ]; then
+   echo 1>&2 "**** file $1 is missing"
+   exit 127
+fi
+if [ ! -s $1 ]; then
+   echo 1>&2 "**** file $1 is zero length"
+   exit 127
+fi
+################################################################
+# load utility functions
+. ./swtfunct.sh
+#################################################################
+export REPORTNO=0
+export duplicateday=false
+#
+# generate the report
+#
+initialsetup "swtconfig.htmi" "swt.sql" "swt-user.sql" "wtglobalvalues.sh" "globalconfig.htmt"
+init_wtsrhist
+savedatabase
+loadusage "$1" "$DATADIR/log2db.sql" "$DATADIR/visits.sql"
+globalqueries "wtglobals.sh" "$PROGRAMDIR/ggq.htmt" "globalqueries.htmt"
+updatewtdayhist "$DATADIR/todayline.sql" "$PROGRAMDIR/todayline.htmt"
+# updatewtdayhist set "duplicateday" to true or false
+headingrep "rpt_heading" "Heading" "$PROGRAMDIR/navlinks.htmt" "navbar.htmi" "$OUTPUTFILE" "$PROGRAMDIR/importanthead.htmt" "$IMPORTANTFILE"
+# sectionrep reportid comment charttitle subtitle outputfile
+sectionrep "rpt_summary" "Month Summary" "Month Summary" "Super Webtrax version `cat $PROGRAMDIR/vnfile`" "$OUTPUTFILE"
+sectionrep "rpt_pie2" "Pie charts" "Pie Charts" "" "$OUTPUTFILE"
+updatetable "wtcumgoog" "$duplicateday"
+sectionrep "rpt_analysis" "Analysis" "Analysis" "" "$OUTPUTFILE"
+rm -f $DASHFILE
+sectionrep "rpt_dash" "Dashboard input" "Dashboard" "" "$DASHFILE"
+sectionrep "rpt_html" "HTML" "HTML pages" "(watched files in red)" "$OUTPUTFILE"
+sectionrep "rpt_graphics" "Graphics" "Graphic files (gif, png, jpg)" "" "$OUTPUTFILE"
+sectionrep "rpt_css" "CSS" "Style Sheets (css, js)" "" "$OUTPUTFILE"
+sectionrep "rpt_flash" "Flash" "Flash files (swf)" "" "$OUTPUTFILE"
+sectionrep "rpt_dl" "downloads" "Downloads (exe, zip, Z, hqx, sit, pdf)" "" "$OUTPUTFILE"
+sectionrep "rpt_snd" "sounds" "Sound files (au, mp2, mp3, wav)" "" "$OUTPUTFILE"
+sectionrep "rpt_xml" "XML" "XML files" "" "$OUTPUTFILE"
+sectionrep "rpt_java" "Java" "Java files (class, jar)" "" "$OUTPUTFILE"
+sectionrep "rpt_src" "Source" "Source files (c, h, Makefile, make, java, cpp, pl, pm)" "" "$OUTPUTFILE"
+sectionrep "rpt_other" "other files" "Other files (unrecognized)" "" "$OUTPUTFILE"
+sectionrep "rpt_fnf" "404" "Files not found (error 404)" "(suppressing indexer, hack file, MSIE discuss toolbar, and Java Bean hits)" "$OUTPUTFILE"
+sectionrep "rpt_403" "403" "Forbidden transactions (error 403)" "(files not shown due to .htaccess restriction)" "$OUTPUTFILE"
+sectionrep "rpt_illref" "Illegal refs" "Illegal referrers" "(non-HTML hits not referred from a local HTML page)" "$OUTPUTFILE"
+sectionrep "rpt_accesstime" "Time" "Hits by access time" "" "$OUTPUTFILE"
+sectionrep "rpt_duration" "Duration" "Non-indexer visits by duration" "(ignoring confounding factors)" "$OUTPUTFILE"
+sectionrep "rpt_nhits" "Nhits" "Non-indexer visits by number of hits" "(new visitors in blue)" "$OUTPUTFILE"
+sectionrep "rpt_nviews" "Nviews" "Non-indexer visits by number of page views" "(new visitors in blue)" "$OUTPUTFILE"
+sectionrep "rpt_domain" "Visitors" "Visitors by Domain Name" "(new visitors in blue)" "$OUTPUTFILE"
+sectionrep "rpt_tld" "TLD" "Visits by Toplevel Domain" "" "$OUTPUTFILE"
+sectionrep "rpt_domain2" "2LD" "Visits by Second Level Domain" "" "$OUTPUTFILE"
+sectionrep "rpt_domain3" "3LD" "Visits by Third Level Domain" "" "$OUTPUTFILE"
+sectionrep "rpt_geoloc" "City" "Visits by City" "(non-indexer visits)" "$OUTPUTFILE"
+sectionrep "rpt_authid" "Authid" "Visits by Auth ID" "" "$OUTPUTFILE"
+sectionrep "rpt_class" "Visit Class" "Visits by Class" "" "$OUTPUTFILE"
+sectionrep "rpt_browser" "Browser" "Visits by Browser" "" "$OUTPUTFILE"
+sectionrep "rpt_query" "Query" "Hits by Query" "" "$OUTPUTFILE"
+sectionrep "rpt_day_words" "words" "Words Used in Queries" "(skipping noise words)" "$OUTPUTFILE"
+sectionrep "rpt_engine" "Engine" "Visits by Search Engine" "" "$OUTPUTFILE"
+sectionrep "rpt_google" "Google" "Files Crawled by Google" "" "$OUTPUTFILE"
+sectionrep "rpt_referrer" "Referrer" "Hits by Referrer" "(new referrers in red, watched referrers in olive)" "$OUTPUTFILE"
+sectionrep "rpt_referrerdom" "RefDom" "Hits by Referring Domain" "" "$OUTPUTFILE"
+sectionrep "rpt_filesize" "Size" "Number of Hits by file size" "" "$OUTPUTFILE"
+sectionrep "rpt_localquery" "Local" "Hits by Local Query" "(Navigation within the website.)" "$OUTPUTFILE"
+sectionrep "rpt_repeat" "Repeat" "Repeated Hits by Domain" "(non-indexer hits, retcode 200 only)" "$OUTPUTFILE"
+sectionrep "rpt_attacks" "Attacks" "Attacks on the site" "Hits on selected CGIs with no HTML or graphics in session; probes for known holes; excess use" "$OUTPUTFILE"
+sectionrep "rpt_retcode" "Retcode" "Transactions by server return code" "" "$OUTPUTFILE"
+sectionrep "rpt_verb" "Verb" "Transactions by protocol verb" "" "$OUTPUTFILE"
+loadeventlog
+detailsrep "rpt_details" "Details" "Visit Details" "" "$OUTPUTFILE" "$IMPORTANTFILE" "$duplicateday"
+# ================================================================
+updatetable "wtcumref" "$duplicateday"
+updatetable "wtcumquery" "$duplicateday"
+updatetable "wtdomhist" "$duplicateday"
+updatetable "wtcumfile" "$duplicateday"
+trimtable "wtdomhist" "$duplicateday"
+# ================================================================
+sectionrep "rpt_year_referrer" "yreferrer" "Non-search Hits by Referring Domain since $dayhistfirst" "" "$OUTPUTFILE"
+sectionrep "rpt_year_query" "yquery" "Hits by Query since $dayhistfirst" "" "$OUTPUTFILE"
+sectionrep "rpt_year_words" "ywords" "Words in Queries since $dayhistfirst" "(skipping noise words)" "$OUTPUTFILE"
+sectionrep "rpt_year_domain" "ydomain" "Visitor Domains since $domhistfirst" "" "$OUTPUTFILE"
+sectionrep "rpt_dslv_domain" "DSLV" "Visitor count by days since last visit since $domhistfirst" "" "$OUTPUTFILE"
+sectionrep "rpt_cumpage" "ypage" "Hits on HTML Pages since $dayhistfirst" "" "$OUTPUTFILE"
+sectionrep "rpt_bymonth" "ByMonth" "Hits by month, last 12 months" "" "$OUTPUTFILE"
+sectionrep "rpt_byyear" "ByYear" "Hits by year since $dayhistfirst" "" "$OUTPUTFILE"
+pathrep "rpt_paths" "paths" "Paths through the site" "" "$PATHSFILE" "$DATADIR/temppath.sql" "$OUTPUTFILE" "$duplicateday"
+tailrep "rep_tail" "tail" "$PROGRAMDIR/tail.htmt" "$OUTPUTFILE" "$PROGRAMDIR/importanttail.htmt" "$IMPORTANTFILE"
+finalcleanup
+$ECHO "done"
+# end
+#  Permission is hereby granted, free of charge, to any person obtaining
+#  a copy of this software and associated documentation files (the
+#  "Software"), to deal in the Software without restriction, including
+#  without limitation the rights to use, copy, modify, merge, publish,
+#  distribute, sublicense, and/or sell copies of the Software, and to
+#  permit persons to whom the Software is furnished to do so, subject to
+#  the following conditions:
+
+#  The above copyright notice and this permission notice shall be included
+#  in all copies or substantial portions of the Software.
+
+#  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+#  EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+#  MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+#  IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+#  CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+#  TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+#  SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. 

@@ -1,0 +1,63 @@
+#!/usr/local/bin/perl
+# return size of a db
+#
+# USAGE: dbsize [-lg] configfile
+#
+# 11/14/06 1.0 THVV
+# 02/08/07 1.1 THVV use .htmi config file
+# 09/15/20 1.2 THVV use expandfile3
+# 06/10/21 1.21 THVV use expandfile
+
+use databasesize;
+use expandfile;
+
+$values{'version'} = '1.21';
+$values{'me'} = 'dbsize';
+
+$long = 0;
+if ($ARGV[0] eq "-lg") {
+    $long = 1;
+    shift;
+}
+# Read in config file.
+my $configfilename = shift;
+my $config = &loadfile($configfilename, \%values);
+$values{'_xf_currentfilename'} = $configfilename;
+my $junk = &expandstring($config, \%values); # config file is a template, expand it
+
+die "config did not set hostname" if !$values{'_xf_hostname'};
+die "config did not set database" if !$values{'_xf_database'};
+die "config did not set username" if !$values{'_xf_username'};
+die "config did not set password" if !$values{'_xf_password'};
+$hostname = $values{'_xf_hostname'};
+$database = $values{'_xf_database'};
+$username = $values{'_xf_username'};
+$password = $values{'_xf_password'};
+
+($numrows, $totsize, $biggest, $bigsize, $bigrows) = &databaseSize($hostname, $database, $username, $password, $long);
+
+$a = &psz($bigsize);
+$b = &psz($totsize);
+
+print "$database: $b, $numrows tables; biggest: $biggest $a, $bigrows rows\n";
+
+# ================================================================
+
+sub loadfile {
+    my $arg = shift;
+    my $vp = shift;
+    my $c = '';
+    my $olddelim = $/;
+    $/ = undef;
+    if (open(TPT, "$arg")) {
+	$c = <TPT>;		# read whole file
+	close(TPT);
+    } else {
+	die "$$vp{'me'}: $arg missing $!\n";
+    } # if open
+    $c = &expandblocks($c, $vp); # expands blocks in the tpt but does not process includes
+    $/ = $olddelim;
+    return $c;
+} #loadfile
+
+# end

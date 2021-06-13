@@ -1,0 +1,45 @@
+%[** Verb table chart **]%
+%[**  **]%
+%[** Parameters **]%
+%[** - charttitle - char title **]%
+%[** - subtitle - chart subtitle **]%
+%[** - nameanchor - name **]%
+%[** - %[nameanchor]%_hitcountvar - var for total hits **]%
+%[** - %[nameanchor]%_bytesvar - var for total bytes**]%
+%[** - %[nameanchor]%_verbvar - var for verb **]%
+%[**  **]%
+%[** Written 2006 by Tom Van Vleck **]%
+%[**  THVV 04/20/06 **]%
+%[**  THVV 08/13/06 add short report **]%
+%[**  THVV 08/18/06 fetch query from sql **]%
+%[** ================================================================ **]%
+%[*include,=wtxmacros.htmi]%
+%[*if,ne,subtitle,="",*expandv,&s00,subtitle]%
+%[*callv,getquery,nameanchor,="query1"]%
+%[*sqlloop,&tableout,tableiter,x0]%
+%[** ================================================================ **]%
+%[*block,&tableiter,^END$]%
+%[*quotient,&kb,%[%[nameanchor]%_bytesvar]%,=1024]%
+%[*scale,&hpc,%[%[nameanchor]%_hitcountvar]%,totalrecs,=100]%
+%[*scale,&kpc,kb,totalreckb,=100]%
+    <tr><td class="numcol">%[%[%[nameanchor]%_hitcountvar]%]%&nbsp;(%[hpc]%%)</td><td class="numcol">%[kb]%&nbsp;(%[kpc]%%)</td><td>%[%[%[nameanchor]%_verbvar]%]%
+%[*if,eq,fv,="",*set,&fp,hpc]%
+%[*if,eq,fv,="",*set,&fk,kb]%
+%[*if,eq,fv,="",*set,&fz,kpc]%
+%[*if,eq,fv,="",*set,&fh,%[%[nameanchor]%_hitcountvar]%]%
+%[*if,eq,fv,="",*set,&fv,%[%[nameanchor]%_verbvar]%]%
+</td></tr>
+END
+%[** ================================================================ **]%
+%[*include,=rptheader.htmi]%
+<div class="chart%[longhidden]%" id="%[nameanchor]%_a1">
+%[*if,ne,s00,="",*expand,="<p class=\"subtitle\">%[s00]%</p>"]%
+  <table>
+    <tr><th class="numcol">%[totalrecs]%</th><th class="numcol">%[totalreckb]%</th><th></th></tr>
+    <tr><th class="numcol">Recs</th><th class="numcol">KB</th><th>Verb</th></tr>
+%[*expand,tableout]%
+  </table>
+</div>
+<div class="short%[shorthidden]%" id="%[nameanchor]%_a2">
+  <p>%[totalrecs]% Recs, %[totalreckb]% KB: <b>%[fv]% %[fh]% (%[fp]%%) %[fk]% KB (%[fz]%%)</b></p>
+</div>

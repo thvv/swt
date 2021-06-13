@@ -1,0 +1,36 @@
+%[** Super Webtrax header **]%
+%[** Parameters **]%
+%[** - sitename - site name **]%
+%[** - preamble - preamble file name, below navbar **]%
+%[** - subtitile - man report subtitle, above navgar **]%
+%[** - timestamp - set by expandfile **]%
+%[**  **]%
+%[** Written (c) 2006-2010 by Tom Van Vleck **]%
+%[** THVV 04/20/06 **]%
+%[** THVV 08/25/06 split heading and globals **]%
+%[** THVV 12/12/10 use Javascript pie charts **]%
+%[** THVV 02/12/17 make W3C changes **]%
+%[** ================================================================ **]%
+%[*include,=wtxmacros.htmi]%
+%[*if,ne,subtitle,="",*expandv,&s00,subtitle]%
+%[*fwrite,=pienumberfile,=1]%
+%[** ================================================================ **]%
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<title>%[sitename]% Access Statistics</title>
+<meta name="robots" content ="noindex,nofollow">
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<link rel="stylesheet" type="text/css" href="%[stylesheet]%">
+<script src="swt.js"></script>
+<script src="piecanvas.js"></script>
+<!--[if IE]><script type="text/javascript" src="excanvas.js"></script><![endif]-->
+</head>
+<body>
+<h1 id="top">%[sitename]% Access Statistics -- %[timestamp]%</h1>
+%[*if,ne,s00,="",*expand,="<p class=\"subtitle\">%[s00]%</p>"]%
+<p class="navbar">
+%[*include,=navbar.htmi]%
+</p>
+%[*if,ne,preamble,="",*include,=%[preamble]%]%
+<!-- end of heading -->

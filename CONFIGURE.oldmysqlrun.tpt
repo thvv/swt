@@ -1,0 +1,6 @@
+%[** Template for SWT file 'mysqlrun' expanded by 'configure' if mysql is od version **]%
+#!/bin/sh
+# Command to invoke mysql to run one command, may return an answer.
+# Works best for returning a single column from a single row.
+# This command can get the password from .my.cnf if you have only one database.
+%[MYSQLPATH]% -u%[SWTDBUSER]% -p%[SWTDBPASS]% -h%[SWTDBHOST]% %[SWTDB]%  --skip-column-names --silent --execute="$1"

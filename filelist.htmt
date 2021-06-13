@@ -1,0 +1,43 @@
+%[** Output a list of names and count of hits, used by the file not found report **]%
+%[** Parameters **]%
+%[** - nameanchor - report name (used for getting query) **]%
+%[** - charttitle - applet title **]%
+%[** - subtitle - applet subtitle **]%
+%[** - %[nameanchor]%_hittot - var containing total hits **]%
+%[** - %[nameanchor]%_hitcountvar - var from query1, total hits on path **]%
+%[** - %[nameanchor]%_pathvar - var from query1, path **]%
+%[**  **]%
+%[** Written 2006 by Tom Van Vleck **]%
+%[**  THVV 04/20/06 **]%
+%[**  THVV 08/13/06 add short report **]%
+%[**  THVV 08/18/06 - fetch query from sql **]%
+%[**  THVV 12/27/06 use path instead of filename **]%
+%[** ================================================================ **]%
+%[*include,=wtxmacros.htmi]%
+%[*if,ne,subtitle,="",*expandv,&s00,subtitle]%
+%[*set,&s,=""]%
+%[*callv,getquery,nameanchor,="queryfilelist"]%
+%[*sqlloop,&chartout,chartiter,x0]%
+%[** ================================================================ **]%
+%[*block,&chartiter,^END$]%
+%[*set,&path,%[%[nameanchor]%_pathvar]%]%
+%[*subst,&path,="^\\/",=""]%
+%[*if,eq,ff,="",*set,&fn,%[%[nameanchor]%_hitcountvar]%]%
+%[*if,eq,ff,="",*set,&ff,path]%
+%[s]%%[path]%&nbsp;%[%[%[nameanchor]%_hitcountvar]%]%
+%[*set,&s,=", "]%
+END
+%[** ================================================================ **]%
+%[** eliminate the NL before each comma ]%
+%[*subst,&chartout,="\\n",=""]%
+%[*include,=rptheader.htmi]%
+<div class="chart%[longhidden]%" id="%[nameanchor]%_a1">
+%[*if,ne,s00,="",*expand,="<p class=\"subtitle\">%[s00]%</p>"]%
+  <p class="filetype">%[_xf_nrows]% files, %[%[%[nameanchor]%_hittot]%]% hits</p>
+  <p class="filetype">
+%[chartout]%
+  </p>
+</div>
+<div class="short%[shorthidden]%" id="%[nameanchor]%_a2">
+  <p class="filetype">%[_xf_nrows]% files, %[%[%[nameanchor]%_hittot]%]% hits; <b>%[ff]% %[fn]%</b></p>
+</div>

@@ -1,0 +1,15 @@
+%[** Tail for Super Webtrax **]%
+%[** Written 2006 by Tom Van Vleck **]%
+%[** THVV 04/20/06 **]%
+%[** ================================================================ **]%
+%[*include,=wtxmacros.htmi]%
+%[** ================================================================ **]%
+%[*if,ne,postamble,="",*include,=%[postamble]%]%
+
+<hr>
+
+<p class="navbar">
+%[*include,=navbar.htmi]%
+</p>
+</body>
+</html>

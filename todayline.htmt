@@ -1,0 +1,10 @@
+%[** Template to write one row into wtdayhist **]%
+%[** Parameters come from wtglobals **]%
+%[**  **]%
+%[** Written 2006 by Tom Van Vleck **]%
+%[**  THVV 04/20/06 **]%
+%[**  THVV 06/14/06 add additional columns **]%
+%[** ================================================================ **]%
+%[*include,=wtxmacros.htmi]%
+INSERT INTO wtdayhist VALUES
+(%[firstdatebin]%,%[lastdatebin]%,%[totalhits]%,%[totalbytes]%,%[totalvisits]%,%[htmlhits]%,%[graphichits]%,%[totalreckb]%,%[totalrecs]%,%[htmlfiles]%,%[htmlbytes]%,%[graphicbytes]%,%[nlinkhits]%,%[nlinkvisits]%,%[linkbytes]%,%[nsearches]%,%[nsearchvisits]%,%[searchbytes]%,%[nheadp]%,%[hphits]%,%[hpbytes]%,%[nohtmlvisits]%,%[nohtmlvisitshits]%,%[nohtmlbytes]%,%[htmlvisits]%,%[indexhits]%,%[nindexvisits]%,%[indexbytes]%,%[ndomainstoday]%,%[newdomainstoday]%,%[hitsnovisit]%,%[domsnovisit]%);

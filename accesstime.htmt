@@ -1,0 +1,74 @@
+%[** Access time vertical bar graph **]%
+%[** this report has no short form **]%
+%[** Parameters **]%
+%[** - %[nameanchor]%_graph_height - height in pixels for bar graph **]%
+%[** - glb_bar_graph_height - width of a bar (despite name) **]%
+%[** - nameanchor  - report name (used for getting query) **]%
+%[** - %[nameanchor]%_hhvar       - hour bin **]%
+%[** - %[nameanchor]%_hitcountvar - count of hits in bin **]%
+%[** - %[nameanchor]%_xxvar       - count of HTML page hits in bin **]%
+%[** - %[nameanchor]%_xgvar       - count of graphic page hits in bin **]%
+%[** - %[nameanchor]%_bytesvar    - total bytes in bin **]%
+%[** - %[nameanchor]%_maxhitsvar  - max hits in any bin **]%
+%[**  **]%
+%[** Written 2006 by Tom Van Vleck **]%
+%[**  THVV 04/20/06 **]%
+%[**  THVV 06/04/06 vertical striping **]%
+%[**  THVV 08/18/06 fetch query from sql **]%
+%[**  THVV 11/19/06 fix bug where totals are wrong, use setscale **]%
+%[**  THVV 02/13/17 fix Firefox bug in HTML5 mode that gave BR a 11px height **]%
+%[** ================================================================ **]%
+%[*include,=wtxmacros.htmi]%
+%[*set,&graph_height,%[nameanchor]%_graph_height]%
+%[*if,ne,subtitle,="",*expandv,&s00,subtitle]%
+%[*callv,getquery,nameanchor,="queryaccesstime2"]%
+%[*sqlloop,&junk,=x,x0]%
+%[*set,&fullscale,%[%[nameanchor]%_maxhitsvar]%]%
+%[*set,&trace,=""]%
+%[*callv,getquery,nameanchor,="queryaccesstime"]%
+%[*sqlloop,&junk,chartiter,x0]%
+%[*set,&hours,="0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23"]%
+%[*ssvloop,&chartout,houriter,hours]%
+%[** ================================================================ **]%
+%[** this hack is so that there is a gap when there are zero hits in an hour **]%
+%[*block,&chartiter,^END$]%
+%[*set,&h,%[%[nameanchor]%_hhvar]%]%
+%[*set,&hittot%[h]%,%[%[nameanchor]%_hitcountvar]%]%
+%[*set,&hithtm%[h]%,%[%[nameanchor]%_xxvar]%]%
+%[*set,&hitgrf%[h]%,%[%[nameanchor]%_xgvar]%]%
+%[*set,&hitsiz%[h]%,%[%[nameanchor]%_bytesvar]%]%
+%[*concat,&trace,="<br>",h,=" ",hittot%[h]%,=" ",hithtm%[h]%,=" ",hitgrf%[h]%,=" ",hitsiz%[h]%]%
+END
+%[** ================================================================ **]%
+%[*block,&houriter,^END$]%
+%[*set,&bytes,hitsiz%[_xf_ssvitem]%]%
+%[*set,&tothit,hittot%[_xf_ssvitem]%]%
+%[*set,&htmhit,hithtm%[_xf_ssvitem]%]%
+%[*set,&grfhit,hitgrf%[_xf_ssvitem]%]%
+%[*concat,&trace,="<br>",_xf_ssvitem,=" ",tothit,=" ",htmhit,=" ",grfhit,=" ",bytes]%
+%[*set,&zt,tothit]%
+%[*decrement,&zt,htmhit]%
+%[*decrement,&zt,grfhit]%
+%[*scale,&hoth,zt,fullscale,graph_height]%
+%[*scale,&hhtm,htmhit,fullscale,graph_height]%
+%[*scale,&hgrf,grfhit,fullscale,graph_height]%
+%[*callv,setscale,bytes]%
+      <td class="vbar">%[tothit]%<br><img src="redpix.gif" alt="" width=%[glb_bar_graph_height]% height=%[hoth]% title="other: %[zt]%" class="block"><img src="bluepix.gif" alt="" width=%[glb_bar_graph_height]% height=%[hgrf]% title="graphic: %[grfhit]%" class="block"><img src="greenpix.gif" alt="" width=%[glb_bar_graph_height]% height=%[hhtm]% title="html: %[htmhit]%" class="block"><br><br>%[_xf_ssvitem]%:00<br>%[x0]%%[y0]%</td>
+END
+%[** ================================================================ **]%
+<h2 class="h2title" id="%[nameanchor]%">%[charttitle]%</h2>
+%[*if,ne,s00,="",*expand,="<p class=\"subtitle\">%[s00]%</p>"]%
+<div class="vhisto">
+  <table>
+    <tr>
+%[chartout]%
+    </tr>
+  </table>
+  <p class="details"> <!-- legend -->
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+    <img src="greenpix.gif" alt="" width=%[glb_bar_graph_height]% height=%[glb_bar_graph_height]%> HTML&nbsp;&nbsp;&nbsp;
+    <img src="bluepix.gif" alt="" width=%[glb_bar_graph_height]% height=%[glb_bar_graph_height]%> Graphic&nbsp;&nbsp;&nbsp;
+    <img src="redpix.gif" alt="" width=%[glb_bar_graph_height]% height=%[glb_bar_graph_height]%> Other
+  </p>
+%[**trace]%
+</div>

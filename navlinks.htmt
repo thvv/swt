@@ -1,0 +1,20 @@
+%[** Navigation links **]%
+%[** - nameanchor - name used to get queries (rpt_heading) **]%
+%[**  **]%
+%[** Written 2006 by Tom Van Vleck **]%
+%[**  THVV 08/14/06 **]%
+%[**  THVV 10/05/06 add info.html **]%
+%[**  THVV 02/20/07 add configdisplay.html **]%
+%[** ================================================================ **]%
+%[*include,=wtxmacros.htmi]%
+%[*callv,getquery,nameanchor,="qnavbar"]%
+%[*sqlloop,&out,iter,x0]%
+%[*block,&iter,^END]%
+    | <a href="#%[wtreports.reportid]%" title="%[wtreports.repname]%">%[wtreports.repshort]%</a>
+END
+    <a href="%[urlbase]%webtrax-helpv%[wtversion]%.html">Webtrax %[wtversion]% help</a>
+    | <a href="#top">Top</a>
+%[out]%
+    | Return to <a href="%[returnurl]%">%[sitename]%</a>
+    | <a href="info.html">Info</a>
+    | <a href="configdisplay.html">Config</a>

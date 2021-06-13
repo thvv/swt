@@ -1,0 +1,77 @@
+%[** Horizontal bar graph of a nth level domain name and three numeric columns, last with barchart, striped by html/graphic/other **]%
+%[** .. used for visits by second and third level domain, and visits by authid **]%
+%[** Parameters **]%
+%[** - nameanchor - report name (used for getting query) **]%
+%[** - charttitle - graph title **]%
+%[** - subtitle - graph subtitle **]%
+%[** - %[nameanchor]%_col1tv - count for title for column 1 **]%
+%[** - %[nameanchor]%_col2tv - count for title for column 2 **]%
+%[** - %[nameanchor]%_col3tv - count for title for column 3 **]%
+%[** - %[nameanchor]%_labelvar - varname for label table **]%
+%[** - %[nameanchor]%_col1v - varname for column 1 **]%
+%[** - %[nameanchor]%_col1t - title for column 1 **]%
+%[** - %[nameanchor]%_col2v - varname for column 2 **]%
+%[** - %[nameanchor]%_col2t - title for column 2 **]%
+%[** - %[nameanchor]%_col2s - scale for column 2 **]%
+%[** - %[nameanchor]%_col3v - varname for column 3 - this is bar graphed **]%
+%[** - %[nameanchor]%_col3t - title for column 3 **]%
+%[** - %[nameanchor]%_col3hv - var holding HTML count for column 3 **]%
+%[** - %[nameanchor]%_col3gv - var holding graphic count for column 3 **]%
+%[** - %[nameanchor]%_col3maxv - variable holding max for column 3, set by query2 **]%
+%[** - %[nameanchor]%_totalv - variable holding total for short report **]%
+%[** - %[nameanchor]%_restrict - restriction **]%
+%[** - glb_bar_graph_width - global width in pixels for bar graph **]%
+%[**  **]%
+%[** Written 2006 by Tom Van Vleck **]%
+%[**  THVV 07/26/06 **]%
+%[**  THVV 08/13/06 - long and short **]%
+%[**  THVV 08/18/06 - fetch query from sql **]%
+%[**  THVV 12/27/07 - allow for case when there are no visits **]%
+%[** ================================================================ **]%
+%[*include,=wtxmacros.htmi]%
+%[*if,ne,subtitle,="",*expandv,&s00,subtitle]%
+%[*callv,getquery,nameanchor,="query2"]%
+%[*sqlloop,&junk,=x,x0]%
+%[*set,&fullscale,%[%[nameanchor]%_col3maxv]%]%
+%[*callv,getquery,nameanchor,="query1"]%
+%[*sqlloop,&chartout,chartiter,x0]%
+%[*set,&num1,_xf_nrows]%
+%[** ================================================================ **]%
+%[*block,&chartiter,^END$]%
+%[*set,&name,%[%[nameanchor]%_labelvar]%]%
+%[*if,eq,name,="",*set,&name,="(none)"]%
+%[*set,&visits,%[%[nameanchor]%_col1v]%]%
+%[*quotient,&kb,%[%[nameanchor]%_col2v]%,%[nameanchor]%_col2s]%
+%[*set,&hits,%[%[nameanchor]%_col3v]%]%
+%[*set,&oth,%[%[nameanchor]%_col3v]%]%
+%[*set,&htm,%[%[nameanchor]%_col3hv]%]%
+%[*set,&gra,%[%[nameanchor]%_col3gv]%]%
+%[*decrement,&oth,htm]%
+%[*decrement,&oth,gra]%
+%[*scale,&z1,htm,fullscale,glb_bar_graph_width]%
+%[*scale,&z2,gra,fullscale,glb_bar_graph_width]%
+%[*scale,&z3,oth,fullscale,glb_bar_graph_width]%
+    <tr><td>%[name]%</td><td class="numcol">%[visits]%</td><td class="numcol">%[kb]%</td><td class="numcol">%[hits]%</td><td><img src="greenpix.gif" alt="" title="%[htm]% html hits" width="%[z1]%" height="%[glb_bar_graph_height]%"><img src="bluepix.gif" alt="" title="%[gra]% graphic hits" width="%[z2]%" height="%[glb_bar_graph_height]%"><img src="redpix.gif" alt="" title="%[oth]% other hits" width="%[z3]%" height="%[glb_bar_graph_height]%"></td></tr>
+END
+%[*block,&table1,^END$]%
+  <table>
+    <tr><th></th><th class="numcol">%[%[%[nameanchor]%_col1tv]%]%</th><th class="numcol">%[%[%[nameanchor]%_col2tv]%]%</th><th class="numcol">%[%[%[nameanchor]%_col3tv]%]%</th><th></th></tr>
+    <tr><th>%[%[%[nameanchor]%_totalv]%]% %[%[nameanchor]%_totalvt]%</th><th class="numcol">%[%[nameanchor]%_col1t]%</th><th class="numcol">%[%[nameanchor]%_col2t]%</th><th class="numcol">%[%[nameanchor]%_col3t]%</th><th class="legendbar"><img src="greenpix.gif" alt="" width=%[glb_bar_graph_height]% height=%[glb_bar_graph_height]%> HTML&nbsp;&nbsp;&nbsp;<img src="bluepix.gif" alt="" width=%[glb_bar_graph_height]% height=%[glb_bar_graph_height]%> Graphic&nbsp;&nbsp;&nbsp;<img src="redpix.gif" alt="" width=%[glb_bar_graph_height]% height=%[glb_bar_graph_height]%> Other</th></tr>
+%[chartout]%
+  </table>
+%[*set,&shortrep,="  <p>",%[%[nameanchor]%_totalv]%,=" ",%[nameanchor]%_totalvt,=", ",=" ",%[nameanchor]%_col1t,=", ",%[%[nameanchor]%_col2tv]%,=" ",%[nameanchor]%_col2t,=", ",%[%[nameanchor]%_col3tv]%,=" ",%[nameanchor]%_col3t,="</p>"]%
+END
+%[*block,&nohits,^END$]%
+  <p class="details">No visits.</p>
+%[*set,&shortrep,="  <p class=\"details\">No visits.</p>"]%
+END
+%[** ================================================================ **]%
+%[*include,=rptheader.htmi]%
+<div class="chart%[longhidden]%" id="%[nameanchor]%_a1">
+%[*if,ne,s00,="",*expand,="<p class=\"subtitle\">%[s00]%</p>"]%
+%[*if,eq,num1,=0,*expand,nohits]%
+%[*if,ne,num1,=0,*expand,table1]%
+</div>
+<div class="short%[shorthidden]%" id="%[nameanchor]%_a2">
+%[shortrep]%
+</div>

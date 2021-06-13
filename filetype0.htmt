@@ -1,0 +1,98 @@
+%[** Histo graph by file type striped by source **]%
+%[** .. assumes that this is a descending chart, ie that row 1 is the longest hitcount **]%
+%[** Parameters **]%
+%[** - nameanchor - report name (used for getting query) **]%
+%[** - charttitle - graph title **]%
+%[** - subtitle - graph subtitle **]%
+%[** - %[nameanchor]%_bytevar - variable that contains tx size **]%
+%[** - %[nameanchor]%_hitcountvar - variable containing hitcount **]%
+%[** - %[nameanchor]%_stackvar - variable containing hitcount for one source **]%
+%[** - %[nameanchor]%_stackcolor - variable containing gif color for one source **]%
+%[** - %[nameanchor]%_bytetotalvar - variable containing total byte count **]%
+%[** - %[nameanchor]%_bytetotalvar - variable containing total hit count **]%
+%[** - %[nameanchor]%_filetotalvar - variable containing total file count -- don't use _xf_nrows in case user has a limit N **]%
+%[** - %[nameanchor]%_labelvar - variable containing pathname label **]%
+%[** - %[nameanchor]%_colorclass - if non-NULL, css class to show pathname in **]%
+%[** - %[nameanchor]%_legendcolor - legend color var **]%
+%[** - %[nameanchor]%_legendname - legend name var **]%
+%[** - glb_bar_graph_width - from config, width of bar graphs in pixels **]%
+%[**  **]%
+%[** Written 2006 by Tom Van Vleck **]%
+%[**  THVV 04/20/06 **]%
+%[**  THVV 06/09/06 - stripe by source **]%
+%[**  THVV 08/12/06 - short and long chart **]%
+%[**  THVV 08/18/06 - fetch query from sql **]%
+%[**  THVV 12/27/06 use path instead of filename **]%
+%[** ================================================================ **]%
+%[*include,=wtxmacros.htmi]%
+%[*if,ne,subtitle,="",*expandv,&s00,subtitle]%
+%[*set,&oldctl,=""]%
+%[*set,&fullscale,=""]%
+%[*callv,getquery,nameanchor,="queryfiletype2"]%
+%[*if,ne,x0,="",*sqlloop,&junk,=x,x0]%
+%[*callv,getquery,nameanchor,="queryfiletype3"]%
+%[*if,ne,x0,="",*sqlloop,&junk,=x,x0]%
+%[*callv,getquery,nameanchor,="queryfiletype"]%
+%[*sqlloop,&junk,chartiter,x0]%
+%[*if,eq,_xf_nrows,=0,*expand,nohits]%
+%[*if,ne,_xf_nrows,=0,*callv,getquery,nameanchor,="legendquery"]%
+%[*if,ne,_xf_nrows,=0,*sqlloop,&legend,legenditer,x0]%
+%[*if,ne,_xf_nrows,=0,*expandv,&junk,flush]%
+%[*if,ne,_xf_nrows,=0,*expand,regular]%
+%[** ================================================================ **]%
+%[*block,&chartiter,^END$]%
+%[*set,&ctl,%[%[nameanchor]%_labelvar]%]%
+%[*if,nelc,ctl,oldctl,*expandv,&junk,switch]%
+%[*concat,&chartout,="<img src=\"",%[%[nameanchor]%_stackcolor]%,="\" alt=\"",%[%[nameanchor]%_stackvar]%,="\" title=\"",%[%[nameanchor]%_stackvar]%,="\" width=",x,=" height=",glb_bar_graph_height,=">"]%
+END
+%[** ---------------------------------------------------------------- **]%
+%[*block,&switch,^END$]%
+%[*if,ne,oldctl,="",*expandv,&junk,flush]%
+%[*set,&oldctl,ctl]%
+%[** ----- if labelvar has a dirname in it, take it out, could have a switch for this **]%
+%[*set,&pname,%[%[nameanchor]%_labelvar]%]%
+%[*subst,&pname,="^.*\\/",=""]%
+%[*set,&name,pname]%
+%[** ----- make file name in css class if %[nameanchor]%_colorclass is set **]%
+%[*if,ne,%[%[nameanchor]%_colorclass]%,="",*set,&name,="<span class=\"",%[%[nameanchor]%_colorclass]%,="\">",pname,="</span>"]%
+%[*quotient,&kb,%[%[nameanchor]%_bytevar]%,=1024]%
+%[** ----- first bar will be biggest because ordered by hitcount **]%
+%[*if,eq,fullscale,="",*set,&maxfile,name]%
+%[*if,eq,fullscale,="",*set,&maxkb,kb]%
+%[*if,eq,fullscale,="",*set,&fullscale,%[%[nameanchor]%_hitcountvar]%]%
+%[*concat,&chartout,="    <tr><td>",name,="</td><td class=\"numcol\"> ",kb,="</td><td class=\"numcol\"> ",%[%[nameanchor]%_hitcountvar]%,="</td><td>"]%
+END
+%[** ---------------------------------------------------------------- **]%
+%[*block,&flush,^END$]%
+%[*concat,&chartout,="</td></tr>\\n"]%
+END
+%[** ================================================================ **]%
+%[** If no hits at all, block is not expandable **]%
+%[*block,&nohits,^END$]%
+<h2 id="%[nameanchor]%">%[charttitle]%</h2>
+<div class="chart">
+  <p class="details">No hits.</p>
+</div>
+END
+%[** ---------------------------------------------------------------- **]%
+%[*block,&legenditer,^END]%
+%[*set,&lv,%[%[nameanchor]%_legendname]%]%
+%[*if,eq,lv,="",*set,&lv,="(none)"]%
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<img src=%[%[%[nameanchor]%_legendcolor]%]% alt="" width="%[glb_bar_graph_height]%" height="%[glb_bar_graph_height]%"> %[lv]%
+END
+%[** ================================================================ **]%
+%[*block,&regular,^END]%
+%[*include,=rptheader.htmi]%
+<div class="chart%[longhidden]%" id="%[nameanchor]%_a1">
+%[*if,ne,s00,="",*expand,="<p class=\"subtitle\">%[s00]%</p>"]%
+  <table>
+%[*quotient,&xkb,%[%[nameanchor]%_bytetotalvar]%,=1024]%
+    <tr><th>%[%[%[nameanchor]%_filetotalvar]%]%</th><th class="numcol">%[xkb]%</th><th class="numcol">%[%[%[nameanchor]%_hittotalvar]%]%</th><th></th></tr>
+    <tr><th>Files</th><th class="numcol">KB</th><th class="numcol">Hits</th><th class="legendbar">%[legend]%</th></tr>
+%[chartout]%
+  </table>
+</div>
+<div class="short%[shorthidden]%" id="%[nameanchor]%_a2">
+  <p>%[%[%[nameanchor]%_filetotalvar]%]% Files, %[xkb]% KB, %[%[%[nameanchor]%_hittotalvar]%]% Hits; <b>%[maxfile]%, %[maxkb]% KB, %[fullscale]% Hits</b></p>
+</div>
+END

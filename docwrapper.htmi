@@ -1,0 +1,47 @@
+%[** template for a document web page **]%
+%[** parameters: **]%
+%[**   title - attribute in head **]%
+%[**   description - in head **]%
+%[**   keywords - in head **]%
+%[**    **]%
+%[** blocks: **]%
+%[**   body - standard body, can contain vars, macros, etc **]%
+%[**   extratail - extra tail links **]%
+%[**   extrastyle - extra heading stuff, added to head **]%
+%[** Written (c) 2006-2010 by Tom Van Vleck **]%
+%[** THVV 04/20/06 **]%
+%[** THVV 02/12/17 make W3C changes **]%
+%[** ================================================================ **]%
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <title>%[title]%</title>
+    <meta name="description" content="%[description]%">
+    <meta name="keywords" content="%[keywords]%">
+    <link rev="made" href="mailto:webmaster@multicians.org">
+    <link rel="stylesheet" type="text/css" href="%[stylesheet]%">
+<style type="text/css">
+<!--
+body {margin: 0px 0px; padding: 0px; text-align: center;} 
+.outer {min-width: %[minwidth]%px; max-width: %[maxwidth]%px; width: auto !important; width: %[contentwidth]%px; margin: 0px auto; text-align: left; padding: 5px;}
+.tail {text-align: center; margin: 10px auto;}
+@media print {
+ .navbar {display: none;}
+ .tail {display: none;}
+ a {text-decoration: none;}
+ a:link {color: black;}
+}
+-->
+</style>
+%[*expand,extrastyle]%
+  </head>
+  <body>
+    <div class="outer">
+%[*expand,body]%
+      <div class="tail">
+%[*expand,extratail]%
+      </div>
+    </div>
+  </body>
+</html>

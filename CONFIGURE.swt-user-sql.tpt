@@ -1,0 +1,246 @@
+%[** Template for SWT file 'swt-user.sql' expanded by 'configure' **]%
+%[** ================================================================ **]%
+%[** THVV 07/19/06 **]%
+%[** THVV 08/11/06 updated with new defaults **]%
+%[** THVV 02/21/07 added documentation **]%
+%[** THVV 12/29/07 changed swtconfig.txt to swtconfig.htmi **]%
+%[** THVV 01/04/08 correct the predomain transforms **]%
+%[** THVV 10/22/08 fix comments so they work in MySQL 5.0.67 **]%
+%[** THVV 03/24/16 expand XDOMAINS **]%
+%[** THVV 02/19/21 expandfile3 **]%
+%[** THVV 03/20/21 add overrides for PROGRAMDIR DATADIR TOOLSDIR CHECKSWTFILES REPORTDIR **]%
+%[** THVV 03/21/21 handle www.DOMAIN correctly **]%
+%[**]%
+%[** to put two backslashes in the SQL, write 4 here **]%
+%[** ================================================================ **]%
+%[** .. expanded for each extra domain name in XDOMAINS to be added to wtlocalreferrerregexp **]%
+%[*block,&xdomiter,^END]%
+('^https?://www.%[_xf_ssvitem]%','my domain'),
+('^https?://%[_xf_ssvitem]%','my domain'),
+END
+%[** ================================================================ **]%
+%[*if,=,MYDOMAIN,="",*warn,ERROR: 'configure' did not set MYDOMAIN, swt-user.sql needs fixing]%
+%[*if,=,SITENAME,="",*warn,ERROR: 'configure' did not set SITENAME, swt-user.sql needs fixing]%
+%[*if,=,SITEID,="",*warn,ERROR: 'configure' did not set SITEID, swt-user.sql needs fixing]%
+%[*if,=,CONFIGFILEDIR,="",*warn,ERROR: 'configure' did not set CONFIGFILEDIR, swt-user.sql needs fixing]%
+%[*if,=,PROGRAMDIR,="",*warn,ERROR: 'configure' did not set PROGRAMDIR, swt-user.sql needs fixing]%
+%[*if,=,DATADIR,="",*warn,ERROR: 'configure' did not set DATADIR, swt-user.sql needs fixing]%
+%[*if,=,TOOLSDIR,="",*warn,ERROR: 'configure' did not set TOOLSDIR, swt-user.sql needs fixing]%
+%[*if,=,CHECKSWTFILES,="",*warn,ERROR: 'configure' did not set CHECKSWTFILES, swt-user.sql needs fixing]%
+%[*if,=,REPORTDIR,="",*warn,ERROR: 'configure' did not set REPORTDIR, swt-user.sql needs fixing]%
+%[** ---------------------------------------------------------------- **]%
+%[**]%
+-- Schema for Super Webtrax -- User configuration for %[SITEID]%
+-- THVV 07/19/06 1.0
+-- THVV 08/09/06 1.1 add globals
+-- THVV 03/09/21 1.2 expandfile3
+-- 
+-- generated %[timestamp]% by config
+-- (who) (date) tweaked by hand
+-- ================================================================
+-- user local configuration
+
+-- watched pages
+-- .. shown in color in the details and the page type reports
+-- .. used by printvisitdetail.pl
+-- .. also used to select important visits in the "criteria"
+-- colfilename is matched as regexp against hits.path
+-- INSERT IGNORE INTO wtcolors (colfilename, colorclass, colorwhy) VALUES
+-- ('xxx.html','inred','reason'),
+-- ('xxx','inorange','reason');
+
+-- boring pages
+-- .. if boring pages outnumber good, don't show in the short report
+-- .. used by the query for printvisitdetail.pl as hits.path REGEXP boringfilename
+-- .. pvd then adds up the boring pages and the "criteria" for the short report compares to total
+-- user may configure any number of entries
+-- INSERT IGNORE INTO wtboring (borfilename, borweight, borwhy) VALUES
+-- ('/xxx.html',1,'reason');
+
+-- watched referrers
+-- .. shown in color in the details
+-- user may configure any number of entries
+-- rcurl is matched as regexp against hits.referrerurl
+-- INSERT IGNORE INTO wtreferrercolor VALUES
+-- ('www.example.com/','inolive','reason');
+
+-- map visit class to color
+INSERT IGNORE INTO wtvclasses (vclass, vbarcolor, vdetail) VALUES
+-- ('','graypix.gif','visit class not identified'),
+-- ('indexer','bluepix.gif','reference by a web crawler'),
+('user','redpix.gif','user files');
+
+-- which pages are additional "head pages"
+-- INSERT INTO wtheadpages (headpage, hpwhy) VALUES
+-- ('gate.html','reason');
+
+-- classify page to page class in visitdata.pl
+-- cfilename matches a file path or a directory prefix
+-- map is most specific to least, so '/' is last
+-- map rexp matched against CONCAT(hits.dir, hits.filename) to visit class
+INSERT IGNORE INTO wtpclasses (cfilename, cclass, cwhy) VALUES
+('/','user','reason');
+
+-- robot domains regexp, all hits from these are web crawlers
+-- double any backslashes
+INSERT IGNORE INTO wtrobotdomains (dom, domwhy) VALUES
+('picsearch\\\\.com','reason');
+
+-- webcrawlers regexp, matched against browser name extracted from hits.browser
+-- double any backslashes
+-- INSERT INTO wtindexers (indexer, indexertype, indexerwhy) VALUES
+-- ('psbot','reason',''),
+-- ('bizbot','',''),
+-- ('aipbot','','');
+
+-- which referrers to treat as local
+-- regexp matched against hits.referrerurl
+-- used in illegal referrer report query
+-- these should not end in a slash
+-- escape dots as backslash-backslash-dot
+%[** XDOMAINS will have other domains but not their www. version **]%
+INSERT IGNORE INTO wtlocalreferrerregexp (regex, regexlocalwhy) VALUES
+%[*if,ne,XDOMAINS,="",*ssvloop,&xdom,xdomiter,XDOMAINS]%
+%[*if,ne,XDOMAINS,="",*expand,xdom]%
+('^https?://www.%[MYDOMAIN]%','my domain'),
+('^https?://%[MYDOMAIN]%','my domain');
+
+-- watch list specifies special action from printvisitdetail
+-- watched domains regexp matched against hit domain
+-- watched browser regexp matched against browser
+-- notes, first letter is an opcode
+-- I force a visit to be interesting
+-- H hide the whole visit
+-- S summarize visit, ie hide detail, annotate with rest of "wtwnot"
+-- N annotate visit with rest of "wtwnote"
+-- INSERT IGNORE INTO wtwatch (wtwdom, wtwagt, wtwnote) VALUES
+-- ('','Googlebot','SGooglebot'), -- 2016-03-15
+-- ('','MJ12bot','SMJ12bot SEO indexer'); -- summarize MJ12bot
+
+-- transformations applied by logvisits.pl to raw web log hit domain
+-- commands may not contain '
+-- any backslashes that are to be seen by Perl must be doubled to get past mysql
+-- 
+INSERT IGNORE INTO wtprereferrer (prereferrer, pwhy) VALUES -- prereferrer
+('s~\\\\[unknown origin\\\\]~~i','firewall'),
+('s~www\\\\.adminshop\\\\.com.*~~i','referrer spam'),
+('s~^.*poker.*$~~i','referrer spam'),
+('s~^.*casino.*$~~i','referrer spam'),
+('s~^.*insurance.*$~~i','referrer spam'),
+('s~^.*mortgage.*$~~i','referrer spam'),
+('s~^.*phentermine.*$~~i','referrer spam'),
+('s~^.*tramadol.*$~~i','referrer spam'),
+('s~^.*texas-hold-em.*$~~i','referrer spam'),
+('s~^.*cgi\\\\.ebay.*$~~i','referrer spam'),
+('s~^.*www\\\\.fleetairarmarchive\\\\.net.*$~~i','referrer spam'),
+('s~^Field blocked by ~~i','firewall'),
+('s~^https?:..www\\\\.(.*)\\\\.com/.*/search.web/([^/]*)/.*$~$1?q=$2~i','dogpile and metacrawler');
+
+-- 
+-- transformations  applied by logvisits.pl to raw web log hit domain
+-- do not put a $ in the LHS of the predomain transforms, in case using the country/city suffixes in [..]
+INSERT IGNORE INTO wtpredomain (predomain, pwhy) VALUES -- predomain
+('s~.+?\\\\.inktomisearch\\\\.com~x.inktomisearch.com~i',''),
+-- ('s~j....\\\\.inktomi\\\\.com~jxxxx.inktomi.com~i',''), -- deleted 1/4/08
+-- ('s~jet..\\\\.jeteye\\\\.com~jetx.jeteye.com~i',''), -- deleted 1/4/08
+-- ('s~jet.\\\\.jeteye\\\\.com~jetx.jeteye.com~i',''), -- deleted 1/4/08
+('s~cache-.*\\\\.proxy\\\\.aol\\\\.com~cache-x.proxy.aol.com~i',''),
+('s~spider-dtc-.*\\\\.proxy\\\\.aol\\\\.com~spider-x.proxy.aol.com~i',''), -- 1/4/08
+('s~tide.*\\\\.microsoft\\\\.com~tidexx.microsoft.com~i',''),
+-- ('s~egspd.*\\\\.teoma\\\\.com~egspdxx.teoma.com~i',''), -- deleted 1/4/08
+('s~egspd.*\\\\.ask\\\\.com~egspdxx.ask.com~i',''),
+('s~crawler.*\\\\.ask\\\\.com~crawlerxx.ask.com~i',''), -- 1/4/08
+('s~.*\\\\.crawl\\\\.yahoo\\\\.net~crawlxx.yahoo.net~i',''), -- 1/4/08
+('s~crawl.*\\\\.googlebot\\\\.com~crawlxx.googlebot.com~i','');
+
+-- some graphics should be shown if they are in a particular dir and referrer
+-- the referrer is an exact vale, not a regex .. printvisitdetail makes 2 entries, with and without www.
+-- .. remember if the referrer is index.html to also put just dirname/
+-- -- (referrer varchar(255), pathrexp varchar(255))
+-- slashes in pathrexp must be preceded by two backslashes .. SQL leaves one, rexp unspecials the slash
+-- INSERT IGNORE INTO wtshowanyway (referrer, pathrexp) VALUES
+-- ('https://www.formyfriendswithmacs.com/checklist.html','^\\/mac\\/images\\/pica.gif');
+
+-- transformations applied by logvisits.pl to raw web log hit path before splitting out filename
+-- (myquery has already been split out)
+-- each one is a Perl substitute command
+-- commands may not contain '
+-- any backslashes that are to be seen by Perl must be doubled to get past mysql
+-- INSERT INTO wtprepath (prepath, pwhy) VALUES -- prepath
+-- simplify relative paths
+-- ('s~/.*?/\\\\.\\\\./~/~','simplify rel paths'); -- no, this does not work, is done in logvisits.pl
+
+-- filenames whose 404 is uninteresting
+-- each one is a regexp
+-- INSERT IGNORE INTO expected404 (f404, fwhy) VALUES
+-- ('default.class$','java');
+
+-- User overrides for global configuration items.
+-- .. title of report
+INSERT INTO wtglobalvalues (gloname, glovalue, glocomm) VALUES('sitename','%[SITENAME]%','') ON DUPLICATE KEY UPDATE glovalue='%[SITENAME]%';
+-- .. short name of site
+INSERT INTO wtglobalvalues (gloname, glovalue, glocomm) VALUES('siteid','%[SITEID]%','') ON DUPLICATE KEY UPDATE glovalue='%[SITEID]%';
+-- .. file copied at top of report
+-- INSERT INTO wtglobalvalues (gloname, glovalue, glocomm) VALUES('preamble','preamble.txt','') ON DUPLICATE KEY UPDATE glovalue='preamble.txt';
+-- .. file copied at bottom of report
+-- INSERT INTO wtglobalvalues (gloname, glovalue, glocomm) VALUES('postamble','postamble.txt','') ON DUPLICATE KEY UPDATE glovalue='postamble.txt';
+-- .. where config file resides -- file shd be mode 400, has database password
+INSERT INTO wtglobalvalues (gloname, glovalue, glocomm) VALUES('CONFIGFILE','%[CONFIGFILEDIR]%/swtconfig.htmi','') ON DUPLICATE KEY UPDATE glovalue='%[CONFIGFILEDIR]%/swtconfig.htmi';
+--
+-- .. where templates are installed
+INSERT INTO wtglobalvalues (gloname, glovalue, glocomm) VALUES('PROGRAMDIR','%[PROGRAMDIR]%','') ON DUPLICATE KEY UPDATE glovalue='%[PROGRAMDIR]%';
+-- .. where data is kept
+INSERT INTO wtglobalvalues (gloname, glovalue, glocomm) VALUES('DATADIR','%[DATADIR]%','') ON DUPLICATE KEY UPDATE glovalue='%[DATADIR]%';
+-- .. where tools are kept
+INSERT INTO wtglobalvalues (gloname, glovalue, glocomm) VALUES('TOOLSDIR','%[TOOLSDIR]%','') ON DUPLICATE KEY UPDATE glovalue='%[TOOLSDIR]%';
+-- .. where file checker lives
+INSERT INTO wtglobalvalues (gloname, glovalue, glocomm) VALUES('CHECKSWTFILES','%[CHECKSWTFILES]%','') ON DUPLICATE KEY UPDATE glovalue='%[CHECKSWTFILES]%';
+-- .. where report is viewable
+INSERT INTO wtglobalvalues (gloname, glovalue, glocomm) VALUES('REPORTDIR','%[REPORTDIR]%','') ON DUPLICATE KEY UPDATE glovalue='%[REPORTDIR]%';
+--
+-- .. prefix commands with these words -- add "time" for debugging
+INSERT INTO wtglobalvalues (gloname, glovalue, glocomm) VALUES('COMMANDPREFIX','nice','') ON DUPLICATE KEY UPDATE glovalue='nice';
+-- .. for debugging
+-- INSERT INTO wtglobalvalues (gloname, glovalue, glocomm) VALUES('CLEANUP','echo did not delete','') ON DUPLICATE KEY UPDATE glovalue='echo did not delete';
+-- .. change to "true" to shut program up
+INSERT INTO wtglobalvalues (gloname, glovalue, glocomm) VALUES('ECHO','echo','') ON DUPLICATE KEY UPDATE glovalue='echo';
+-- how to invoke mysql, contains password, must match config file, mode 500
+-- INSERT INTO wtglobalvalues (gloname, glovalue, glocomm) VALUES('MYSQLLOAD','./mysqlload','') ON DUPLICATE KEY UPDATE glovalue='./mysqlload';
+-- how to invoke mysqldump, contains password, must match config file, mode 500
+-- INSERT INTO wtglobalvalues (gloname, glovalue, glocomm) VALUES('MYSQLDUMPCUM','./mysqldumpcum','') ON DUPLICATE KEY UPDATE glovalue='./mysqldumpcum';
+-- If the accout has a bandwidth quota insert it here
+-- INSERT INTO wtglobalvalues (gloname, glovalue, glocomm) VALUES('gbquota','200','') ON DUPLICATE KEY UPDATE glovalue='200';
+-- If the bandwidth calculation drops the highest day's usage, this should be Y
+-- INSERT INTO wtglobalvalues (gloname, glovalue, glocomm) VALUES('gbquotadrophighest','Y','') ON DUPLICATE KEY UPDATE glovalue='Y';
+
+-- user overrides for options
+-- How to disable a report
+INSERT INTO wtreportoptions (optid, optname, optvalue, optdoc) VALUES('rpt_css','enabled','n','') ON DUPLICATE KEY UPDATE optvalue='n';
+INSERT INTO wtreportoptions (optid, optname, optvalue, optdoc) VALUES('rpt_flash','enabled','n','') ON DUPLICATE KEY UPDATE optvalue='n';
+INSERT INTO wtreportoptions (optid, optname, optvalue, optdoc) VALUES('rpt_snd','enabled','n','') ON DUPLICATE KEY UPDATE optvalue='n';
+INSERT INTO wtreportoptions (optid, optname, optvalue, optdoc) VALUES('rpt_xml','enabled','n','') ON DUPLICATE KEY UPDATE optvalue='n';
+INSERT INTO wtreportoptions (optid, optname, optvalue, optdoc) VALUES('rpt_java','enabled','n','') ON DUPLICATE KEY UPDATE optvalue='n';
+INSERT INTO wtreportoptions (optid, optname, optvalue, optdoc) VALUES('rpt_src','enabled','n','') ON DUPLICATE KEY UPDATE optvalue='n';
+-- How to set an unlimited number of lines in e.g the browser listing
+-- INSERT INTO wtreportoptions (optid, optname, optvalue, optdoc) VALUES('rpt_browser','top','','') ON DUPLICATE KEY UPDATE optvalue='';
+-- Start the domain name report unhidden
+INSERT INTO wtreportoptions (optid, optname, optvalue, optdoc) VALUES('rpt_domain','start','long','long=start with long report') ON DUPLICATE KEY UPDATE optvalue='long';
+
+--  Permission is hereby granted, free of charge, to any person obtaining
+--  a copy of this software and associated documentation files (the
+--  "Software"), to deal in the Software without restriction, including
+--  without limitation the rights to use, copy, modify, merge, publish,
+--  distribute, sublicense, and/or sell copies of the Software, and to
+--  permit persons to whom the Software is furnished to do so, subject to
+--  the following conditions:
+
+--  The above copyright notice and this permission notice shall be included
+--  in all copies or substantial portions of the Software.
+
+--  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+--  EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+--  MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+--  IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+--  CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+--  TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+--  SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. 

@@ -1,0 +1,105 @@
+%[** Horizontal bar graph of a name, an explanation, and three numeric columns, last with barchart, striped by visitclass **]%
+%[** .. used for visits by browser and visits by TLD **]%
+%[** Parameters **]%
+%[** - nameanchor - report name (used for getting query) **]%
+%[** - charttitle - graph title **]%
+%[** - subtitle - graph subtitle **]%
+%[** wtreportoptions **]%
+%[** - %[nameanchor]%_col0head - title for label column **]%
+%[** - %[nameanchor]%_col1tv - count for title for column 1 **]%
+%[** - %[nameanchor]%_col2tv - count for title for column 2 **]%
+%[** - %[nameanchor]%_col3tv - count for title for column 3 **]%
+%[** - %[nameanchor]%_labelvar - varname for label table, used for control break **]%
+%[** - %[nameanchor]%_labelvar2 - second varname for control break **]%
+%[** - %[nameanchor]%_expvar - varname for explanation table **]%
+%[** - %[nameanchor]%_col1v - varname for column 1 **]%
+%[** - %[nameanchor]%_col1t - title for column 1 **]%
+%[** - %[nameanchor]%_col1s - scale for column 1 **]%
+%[** - %[nameanchor]%_col2v - varname for column 2 **]%
+%[** - %[nameanchor]%_col2t - title for column 2 **]%
+%[** - %[nameanchor]%_col2s - scale for column 2 **]%
+%[** - %[nameanchor]%_col3v - varname for column 3 - this is bar graphed **]%
+%[** - %[nameanchor]%_col3t - title for column 3 **]%
+%[** - %[nameanchor]%_col3s - scale for column 3 **]%
+%[** - %[nameanchor]%_col3maxv - variable holding max for column 3, set by query2 **]%
+%[** - %[nameanchor]%_stripecount - count for each stripe **]%
+%[** - %[nameanchor]%_stripecolor - visitclass for each stripe **]%
+%[** - %[nameanchor]%_legendcolor - legend color var **]%
+%[** - %[nameanchor]%_legendname - legend name var **]%
+%[** wtqueries **]%
+%[** - %[nameanchor]%_query1 - query for largest number of hits, to set full scale **]%
+%[** - %[nameanchor]%_query1 - query for stacked bars, control break is labelvar||labelvar2 **]%
+%[** - %[nameanchor]%_legendquery - query for legend **]%
+%[** wtglobals **]%
+%[** - glb_bar_graph_width - global width in pixels for bar graph **]%
+%[**  **]%
+%[** Written 2006-2009 by Tom Van Vleck **]%
+%[**  THVV 04/20/06 **]%
+%[**  THVV 06/11/06 - stripe by class **]%
+%[**  THVV 08/13/06 - long and short **]%
+%[**  THVV 08/18/06 - fetch query from sql **]%
+%[**  THVV 03/27/09 - add labelvar2 **]%
+%[** ================================================================ **]%
+%[*include,=wtxmacros.htmi]%
+%[*if,ne,subtitle,="",*expandv,&s00,subtitle]%
+%[*callv,getquery,nameanchor,="query2"]%
+%[*sqlloop,&junk,=x,x0]%
+%[*set,&fullscale,%[%[nameanchor]%_col3maxv]%]%
+%[*callv,getquery,nameanchor,="query1"]%
+%[*sqlloop,&junk,chartiter,x0]%
+%[*expandv,&junk,flush]%
+%[*callv,getquery,nameanchor,="legendquery"]%
+%[*sqlloop,&legend,legenditer,x0]%
+%[** ================================================================ **]%
+%[*block,&chartiter,^END$]%
+%[*set,&ctl,%[%[nameanchor]%_labelvar]%]%
+%[*if,ne,%[nameanchor]%_labelvar2,="",*concat,&ctl,%[%[nameanchor]%_labelvar2]%]%
+%[*if,nelc,ctl,oldctl,*expandv,&junk,switch]%
+%[*scale,&x,%[%[nameanchor]%_stripecount]%,fullscale,glb_bar_graph_width]%
+%[*concat,&chartout,="<img src=",quote,%[%[nameanchor]%_stripecolor]%,quote,=" alt=",quote,%[%[nameanchor]%_stripecount]%,quote,=" title=",quote,%[%[nameanchor]%_stripecount]%,quote,=" width=",x,=" height=",glb_bar_graph_height,=">"]%
+END
+%[** ---------------------------------------------------------------- **]%
+%[*block,&switch,^END$]%
+%[*if,ne,oldctl,="",*expandv,&junk,flush]%
+%[*set,&oldctl,ctl]%
+%[*quotient,&x,%[%[nameanchor]%_col1v]%,=%[%[nameanchor]%_col1s]%]%
+%[*quotient,&y,%[%[nameanchor]%_col2v]%,=%[%[nameanchor]%_col2s]%]%
+%[*quotient,&z,%[%[nameanchor]%_col3v]%,=%[%[nameanchor]%_col3s]%]%
+%[*set,&name,%[%[nameanchor]%_labelvar]%]%
+%[*subst,&name,="^(........................................).*$",="\\1"]%
+%[*set,&expl,%[%[nameanchor]%_expvar]%]%
+%[*concat,&chartout,="    <tr><td>"]%
+%[*if,eq,name,="",*set,&name,="(blank)"]%
+%[*concat,&chartout,name,="</td><td>"]%
+%[*if,eq,expl,="/",*set,&expl,="(none)"]%
+%[*concat,&chartout,expl,="</td><td class=\"numcol\"> ",x,="</td><td class=\"numcol\"> ",y,="</td><td class=\"numcol\"> ",z,="</td><td>"]%
+%[*if,eq,fn,="",*set,&f3,z]%
+%[*if,eq,fn,="",*set,&f2,y]%
+%[*if,eq,fn,="",*set,&f1,x]%
+%[*if,eq,fn,="",*set,&fx,expl]%
+%[*if,eq,fn,="",*set,&fn,name]%
+END
+%[** ---------------------------------------------------------------- **]%
+%[*block,&flush,^END$]%
+%[*concat,&chartout,="</td></tr>\\n"]%
+END
+%[** ---------------------------------------------------------------- **]%
+%[*block,&legenditer,^END]%
+%[*set,&lv,%[%[nameanchor]%_legendname]%]%
+%[*if,eq,lv,="",*set,&lv,="(none)"]%
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<img src=%[%[%[nameanchor]%_legendcolor]%]% alt="" width="%[glb_bar_graph_height]%" height="%[glb_bar_graph_height]%"> %[lv]%
+END
+%[** ================================================================ **]%
+%[*include,=rptheader.htmi]%
+<div class="chart%[longhidden]%" id="%[nameanchor]%_a1">
+%[*if,ne,s00,="",*expand,="<p class=\"subtitle\">%[s00]%</p>"]%
+%[*if,ne,%[nameanchor]%_col0head,="",*expandv,&col0,%[nameanchor]%_col0head]%
+  <table>
+    <tr><th></th><th></th><th class="numcol">%[%[%[nameanchor]%_col1tv]%]%</th><th class="numcol">%[%[%[nameanchor]%_col2tv]%]%</th><th class="numcol">%[%[%[nameanchor]%_col3tv]%]%</th><th></th></tr>
+    <tr><th>%[col0]%</th><th></th><th class="numcol">%[%[nameanchor]%_col1t]%</th><th class="numcol">%[%[nameanchor]%_col2t]%</th><th class="numcol">%[%[nameanchor]%_col3t]%</th><th class="legendbar">%[legend]%</th></tr>
+%[chartout]%
+  </table>
+</div>
+<div class="short%[shorthidden]%" id="%[nameanchor]%_a2">
+  <p>%[col0]%, %[%[%[nameanchor]%_col1tv]%]% %[%[nameanchor]%_col1t]%, %[%[%[nameanchor]%_col2tv]%]% %[%[nameanchor]%_col2t]%, %[%[%[nameanchor]%_col3tv]%]% %[%[nameanchor]%_col3t]%; <b>%[fn]% %[fx]%, %[f1]% %[%[nameanchor]%_col1t]%, %[f2]% %[%[nameanchor]%_col2t]%, %[f3]% %[%[nameanchor]%_col3t]%</b></p>
+</div>

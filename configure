@@ -1,0 +1,724 @@
+#!/bin/sh
+# Config script for Super Webtrax
+# THVV 07/20/06
+# THVV 08/11/06 improved checking, no more swt-user.sh
+# THVV 09/16/06 get paths for mysql and mysqldump
+# THVV 11/20/06 generate mys
+# THVV 09/10/07 better directory checking and comments
+# THVV 09/12/07 generate a cron job
+# THVV 09/13/07 do not trim sitename to one word
+# THVV 12/26/07 fix bugs in askeither and askdir
+# THVV 09/07/10 Ubuntu 8.04 sucks. fix sourcing of variables in .my.cnf etc so it works with dash
+# THVV 09/10/10 add SITEID
+# THVV 12/12/10 remove .class files, add piecanvas.js and excanvas.js
+# THVV 07/31/14 MySQL 5.6 fusses about -p in mysqlrun etc. so use the --defaults-extra-file= arg, which didn't work in old versions... ask if old MySQL
+# THVV 02/25/15 fix missing files and glitches based on experience; add question on combining logs
+# THVV 03/16/15 change --defaults-extra-file= to --defaults-file=
+# THVV 06/05/15 change for expandfile
+# THVV 01/14/15 BUG: configure and install should have x bit
+# THVV 01/14/15 BUG: rerunning configure gets configure: cannot create sql.cnf: Permission denied
+# THVV 01/14/15 BUG: rerunning configure fails with "configure: /usr/home/pl531/swt=/usr/home/pl531/swt: not found"
+# THVV 01/14/15 BUG: i said yes, combine logs, but it said it wasn't
+# THVV 01/14/15 expanding CONFIGURE.check-tables.tpt failed because it had ../swtconfig.htmi .. should say something if it succeeds
+# THVV 01/14/16 install says ./install: cannot open  CONFIGURE.check-tables.sql: No such .. was not copied to rundir or shd have been exec from instaldir
+# THVV 01/14/16 install says cp: /usr/home/pl531/swt/swtconfig.htmi: Permission denied .. maybe it copied twice, is there mode 400
+# THVV 01/14/16 BUG: should configure /images in swt-user tpt
+# THVV 01/14/16 new report does not do javascript right in local mode: no pies, no peekaboo -- because of NoScript
+# THVV 03/09/16 clean things up and make more robust; add setting up of combinelogs.conf and extra domains
+# THVV 11/26/16 edit the templates for SQL config and template for mysqldumpcum
+# THVV 02/18/21 adapt fo expandfile and accumulated changes
+# THVV 02/18/21 move all file checking to checkswtfiles
+# THVV 03/20/21 fix up the XDOMAINS stuff
+
+# bugs
+# ... should write out as soon as all questions are answered so if anything is not set, we don't have to do it all again
+# ... need not have expandfile readapacheline.pm thvve.pm in the execution directory if they are on the path ??? 
+# ... -geoip different from -geoipcity in logextractor2, make sure doing this right, check the geoipfilename .. oops, doesnt work that way
+
+# ----------------------------------------------------------------
+# print a message on console and append it to CONFIGURE.status
+message()
+{
+    local msg=""
+    msg="$1"
+    echo "$0: $msg"
+    echo "## `date` $0 $msg" >> CONFIGURE.status
+} # message
+# ----------------------------------------------------------------
+# ----------------------------------------------------------------
+# 1) you unpacked the tarfile. it created a directory install-swt containing this file. cd install-swt
+# 2) install expandfile into your search path
+# 3) install expandfile.pm, readbindxml.pm, readbindsql.pm into your PERL5LIB
+# 4) do "cd install-swt; ./configure"
+echo "----------------------------------------------------------------"
+echo "this script asks the user for certain variables and then creates files"
+echo "in the install dir.  You can run it more than once."
+echo ""
+echo "the script checks that things are ready to install and"
+echo "runs a little database test."
+echo ""
+echo "after it has run successfully, do"
+echo "   ./install"
+echo "----------------------------------------------------------------"
+
+test -f vnfile || echo "$0: ***** ERROR: vnfile missing in `pwd`"
+test -f vnfile || exit 1
+
+export VERSION="`cat vnfile`"
+echo "SWT version $VERSION"
+# ----------------------------------------------------------------
+export CHECKSWTFILES="./tools/checkswtfiles"
+if [ ! -d tools ] ; then
+    echo "$0: ***** ERROR: `pwd`/tools is missing"
+    exit 1
+elif [ ! -f $CHECKSWTFILES ] ; then    
+    echo "$0: ***** ERROR: $CHECKSWTFILES is missing"
+    exit 1  
+fi
+# this is where the tools are shipped in the tarfile -- if you rename the expansion dir, must edit swt-user.sql etc
+export TOOLSDIR="./tools"
+
+# this is where the files for REPORTDIR are shipped in the tarfile
+export LIVEDIR="./live"
+
+echo ".. checking if files are present"
+$CHECKSWTFILES -preconfig $LIVEDIR
+errorwas=$?
+if [ "$errorwas" != "0" ] ; then
+    echo 1>&2 "$0: ***** failed: $CHECKSWTFILES -preconfig $LIVEDIR"
+    exit 127
+fi
+
+# special case for gzcat, which is built into logextractor2 etc
+whereiszcat=`which zcat`
+whereisgzcat=`which gzcat`
+if test -z "$whereisgzcat"
+then
+    if test -z "$whereiszcat"
+    then
+	echo "$0: ***** ERROR: neither zcat nor gzcat are installed. install gzcat"
+    else
+	echo "$0: ***** ERROR: gzcat is not installed. do 'cd bin; ln -s $whereiszcat gzcat'"
+    fi
+else
+    echo "$0: gzcat is installed (for logextractor2)"
+fi
+
+# ----------------------------------------------------------------
+# has config been run already?  if so, load and present the old answers.
+if test -s CONFIGURE.status
+then
+    # source in CONFIGURE.status
+    . `pwd`/CONFIGURE.status
+    if test -z "$SWTCONFIG" 
+    then
+	{ echo "$0: ***** ERROR: loaded configuration but SWTCONFIG not set" >&2
+	  { (exit 1); exit 1; }; }
+    fi
+    export OLDSTATUS=yes
+    echo "$0: Updating values from old configuration modified $SWTCONFIG"
+else
+    export OLDSTATUS=no
+    echo "$0: New configuration."
+fi
+
+# ----------------------------------------------------------------
+# ask a lot of questions
+# .. if user enters a blank line, set it to the default
+# .. if default is "", ask again until nonblank is entered
+# .. if result is -blank- then we meant ""
+# ----------------------------------------------------------------
+askfor()
+{
+    local thing=""
+    thing="$1"
+    local default=""
+    default="$2"
+    local oldval=""
+    oldval="$3"
+    local readval
+    readval=""
+    test ! -z "$oldval" &&  default="$oldval"
+    while  [ "$readval" = "" ] ; do
+	read -p "$thing ($prompt) [$default] >> " readval
+	test -z "$readval" && readval="$default"
+    done
+    if [ "$readval" = "-blank-" ] ; then
+	readval=""
+    fi
+    export ${thing}="$readval"
+} # askfor
+
+# ask for a value that is one of two choices
+askeither()
+{
+    local thing=""
+    thing="$1"
+    local default=""
+    default="$2"
+    local oldval=""
+    oldval="$3"
+    local alta=""
+    alta="$4"
+    local altb=""
+    altb="$5"
+    local readval
+    readval=""
+    test ! -z "$oldval" &&  default="$oldval"
+    while  [ "$readval" = "" ] ; do
+	read -p "$thing ($prompt) [$default] >> " readval
+	test -z "$readval" &&  readval="$default"
+    done
+    if test "$readval" != "$alta" && test "$readval" != "$altb"
+    then
+	{ echo "$0: ***** ERROR: '$readval' must be '$alta' or '$altb'" >&2
+	  { (exit 1); exit 1; }; }
+     fi
+    export ${thing}=$readval
+} # askeither
+
+# ask for a dirname; if dir does not exist, create it; return absolute path
+askfordir()
+{
+    local thing=""
+    thing="$1"
+    local default=""
+    default="$2"
+    local oldval=""
+    oldval="$3"
+    local readval
+    readval=""
+    local errorwas
+    test ! -z "$oldval" &&  default="$oldval"
+    while  [ "$readval" = "" ] ; do
+	read -p "$thing ($prompt) [$default] >> " readval
+	test -z "$readval" &&  readval="$default"
+    done
+    local curdir=`pwd`
+    local newdir=""
+    newdir=$readval
+    # ensure that newdir is an absolute path or is relative to homedir
+    echo "$newdir" | grep "^/" > /dev/null
+    errorwas=$?
+    test $errorwas != 0 && newdir=$HOME/$newdir
+    # create the directory if it does not exist
+    errorwas=0
+    test -d $newdir || mkdir $newdir
+    errorwas=$?
+    if test $errorwas != 0
+    then
+	{ echo "$0: ***** ERROR: could not create $newdir" >&2
+	    { (exit 1); exit 1; }; }
+    fi
+    cd $curdir
+    export ${thing}=$newdir
+} # askfordir
+
+# ask for a dirname; if dir does not exist, create it; return absolute path
+askforwriteabledir()
+{
+    local thing=""
+    thing="$1"
+    local default=""
+    default="$2"
+    local oldval=""
+    oldval="$3"
+    local readval
+    readval=""
+    local errorwas
+    test ! -z "$oldval" &&  default="$oldval"
+    while  [ "$readval" = "" ] ; do
+	read -p "$thing ($prompt) [$default] >> " readval
+	test -z "$readval" &&  readval="$default"
+    done
+    local curdir=`pwd`
+    local newdir=""
+    newdir=$readval
+    # ensure that newdir is an absolute path or is relative to homedir
+    echo "$newdir" | grep "^/" > /dev/null
+    errorwas=$?
+    test $errorwas != 0 && newdir=$HOME/$newdir
+    # create the directory if it does not exist
+    errorwas=0
+    test -d $newdir || mkdir $newdir
+    errorwas=$?
+    if test $errorwas != 0
+    then
+	{ echo "$0: ***** ERROR: could not create $newdir" >&2
+	    { (exit 1); exit 1; }; }
+    fi
+    # if cannot create a file in dir, die
+    cd $newdir
+    touch testfile
+    if test ! -f testfile
+    then
+	{ echo "$0: ***** ERROR: $newdir not writeable" >&2
+	    { (exit 1); exit 1; }; }
+    fi
+    rm testfile
+    cd $curdir
+    export ${thing}=$newdir
+} # askforwriteabledir
+
+# ask for a dirname; if dir does not exist, fuss and ask again
+askforexistingdir()
+{
+    local thing=""
+    thing="$1"
+    local default=""
+    default="$2"
+    local oldval=""
+    oldval="$3"
+    local readval
+    readval=""
+    local errorwas
+    loop=1
+    while [ "$loop" = "1" ] ; do
+	test ! -z "$oldval" &&  default="$oldval"
+	while  [ "$readval" = "" ] ; do
+	    read -p "$thing ($prompt) [$default] >> " readval
+	    test -z "$readval" &&  readval="$default"
+	done
+	local curdir=`pwd`
+	local newdir=""
+	newdir=$readval
+	# ensure that newdir is an absolute path or is relative to homedir
+	echo "$newdir" | grep "^/" > /dev/null
+	errorwas=$?
+	test $errorwas != 0 && newdir=$HOME/$newdir
+	# test whether the directory exists
+	if [ ! -d $newdir ] ; then
+	    echo "*** $newdir does not exist"
+	else
+	    loop=0
+	fi
+    done
+    cd $newdir
+    touch testfile
+    if test ! -f testfile
+    then
+	{ echo "$0: ***** ERROR: $newdir not writeable" >&2
+	    { (exit 1); exit 1; }; }
+    fi
+    rm testfile
+    cd $curdir
+    export ${thing}=$newdir
+} # askforexistingdir
+
+# ================================================================
+# constants
+
+export SWTTABLES="wtcumfile wtcumgoog wtcumpath wtcumquery wtcumref wtdayhist wtlog wtsrhist wtdomhist wtyquerywords"
+
+# ================================================================
+# if .my.cnf exists, use it to set some vars
+user="root"
+password="9"
+host="localhost"
+database="mydatabase"
+if test -f $HOME/.my.cnf
+then
+    echo "$0: using $HOME/.my.cnf for initial MySQL defaults"
+    grep "=" $HOME/.my.cnf > CONFIGURE.tempvars
+    # Ubuntu sucks
+    . `pwd`/CONFIGURE.tempvars
+    rm -f CONFIGURE.tempvars
+fi
+#### expand
+echo "----------------------------------------------------------------"
+# default values for database may have come from old CONFIGURE.status, which was sourced in
+echo "$0: Default values are in [brackets], just hit return to accept."
+
+export prompt="Directory path to install the Super Webtrax code?"
+askforwriteabledir "PROGRAMDIR" "$HOME/swt" "$PROGRAMDIR"
+
+export prompt="Directory path where swtconfig.htmi will be installed?"
+askfor "CONFIGFILEDIR" "$PROGRAMDIR" "$CONFIGFILEDIR"
+
+export prompt="Directory path where temp data will be written?"
+askforwriteabledir "DATADIR" "$PROGRAMDIR" "$DATADIR"
+
+export prompt="Directory path where executable tools are kept?"
+askfor "TOOLSDIR" "./tools" "$TOOLSDIR"
+
+export prompt="tool for checking files present?"
+askfor "CHECKSWTFILES" "$TOOLSDIR/checkswtfiles" "$CHECKSWTFILES"
+
+export prompt="Directory where report web files will be viewed?"  # must exist
+askforexistingdir "REPORTDIR" "$HOME/public_html/urpt" "$REPORTDIR"
+
+# these pathnames are platform and OS dependent
+export MYSQLPATH=`which mysql`
+if [ "$MYSQLPATH" = "" ] ; then
+    export prompt="Pathname of mysql command?"
+    askfor "MYSQLPATH" "/usr/local/mysql/bin/mysql" "$MYSQLPATH"
+fi
+
+export MYSQLDUMPPATH=`which mysqldump`
+if [ "$MYSQLDUMPPATH" = "" ] ; then
+    export prompt="Pathname of mysqldump command?"
+    askfor "MYSQLDUMPPATH" "/usr/local/mysql/bin/mysqldump" "$MYSQLDUMPPATH"
+fi
+
+# defaults for MySQL params come from $HOME/.my.cnf but may be wrong if the user has more than one database, e.g. on Pair
+export prompt="MySQL database name?"
+askfor "SWTDB" "$database" "$SWTDB"
+
+export prompt="MySQL database server domain address? (e.g. db214.example.com or 127.0.0.1)"
+askfor "SWTDBHOST" "$host" "$SWTDBHOST"
+
+export prompt="MySQL database user name?"
+askfor "SWTDBUSER" "$user" "$SWTDBUSER"
+
+export prompt="MySQL database user password?"
+askfor "SWTDBPASS" "$password" "$SWTDBPASS"
+
+# see if MySQL complains about the use of -p on the command line, version 5.6 and on
+rm -f sqlerrormessage
+$MYSQLPATH -u$SWTDBUSER -p$SWTDBPASS -h$SWTDBHOST $SWTDB --silent --execute="quit" 2> CONFIGURE.sqlerrormessage
+errorwas=$?
+if [ $errorwas != 0 ] ; then
+    echo "$0: **** error $errorwas trying to execute mysql ($MYSQLPATH)"
+    exit 1
+fi
+if [ -s CONFIGURE.sqlerrormessage ] ; then
+    OLDMYSQL="no"  # if it produces an error message, MySQL is newer than 5.5
+else
+    OLDMYSQL="yes"
+fi
+rm -f CONFIGURE.sqlerrormessage
+
+export prompt="Old MySQL (MySQL < 5.6 does not do --defaults-file correctly)?"
+askfor "OLDMYSQL" "$OLDMYSQL" "$OLDMYSQL"
+
+export prompt="Site Name for statistics report?"
+askfor "SITENAME" "" "$SITENAME"
+
+firstword=`echo $SITENAME | awk '{print $1}'`
+export prompt="Short site Name?"
+askfor "SITEID" "$firstword" "$SITEID"
+
+export prompt="Your domain name? (without www, e.g. 'example.com' -- used to detect local references) (add additional ones by hand)"
+askfor "MYDOMAIN" "" "$MYDOMAIN"
+
+export LOGFILEPREFIX=`echo "$MYDOMAIN" | sed -e 's/\..*$//'`
+export prompt="Additional domain names (without www), space separated?"
+askfor "XDOMAINS" "-blank-" "$XDOMAINS"
+
+# get parameters needed to create the cron job
+export prompt="daily log file or running?"
+askeither "LOGMETHOD" "daily" "$LOGMETHOD" "daily" "running"
+if test $LOGMETHOD != "daily"
+then
+    echo "$0: ***** WARNING: LOGMETHOD 'running' requires hand editing of cronjob to extract one day's records"
+fi
+
+# Sometimes one combines logs from multiple domains using 'logmerge' -- could be from different systems if clocks are sync'd.
+# really complex log merges may require upxtream processing and sorting.
+export prompt="combining website logs from multiple domains?"
+askeither "COMBLOGS" "no" "$COMBLOGS" "yes" "no"
+
+# logextractor2 can do reverse DNS if the ISP has not already done it.
+export prompt="do reverse DNS?"
+askeither "REVERSEDNS" "yes" "$REVERSEDNS" "yes" "no"
+export prompt="do GeoIP?"
+# optional geolocation database from https://download.maxmind.com/app/geoip_download?edition_id=GeoLite2-City
+askeither "GEOIP" "yes" "$GEOIP" "yes" "no"
+if test $GEOIP = "yes"
+then
+    echo " .. you must have a MaxMind account to fetch https://download.maxmind.com/app/geoip_download?edition_id=GeoLite2-City"
+    echo " .. see https://dev.maxmind.com/geoip/geoip2/geolite2/"
+    export prompt="Directory pathname where GeoLite2-City.mmdb is found?"
+    askfordir "GEOIPDATADIR" "$HOME/lib" "$GEOIPDATADIR"
+    zz=`perldoc -lm Try::Tiny | sed 's/^No module.*$//'`
+    if [ "$zz" = "" ] ; then
+	echo "$0: ***** WARNING: Perl module Try::Tiny not installed, needed for GeoIP. Use CPAN."
+    fi
+    zz=`perldoc -lm GeoIP2::Database::Reader | sed 's/^No module.*$//'`
+    if [ "$zz" = "" ] ; then
+	echo "$0: ***** WARNING: Perl module GeoIP2::Database::Reader not installed, needed for GeoIP. use CPAN."
+    fi
+    zz=`perldoc -lm MaxMind::DB::Reader::XS | sed 's/^No module.*$//'`
+    if [ "$zz" = "" ] ; then
+	echo "$0: ***** WARNING: Perl module MaxMind::DB::Reader::XS not installed. also needs https://github.com/maxmind/libmaxminddb"
+    fi
+fi
+
+export prompt="directory where new log file is put by ISP?"
+askforwriteabledir "RAWLOGS" "$HOME/www_logs" "$RAWLOGS"
+export prompt="directory where to put bad log files?"
+askforwriteabledir "BADLOGS" "$HOME/badlogs" "$BADLOGS"
+export prompt="directory where to put processed log files?"
+askforwriteabledir "DONELOGS" "$HOME/donelogs" "$DONELOGS"
+
+# write out CONFIGURE.status so if we fail below, we can edit the config file instead of starting over
+echo "----------------------------------------------------------------"
+SWTCONFIG=`date`
+echo "$0: Writing configuration answers to new CONFIGURE.status for install, and for next time."
+errorwas=$?
+if [ $errorwas != 0 ] ; then
+    echo "$0: **** error $errorwas trying to expand CONFIGURE.checkshell.htmt"
+    exit 1
+fi
+echo "export SWTCONFIG=\"$SWTCONFIG\"" > CONFIGURE.status
+echo "export SWTDB=\"$SWTDB\"" >> CONFIGURE.status
+echo "export SWTDBHOST=\"$SWTDBHOST\"" >> CONFIGURE.status
+echo "export SWTDBUSER=\"$SWTDBUSER\"" >> CONFIGURE.status
+echo "export SWTDBPASS=\"$SWTDBPASS\"" >> CONFIGURE.status
+echo "export OLDMYSQL=\"$OLDMYSQL\"" >> CONFIGURE.status
+echo "export SITENAME=\"$SITENAME\"" >> CONFIGURE.status
+echo "export SITEID=\"$SITEID\"" >> CONFIGURE.status
+echo "export REPORTDIR=\"$REPORTDIR\"" >> CONFIGURE.status
+echo "export PROGRAMDIR=\"$PROGRAMDIR\"" >> CONFIGURE.status
+echo "export CONFIGFILEDIR=\"$CONFIGFILEDIR\"" >> CONFIGURE.status
+echo "export DATADIR=\"$DATADIR\"" >> CONFIGURE.status
+echo "export TOOLSDIR=\"$TOOLSDIR\"" >> CONFIGURE.status
+echo "export CHECKSWTFILES=\"$CHECKSWTFILES\"" >> CONFIGURE.status
+echo "export LIVEDIR=\"$LIVEDIR\"" >> CONFIGURE.status
+echo "export MYDOMAIN=\"$MYDOMAIN\"" >> CONFIGURE.status
+echo "export XDOMAINS=\"$XDOMAINS\"" >> CONFIGURE.status
+echo "export MYSQLPATH=\"$MYSQLPATH\"" >> CONFIGURE.status
+echo "export MYSQLDUMPPATH=\"$MYSQLDUMPPATH\"" >> CONFIGURE.status
+echo "export LOGMETHOD=\"$LOGMETHOD\"" >> CONFIGURE.status
+echo "export COMBLOGS=\"$COMBLOGS\"" >> CONFIGURE.status
+echo "export REVERSEDNS=\"$REVERSEDNS\"" >> CONFIGURE.status
+echo "export GEOIP=\"$GEOIP\"" >> CONFIGURE.status
+echo "export GEOIPDATADIR=\"$GEOIPDATADIR\"" >> CONFIGURE.status
+echo "export RAWLOGS=\"$RAWLOGS\"" >> CONFIGURE.status
+echo "export BADLOGS=\"$BADLOGS\"" >> CONFIGURE.status
+echo "export DONELOGS=\"$DONELOGS\"" >> CONFIGURE.status
+echo "export SWTTABLES=\"$SWTTABLES\"" >> CONFIGURE.status
+
+# Make sure that all the vars that must be set are here.  They were just asked for above.
+export BAD=""
+test -z "$SWTCONFIG" && export BAD="$BAD SWTCONFIG"
+test -z "$SWTDB" && export BAD="$BAD SWTDB"
+test -z "$SWTDBHOST" && export BAD="$BAD SWTDBHOST"
+test -z "$SWTDBUSER" && export BAD="$BAD SWTDBUSER"
+test -z "$SWTDBPASS" && export BAD="$BAD SWTDBPASS"
+test -z "$OLDMYSQL" && export BAD="$BAD OLDMYSQL"
+test -z "$SITENAME" && export BAD="$BAD SITENAME"
+test -z "$SITEID" && export BAD="$BAD SITEID"
+test -z "$REPORTDIR" && export BAD="$BAD REPORTDIR"
+test -z "$PROGRAMDIR" && export BAD="$BAD PROGRAMDIR"
+test -z "$CONFIGFILEDIR" && export BAD="$BAD CONFIGFILEDIR"
+test -z "$DATADIR" && export BAD="$BAD DATADIR"
+test -z "$TOOLSDIR" && export BAD="$BAD TOOLSDIR"
+test -z "$LIVEDIR" && export BAD="$BAD LIVEDIR"
+test -z "$MYDOMAIN" && export BAD="$BAD MYDOMAIN"
+# $XDOMAINS may be empty, dft is -blank
+test -z "$MYSQLPATH" && export BAD="$BAD MYSQLPATH"
+test -z "$MYSQLDUMPPATH" && export BAD="$BAD MYSQLDUMPPATH"
+test -z "$LOGMETHOD" && export BAD="$BAD LOGMETHOD"
+test -z "$COMBLOGS" && export BAD="$BAD COMBLOGS"
+test -z "$REVERSEDNS" && export BAD="$BAD REVERSEDNS"
+test -z "$GEOIP" && export BAD="$BAD GEOIP"
+test ! -z "$GEOIP" && test -z "$GEOIPDATADIR" && export BAD="$BAD GEOIPDATADIR"
+test -z "$RAWLOGS" && export BAD="$BAD RAWLOGS"
+test -z "$BADLOGS" && export BAD="$BAD BADLOGS"
+test -z "$DONELOGS" && export BAD="$BAD DONELOGS"
+test -z "$SWTTABLES" && export BAD="$BAD SWTTABLES"
+if test ! -z "$BAD"
+then
+   { echo "$0: internal error: $BAD not set" >&2
+   { (exit 1); exit 1; }; }
+fi
+
+echo "================================================================"
+echo "$0: testing that mysql can create and load tables..."
+echo "DROP TABLE IF EXISTS swttest;" > CONFIGURE.temp.sql
+echo "CREATE TABLE swttest(" >> CONFIGURE.temp.sql
+echo " hee BIGINT PRIMARY KEY" >> CONFIGURE.temp.sql
+echo ");" >> CONFIGURE.temp.sql
+echo "INSERT INTO swttest VALUES" >> CONFIGURE.temp.sql
+echo "(5);" >> CONFIGURE.temp.sql
+$MYSQLPATH -h$SWTDBHOST -u$SWTDBUSER -p$SWTDBPASS $SWTDB --execute="source CONFIGURE.temp.sql"
+errorwas=$?
+if test $errorwas != 0
+then
+   echo 1>&2 "$0: ***** ERROR: $errorwas from mysql -h$SWTDBHOST -u$SWTDBUSER -p$SWTDBPASS $SWTDB --execute=\"source CONFIGURE.temp.sql\""
+   exit 127
+else
+    message "mysql works"
+fi
+# ok, clean up
+rm CONFIGURE.temp.sql
+#
+echo "================================================================"
+echo "$0: testing that expandfile can expand a template..."
+rm -f swtconfig.htmi
+expandfile CONFIGURE.swtconfig.htmi.tpt > swtconfig.htmi
+errorwas=$?
+if test $errorwas != 0
+then
+   echo 1>&2 "$0: ***** ERROR: $errorwas from expandfile CONFIGURE.swtconfig.htmi.tpt > swtconfig.htmi"
+   echo 1>&2 "**** .. if message is cant locate expandfile.pm in @INC then set $PERL5LIB in user config"
+   exit 127
+fi
+if test ! -s swtconfig.htmi  # if the config file is not-nonzero-length, ie is zero length,
+then
+   echo 1>&2 "$0: ***** ERROR: expandfile CONFIGURE.swtconfig.htmi.tpt > swtconfig.htmi created zero length file"
+   exit 127
+fi
+if test ! -e swtconfig.htmi
+then
+   echo 1>&2 "$0: ***** ERROR: expandfile CONFIGURE.swtconfig.htmi.tpt > swtconfig.htmi created no output"
+   exit 127
+else
+    message "$0: expandfile creates output OK"
+fi
+
+# this has a password in it, make sure it is private
+chmod 400 swtconfig.htmi
+
+echo "================================================================"
+echo "$0: Testing that expandfile works with mysql, using a nested select to make sure that feature works..."
+expandfile CONFIGURE.checkshell.htmt
+rm -f CONFIGURE.testexpandfilesql.htmt
+echo "%[*set,&x,=0 ]%" > CONFIGURE.testexpandfilesql.htmt
+echo "%[*block,&iter,END]%" >> CONFIGURE.testexpandfilesql.htmt
+echo "%[*if,eq,.hoo,=5,*set,&x,=1]%" >> CONFIGURE.testexpandfilesql.htmt
+echo "Testing expandfile and SQL. This should equal 5: %[.hoo]%" >> CONFIGURE.testexpandfilesql.htmt
+echo "END" >> CONFIGURE.testexpandfilesql.htmt
+echo "%[*sqlloop,&y,iter,=\"SELECT MAX(x.a) AS hoo FROM (SELECT hee AS a FROM swttest) AS x\"]%" >> CONFIGURE.testexpandfilesql.htmt
+echo "%[y]%" >> CONFIGURE.testexpandfilesql.htmt
+echo "%[*if,eq,x,=1,*fwrite,=CONFIGURE.answer.txt,x]%" >> CONFIGURE.testexpandfilesql.htmt
+rm -f CONFIGURE.answer.txt
+# this will print a line, and write a file if it succeeds.
+expandfile swtconfig.htmi CONFIGURE.testexpandfilesql.htmt
+if test ! -r CONFIGURE.answer.txt
+then
+   # expandfile failed
+   rm -f CONFIGURE.answer.txt
+   { echo "$0: ***** ERROR: expandfile is misconfigured or broken, or your mysql does not support nested select" >&2
+   { (exit 1); exit 1; }; }
+else
+    message "$0: expandfile with mysql seems to work"
+fi
+rm -f CONFIGURE.answer.txt CONFIGURE.testexpandfilesql.htmt
+
+echo "================================================================"
+echo "$0: testing whether logextractor2 works"
+touch CONFIGURE.zero.length
+if test $GEOIP != "no"
+then
+    rm -f CONFIGURE.zero.length2
+    if [ -f $GEOIPDATADIR/GeoLite2-City.mmdb ] ; then
+	logextractor2 -geoipcity $GEOIPDATADIR/GeoIPCity.datGeoLite2-City.mmdb -day all CONFIGURE.zero.length > CONFIGURE.zero.length2
+    else
+	echo "$0: ***** WARNING: No GeoLite2-City.mmdb in $GEOIPDATADIR, tested logextractor2 without geoip"
+	logextractor2 -day all CONFIGURE.zero.length > CONFIGURE.zero.length2
+    fi
+else
+    rm -f CONFIGURE.zero.length2
+    logextractor2 -day all CONFIGURE.zero.length > CONFIGURE.zero.length2
+fi
+errorwas=$?
+rm CONFIGURE.zero.length CONFIGURE.zero.length2
+if [ $errorwas != 0 ] ; then
+   # logextractor2 failed
+   { echo "$0: ***** ERROR: logextractor2 failed with error $errorwas. MaxMind::DB::Reader::XS may not be installed." >&2
+   { (exit 1); exit 1; }; }
+else
+    message "logextractor2 is ok"
+fi
+
+echo "================================================================"
+
+message "generating configuration files from templates"
+#
+#expandfile swtconfig.htmi CONFIGURE.swtconfig.htmi.tpt > swtconfig.htmi ... did this above
+
+################ move this file to home dir?  no, then you can't have more than one SWT instance
+
+# uses $MYSQLPATH $MYSQLDUMPPATH $SWTDBHOST $SWTDBUSER $SWTDBPASS $SWTDB
+# expandfile CONFIGURE.checkshell.htmt
+
+echo "$0: .. generating sql.cnf"
+rm -f sql.cnf mysqlload mysqlrun mys mysqldumpcum
+expandfile swtconfig.htmi CONFIGURE.sqlcnf.tpt > sql.cnf
+chmod 400 sql.cnf
+
+echo "$0: .. generating mysqlload mys msqlrun mysqldumpcum in tools/"
+if [ "$OLDMYSQL" = "yes" ] ; then
+    echo "$0: old style SQL OLDMYSQL=$OLDMYSQL"
+    expandfile swtconfig.htmi CONFIGURE.oldmysqlload.tpt > tools/mysqlload
+    expandfile swtconfig.htmi CONFIGURE.oldmysqlrun.tpt > tools/mysqlrun
+    expandfile swtconfig.htmi CONFIGURE.oldmys.tpt > tools/mys
+    expandfile swtconfig.htmi CONFIGURE.oldmysqldumpcum.tpt > tools/mysqldumpcum
+else
+    echo "$0: new style SQL OLDMYSQL=$OLDMYSQL"
+    expandfile swtconfig.htmi CONFIGURE.mysqlload.tpt > tools/mysqlload
+    expandfile swtconfig.htmi CONFIGURE.mysqlrun.tpt > tools/mysqlrun
+    expandfile swtconfig.htmi CONFIGURE.mys.tpt > tools/mys
+    expandfile swtconfig.htmi CONFIGURE.mysqldumpcum.tpt > tools/mysqldumpcum
+fi
+# need x permission, may contain passwords, secure correctly
+chmod 500 tools/mysqlload tools/mysqldumpcum tools/mysqlrun tools/mys
+
+# uses $MYDOMAIN, $SITENAME, $SITEID, $CONFIGFILEDIR, $PROGRAMDIR, $DATADIR, $XDOMAINS
+echo "$0: .. generating swt-user.sql"
+expandfile swtconfig.htmi CONFIGURE.swt-user-sql.tpt > swt-user.sql
+if [ ! "$XDOMAINS" = "" ] ; then
+    echo "$0: **** edit swt-user.sql to add visit classes for $XDOMAINS ****"
+fi
+
+# generate the cronjob
+if [ "$COMBLOGS" = "yes" ] ; then
+    echo "$0: .. generating swtcronjob2.sh combinelogs.conf"
+    rm -f swtcronjob2.sh combinelogs.conf
+    expandfile swtconfig.htmi CONFIGURE.combining-cronjob.tpt > swtcronjob2.sh
+    expandfile swtconfig.htmi CONFIGURE.combinelogs-conf.tpt > combinelogs.conf
+    echo "$0: **** edit combinelogs.conf to add any additional domains, and swtcronjob2.sh to add discarded domains in LOGFILESTAR ****"
+else
+    echo "$0: .. generating swtcronjob2.sh"
+    rm -f swtcronjob2.sh
+    expandfile swtconfig.htmi CONFIGURE.cronjob.tpt > swtcronjob2.sh
+fi
+
+chmod +x swtcronjob2.sh
+
+message "$0: generated sql.cnf mysqlload mys msqlrun mysqldumpcum swt-user.sql swtcronjob2.sh"
+
+# ----------------------------------------------------------------
+# generate a check script for the existence of the tables. Uses SWTDB and SWTTABLES.  Will be executed by install.
+echo "$0: .. generating CONFIGURE.check-tables.sql"
+expandfile swtconfig.htmi CONFIGURE.check-tables.tpt > CONFIGURE.check-tables.sql
+
+# ----------------------------------------------------------------
+# generate geoip2.sh.  Uses MAXMIND_LICENSE_KEY
+if test $GEOIP = "yes"
+then
+    message "generating tools/geoip2.sh"
+    # if the license key is not set in shell config, set it
+    test -z "$MAXMIND_LICENSE_KEY" && export MAXMIND_LICENSE_KEY="MAXMIND_LICENSE_KEY"
+    expandfile swtconfig.htmi CONFIGURE.geoip2.sh.tpt > tools/geoip2.sh
+    chmod +x tools/geoip2.sh
+    # if the license key is the default, remind user to get a real one
+    if [ "$MAXMIND_LICENSE_KEY" = "MAXMIND_LICENSE_KEY" ] ; then
+	echo "***** edit tools/geoip2.sh to replace MAXMIND_LICENSE_KEY, see https://dev.maxmind.com/geoip/geoip2/geolite2/"
+    fi
+fi
+
+echo "----------------------------------------------------------------"
+message "Configuration done. To install, do  ./install"
+
+# end
+#  Permission is hereby granted, free of charge, to any person obtaining
+#  a copy of this software and associated documentation files (the
+#  "Software"), to deal in the Software without restriction, including
+#  without limitation the rights to use, copy, modify, merge, publish,
+#  distribute, sublicense, and/or sell copies of the Software, and to
+#  permit persons to whom the Software is furnished to do so, subject to
+#  the following conditions:
+
+#  The above copyright notice and this permission notice shall be included
+#  in all copies or substantial portions of the Software.
+
+#  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+#  EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+#  MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+#  IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+#  CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+#  TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+#  SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. 

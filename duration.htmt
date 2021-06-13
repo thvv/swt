@@ -1,0 +1,81 @@
+%[** Horizontal bar graph for session duration: domain, hits, page views, KB, duration, bars colored by vc **]%
+%[** .. assumes that this is a descending chart, ie that row 1 is the longest bar **]%
+%[** Parameters **]%
+%[** - nameanchor - report name (used for getting query) **]%
+%[** - charttitle - graph title **]%
+%[** - subtitle - graph subtitle **]%
+%[** - %[nameanchor]%_label1var - varname for label col1 **]%
+%[** - %[nameanchor]%_label1t - title for label col1 - Hits **]%
+%[** - %[nameanchor]%_col1v - varname for column 1 **]%
+%[** - %[nameanchor]%_col1t - title for column 1 **]%
+%[** - %[nameanchor]%_col1s - scale for column 1 **]%
+%[** - %[nameanchor]%_col2v - varname for column 2 **]%
+%[** - %[nameanchor]%_col2t - title for column 2 - HTML **]%
+%[** - %[nameanchor]%_col2s - scale for column 2 **]%
+%[** - %[nameanchor]%_col3v - varname for column 3 - KB **]%
+%[** - %[nameanchor]%_col3t - title for column 3 **]%
+%[** - %[nameanchor]%_col3s - scale for column 3 **]%
+%[** - %[nameanchor]%_col4v - varname for column 4 (in seconds) - this is bar graphed  **]%
+%[** - %[nameanchor]%_col4t - title for column 4 **]%
+%[** - %[nameanchor]%_rowcolor - color for the row **]%
+%[** - %[nameanchor]%_bartitle - title for the row **]%
+%[** - %[nameanchor]%_legendcolor - legend color var **]%
+%[** - %[nameanchor]%_legendname - legend name var **]%
+%[** - glb_bar_graph_width - global width in pixels for bar graph **]%
+%[**  **]%
+%[** Written 2006-2020 by Tom Van Vleck **]%
+%[**  THVV 04/20/06 **]%
+%[**  THVV 06/27/06 color bar by visitclass, instead of showing it as a column **]%
+%[**  THVV 08/13/06 long and short **]%
+%[**  THVV 08/18/06 fetch query from sql **]%
+%[**  THVV 12/04/06 fix typo in col3s **]%
+%[**  THVV 09/13/07 call trimdomain **]%
+%[**  THVV 03/15/16 fix bar title to be the number **]%
+%[**  THVV 09/18/20 expandfile3 **]%
+%[** ================================================================ **]%
+%[*include,=wtxmacros.htmi]%
+%[*set,&s00,=""]%
+%[*set,&fullscale,=""]%
+%[*if,ne,subtitle,="",*expandv,&s00,subtitle]%
+%[*callv,getquery,nameanchor,="queryduration"]%
+%[*sqlloop,&chartout,chartiter,x0]%
+%[*callv,getquery,nameanchor,="legendquery"]%
+%[*sqlloop,&legend,legenditer,x0]%
+%[** ================================================================ **]%
+%[*block,&chartiter,^END$]%
+%[*if,eq,fullscale,="",*set,&fullscale,%[%[nameanchor]%_col4v]%]%
+%[*quotient,&x,%[%[nameanchor]%_col1v]%,%[nameanchor]%_col1s]%
+%[*quotient,&y,%[%[nameanchor]%_col2v]%,%[nameanchor]%_col2s]%
+%[*quotient,&z,%[%[nameanchor]%_col3v]%,%[nameanchor]%_col3s]%
+%[*set,&w,%[%[nameanchor]%_col4v]%]%
+%[*scale,&w1,w,fullscale,glb_bar_graph_width]%
+%[*callv,formatsecs,w]%
+%[*set,&hhmmss,x0]%
+%[*set,&name,%[%[nameanchor]%_label1var]%]%
+%[*callv,trimdomain,=name]%
+%[*if,eq,fn,="",*set,&ft,hhmmss]%
+%[*if,eq,fn,="",*set,&f3,z]%
+%[*if,eq,fn,="",*set,&f2,y]%
+%[*if,eq,fn,="",*set,&f1,x]%
+%[*if,eq,fn,="",*set,&fn,name]%
+    <tr><td>%[name]%</td><td class="numcol">%[x]%</td><td class="numcol">%[y]%</td><td class="numcol">%[z]%</td><td class="numcol">%[hhmmss]%</td><td><img src="%[%[%[nameanchor]%_rowcolor]%]%" title="%[w]%" alt="" width=%[w1]% height=%[glb_bar_graph_height]%></td></tr>
+END
+%[** ---------------------------------------------------------------- **]%
+%[*block,&legenditer,^END]%
+%[*set,&lv,%[%[nameanchor]%_legendname]%]%
+%[*if,eq,lv,="",*set,&lv,="(none)"]%
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<img src=%[%[%[nameanchor]%_legendcolor]%]% alt="" width="%[glb_bar_graph_height]%" height="%[glb_bar_graph_height]%"> %[lv]%
+END
+%[** ================================================================ **]%
+%[*include,=rptheader.htmi]%
+<div class="chart%[longhidden]%" id="%[nameanchor]%_a1">
+%[*if,ne,s00,="",*expand,="<p class=\"subtitle\">%[s00]%</p>"]%
+  <table>
+    <tr><th>%[%[%[nameanchor]%_label1tv]%]%</th><th class="numcol">%[%[%[nameanchor]%_col1tv]%]%</th><th class="numcol">%[%[%[nameanchor]%_col2tv]%]%</th><th class="numcol">%[%[%[nameanchor]%_col3tv]%]%</th><th class="numcol">%[%[%[nameanchor]%_col4tv]%]%</th><th></th></tr>
+    <tr><th>%[%[nameanchor]%_label1t]%</th><th class="numcol">%[%[nameanchor]%_col1t]%</th><th class="numcol">%[%[nameanchor]%_col2t]%</th><th class="numcol">%[%[nameanchor]%_col3t]%</th><th class="numcol">%[%[nameanchor]%_col4t]%</th><th class="legendbar">%[legend]%</th></tr>
+%[chartout]%
+  </table>
+</div>
+<div class="short%[shorthidden]%" id="%[nameanchor]%_a2">
+  <p>%[%[%[nameanchor]%_label1tv]%]% %[%[nameanchor]%_label1t]%, %[%[%[nameanchor]%_col1tv]%]% %[%[nameanchor]%_col1t]%, %[%[%[nameanchor]%_col2tv]%]% %[%[nameanchor]%_col2t]%, %[%[%[nameanchor]%_col3tv]%]% %[%[nameanchor]%_col3t]%; <b>%[fn]% %[f1]% %[%[nameanchor]%_col1t]%, %[f2]% %[%[nameanchor]%_col2t]%, %[f3]% %[%[nameanchor]%_col3t]%, %[ft]%</b></p>
+</div>

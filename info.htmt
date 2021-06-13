@@ -1,0 +1,759 @@
+%[** Internal info for Super Webtrax **]%
+%[**  **]%
+%[** Notes displayed when user clicks "info" in the header nav bar.  Bug lists, todos, features etc. **]%
+%[**  **]%
+%[** Written 2006-2021, Tom Van Vleck **]%
+%[**  THVV 04/20/06 **]%
+%[**  THVV 08/18/06 - fetch query from sql **]%
+%[**  THVV 12/12/10 - use Javascript instead of java **]%
+%[**  THVV 04/08/21 - clean up **]%
+%[** ================================================================ **]%
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<title>Super Webtrax</title>
+<meta name="robots" content ="noindex,nofollow">
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<link rel="stylesheet" type="text/css" href="%[stylesheet]%">
+</head>
+<body>
+<h1>Super Webtrax</h1>
+
+<p class="details">Updated: %[timestamp]%</p>
+<p class="details">Version %[*include,=vnfile]%</p>
+<p>Super Webtrax produces formatted reports from a web server log.</p>
+<p>This program is currently under development and <b>BETA TEST</b>. Expect bugs and rough edges. </p>
+<p>Program and information 2006-%[year]% by Tom Van Vleck </p>
+
+<!-- ================================================================ -->
+<h2>Features</h2>
+
+<h3>Webtrax Features removed from Super Webtrax</h3>
+<ul>
+  <li>webtrax can produce a plaintext report and mail it; Super Webtrax does not.</li>
+  <li>webtrax remembers which name anchor in a file was hit in YTD files, Super Webtrax does not.</li>
+  <li>webtrax couputes (inaccurately) "hits caused" and "KB caused", Super Webtrax does not.</li>
+</ul>
+
+<h3>Features that are different from Webtrax in Super Webtrax</h3>
+<ul>
+  <li>Super Webtrax uses less memory and CPU, and uses an SQL database to store data and configuration.</li>
+  <li>Numbers reported by Super Webtrax are more accurate and consistent.</li>
+  <li>Super Webtrax data is more consistently sanitized against XSS attacks.</li>
+  <li>It is easier to add a new report or modify a report format.</li>
+  <li>Super Webtrax visit class assignment comes up with single answer.</li>
+  <li>Cumulative total hits in headline.</li>
+  <li>Added day of week to month summary, striped bars by html/graphic/other.</li>
+  <li>Some analysis terms are changed, some added, some removed, more consistent.</li>
+  <li>Pie charts show actual counts as well as percentages, and they are smaller.</li>
+  <li>Default pie charts for browser and platform exclude indexers.</li>
+  <li>Outputs bar charts instead of name listing for file types other than HTML.</li>
+  <li>Illegal referrer report has KB and barchart.</li>
+  <li>Access by hour shows hits and KB but not visits.</li>
+  <li>Access by hour is vertical bars.</li>
+  <li>Access by hour is striped by html/graphic/other instead of hit source.</li>
+  <li>Visitor chart shows days since previous visit.</li>
+  <li>TLD and browser charts are striped by visitclass, class chart is striped by source.</li>
+  <li>Query, search engine and referring URL charts do not have a visits column (was inaccurate anyway).</li>
+  <li>Referring URL chart shows new referrers in red, watched referrers in olive.</li>
+  <li>Browser report shows type/platform.</li>
+  <li>Percentages added to verb and retcode tables.</li>
+  <li>Improved visit details:
+    <ul>
+      <li>Visitor's domain name shown in color on first visit.</li>
+      <li>Configuragle interface for deciding which visits to show detail.</li>
+      <li>Short report shows visits with new referrers and watched files only.</li>
+    </ul>
+  </li>
+  <li>Cumulative hit chart shows domain, not just TLD, and shows DSLV.</li>
+</ul>
+
+<h3>New features in Super Webtrax</h3>
+<ul>
+  <li>Super Webtrax reports are shown initially in a short form, with a control to click to show the long one.</li>
+  <li>75 new pie charts.</li>
+  <li>15 new charts and reports, as follows:
+    <ul>
+      <li>Bar chart of visits by duration (suggested by Ben Eden).</li>
+      <li>Bar chart by hits per visit.</li>
+      <li>Bar chart by page views per visit.</li>
+      <li>Bar chart of local queries.</li>
+      <li>Bar chart of second level domains.</li>
+      <li>Bar chart of third level domains.</li>
+      <li>Report of Forbidden (403) transactions by file and referrer</li>
+      <li>Bar chart of number of visitors versus days since last visit </li>
+      <li>Bar chart of word usage in queries.</li>
+      <li>Bar chart of hits by file size buckets.</li>
+      <li>Bar chart of hits that are attacks on site, either misuse of CGI or known holes.</li>
+      <li>Chart of crawls by Google.</li>
+      <li>Bar chart of cumulative hits by query.</li>
+      <li>Hits for last 12 months vertical bar chart, striped by html/graphic/other.</li>
+      <li>Bar chart of cumulative hits by year.</li>
+      <li>Bar chart of cumulative word usage in queries.</li>
+    </ul>
+  </li>
+  <li>Chart that compares today's usage to yesterday, week ago; month average included in month summary.</li>
+  <li>Generates input to GraphViz for path visualization.</li>
+  <li>Generates report to be included in a dashboard.</li>
+  <li>Generates report with the last 7 days' important reports.</li>
+  <li>Merges "event log" into visit detail listing.</li>
+  <li>Ability to specify that a referrer be watched for and shown in color.</li>
+  <li>Several reports show new visitors in color.</li>
+</ul>
+
+<h3>Super Webtrax weaknesses</h3>
+<ul>
+  <li>User must install more software: SQL, expandfile, etc.</li>
+  <li>More objects to secure; database security has to be done right.</li>
+  <li>More knowledge is needed to tailor output: SQL, HTMx, shell.</li>
+  <li>Configuration is complex, needs to be simplified.</li>
+</ul>
+
+<h2>Facilities required</h2>
+<ul>
+  <li>Perl 5
+    <ul>
+      <li>Tom's HTMx language (expandfile, expandfile.pm, readbindsql.pm, readbindxml.pm)</li>
+    </ul>
+  </li>
+  <li>MySQL (4.1 or better) or equivalent database.  Features used:
+    <ul>
+      <li>Self joins</li>
+      <li>Nested SELECTs</li>
+      <li>ON DUPLICATE KEY UPDATE</li>
+      <li>Perl interface (DBI)</li>
+      <li>Command line interface (mysql)</li>
+      <li>dump (mysqldump)</li>
+    </ul>
+  </li>
+  <li>Shell (need more than DOS provides on Windows, have not tried Cygwin)
+    <ul>
+      <li>Environment variables (many)</li>
+      <li>Functions and includes</li>
+      <li>POSIX functions: date, cut, expr</li>
+      <li>Variable interpolation</li>
+      <li>Backticks</li>
+      <li>eval</li>
+    </ul>
+  </li>
+  <li>GraphViz (optional) </li>
+</ul>
+
+<!-- ================================================================ -->
+<h2>Bugs</h2>
+<ul>
+  <li>H DSPV is 2 when the site visited yesterday in visitors by domain name, should be 1.</li>
+  <li>H keep path, not dir in wtcumfile.  Actually wtcumfile has very confounded data, maybe better to make a new file and dep the old one.
+    - wtcumfile seems to have 404s in it, see below
+    - modify update_wtcumfile to use path, redefine SQL, alter all vars, modify rpt_cumpage to show path
+    - fix up wtcumfile database about those "_index" pre-mappings
+    - modify logvisits.pl to remove hits.dir once nobody needs it
+    - add switch to control trimming of path to get filename (default is OFF) in filetype1.htmt
+    - add switch to printvisitdetail.pl to control trimming of path to get filename (default is OFF)
+  </li>
+  <li>M The hover over bars in NI Visits by duration says "visits.visitclass" not the contents of it.</li>
+  <li>M Hits by local query should ignore 403 and 404.</li>
+  <li>M The width of the refspam segment in filetype1.html is way too high. The select does not do what i think it does.</li>
+  <li>M there may be a problem in printvisitdetail with the last session.</li>
+  <li>M sometimes events are not printed near the end of the report.. other times they come at the top when they should not</li>
+  <li>M when there is only one row, domain name, TLD, hits and page views show nothing in detail report -- fence post error?</li>
+  <li>
+    M if database server goes down mid-report, re-run requires preparing an edited version of swt. But this strategy has flaws.
+    Get funny "bad operator" message from updatetable().  Restarting by re-running initialsetup() wipes the old runstep table.
+    Should create a "rerun-from" variant.
+  </li>
+  <li>M sometimes keeps going when database server goes down mid-report.</li>
+  <li>M configure/install: logextractor, expandfile, expandfile.pm, are distributed in the tarfile and shd be moved to ~/bin. </li>
+  <li>M why does pvd show 12 hits in the visit tail when there were 10 in the visit record?</li>
+  <li>M if a visit has all local referrers, its source is blank.  Maybe this is OK, what should I put instead?</li>
+  <li>L why are varioius Perl programs getting a config file form $HOME instead of the working dir?  maybe it is the cronjob.</li>
+  <li>L should clean up target url by changing /./ to /</li>
+  <li>L configure: get the IP address as well as the domain, and add treat-as-local statements for it... if known</li>
+  <li>L if JavaScript is not enabled, the pie charts letter sequences use the first letter, but this is not unique.. Mozilla and MSIE for example.</li>
+  <li>L Pie charts for MB by file type and TLD look screwy for low usage.  Should probably scale them.</li>
+  <li>L The files crawled by Google report should show total hits in the long form as well as the short.</li>
+  <li>L a session that is all graphics does not show up as a visit</li>
+  <li>L 2ld and 3ld should ignore numeric IPs.. or flip them</li>
+  <li>L wtdomhist had row with blank domain and beg date 0000-00-00, how did this happen</li>
+  <li>L cumdomain report title should say NI visitors</li>
+  <li>L return code report percentage in short report is wrong, had 90% good when long report has 99% 200</li>
+  <li>L time zone problems if you are processing the log in a zone different from the server's?</li>
+  <li>L what are the two entries in swt.sql for "rpt_year".  I think they are spurious.</li>
+  <li>L should I check wtretcodes != 0 or =1 in domain count queries?  Think about this, be consistent.</li>
+  <li>L don't get a short bar if a dir is uncategorized</li>
+  <li>L Why am I showing total bytes for 403 transactions?</li>
+  <li>L there are file names in wtcumfile for nonexistent files, how come, might be old stuff</li>
+  <li>L analysis: html MB and pie chart do not agree? (I think analysis is saying 65%[pct]% of MB come from sessions with some HTML)</li>
+  <li>L the test that suppresses loading of YTD tables should be different; failing after loading the month summary causes errors</li>
+  <li>L attacks report will show CGI calls from planetmirror but these are OK; shd it show referrer?</li>
+  <li>L (gen_swt) if swt is reaped, the recovery may put N lines into wtdayhist -- fixed the reaping error</li>
+  <li>L (gen_swt) if logs are missing, has already generated preamble and cookie</li>
+</ul>
+
+<h2>To Do</h2>
+<ul>
+  <li>M The term "year" is misleading.. actually it is "cumulative" over all time.</li>
+  <li>M For various "visits by" reports, can we show total hits as well as visit count?</li>
+  <li>M Make a special visitclass for visits with no HTML.</li>
+  <li>M For 403 report, aggregate all the attack hits, and show 10 by default.</li>
+  <li>M Add data storage so I can say what (visitclass, browser) increased compared to yesterday.</li>
+  <li>M can we fix translate.google.com referrers?</li>
+  <li>M combine all the search.msnbot domains.</li>
+  <li>M improve formatting of Yahoo searches and Google Translate referrers.</li>
+  <li>L dslvhist fix col titles to have totals.</li>
+  <li>M use fmtnum to put commas every 3 digits in various headings.</li>
+  <li>L add totals for files crawled by Google.</li>
+  <li>M generate a NI hits by access time and have it as an alt report.</li>
+  <li>L recognize queries that are gibberish and don't show.</li>
+  <li>M handle Google referers with no extractable query.. replace it by blank.</li>
+  <li>M cumulative pages for browser, platform, query, etc.</li>
+  <li>L Generalize files crawled by Google report to do more sites (archive.org, baidu, what else).</li>
+  <li>M files crawled by Google shd count unique files, add to header, also put hit count and total KB in long report. also distinguish between 0KB and not</li>
+  <li>M some queries are very slow.  Illegal ref 1462, query 100, engine 100, attacks 275, and details very slow</li>
+  <li>M color the bars for the Repeated Hits chart as to indexer, etc.</li>
+  <li>M fix heading of month summary report.</li>
+  <li>M refspam hack for .ru, .ua, .by should come from config.</li>
+  <li>M Lots of refs via e.g. stumbleupon should be highlighted.</li>
+  <li>M new report for Google Ad words, look for e.g. "gclid=CMLJ6eTvtY4CFRTVXgodsEyQzA"; maybe PVD should also take this out and change color.</li>
+  <li>M still not providing a single quick explanation for why today differs from yesterday.</li>
+  <li>M Rethink geocoding. It is dumb (non-normalized) to put all this stuff on every hit line.
+        make a new geoextractor that creates an additional table with (city,region,postal,lat,lon,dma,ac);
+        add new report that sorts by city; consider Google map report.
+  </li>
+  <li>M build a tool that will recover wtdayhist when we get slashdotted and have multiple entries for a day.</li>
+  <li>M add NI Visitors, count of hits on watched files to the month summary heading and hist. Lotta work: need to update wtglobv table, add rpt_heading queries, fix todayline.htmt and schema for wtdayhist; then fix database and deal with boundary; what other items should be added at the same time? How to normalize?</li>
+  <li>M redo paths table to add dates covered, entry and exit arcs, redo path report to show entry and exit.. tricky though,
+    don't want to show entry and exit unless the node is in the top 100. Showing entry and exit needs N invisible boxes.</li>
+  <li>M Change the table trimming code to trim domains with a minimum number of hits first. This gets 39%[pct]%:
+    SELECT COUNT(*) FROM wtdomhist WHERE DATEDIFF(CURRENT_DATE(), dhlast) > 90 AND (dhbytes < 1000 OR dhvisits < 5);
+    could also test for numeric IPs and discriminate against them since their presence in a report is less useful.
+  </li>
+  <li>M add first/last dates to the update stmts for wtcumfile, wtcumref, wtcumquery, wtcumpath.
+    alter the tables to fill in the dates = today, ni counts = full counts
+  </li>
+  <li>M write a new report, analyze browsers by feature: css, etc.  User specified profile of features => how many supprted.</li>
+  <li>M add sections to swt that run user reports, so private reports don't have to edit swt.</li>
+  <li>L add list of files never crawled by Google (& first crawl date), put last crawl date in analysis. 
+    SELECT ffilename, ffilecnt
+     FROM wtcumfile 
+     WHERE SUBSTRING_INDEX(ffilename,'.',-1) = 'html' AND ffilename NOT IN (SELECT SUBSTRING_INDEX(lgpath,'/',-1) FROM wtcumgoog)
+     ORDER BY ffilecnt DESC LIMIT 20;
+  </li>
+  <li>L Calculate number of HTML pages per NI visit.</li>
+  <li>L if visit classes are missing, temporarily add them.</li>
+  <li>L count events by time bucket and put them in the hour histogram somehow.</li>
+  <li>L in pvd, replace repeated hits on same page with (5X)... but what to do with the time... </li>
+  <li>L if database goes down mid-run, use runstep table to restart.</li>
+  <li>L if no hits by referrer, put in a "no hits" report. Also for illegal referrers.</li>
+  <li>L Visits for an unknown top level dir will not show in domains listing cause inner join fails</li>
+  <li>L remove hack probes from files not found listing.</li>
+  <li>L short report for illref and visitors should not say "domains"</li>
+  <li>L make sqlrowlimit a parameter for logvisits.pl</li>
+  <li>L nicer long report if zero hits: report403.htmt, referrer.htmt, query.htmt, etc</li>
+  <li>L threshold for referrer spam in visitdata.pl s/b parameter, saw one with 3</li>
+  <li>L disabling paths report may need to be done in swtfunct</li>
+  <li>L for DSLV report, add a count of total visitors</li>
+  <li>L in attacks report, query the total and put in short, may be different from number of lines.</li>
+  <li>L add a step to optionally delete the hits and visits table after generating the report</li>
+  <li>L duration report, put visitor in blue if new</li>
+  <li>L should legends say source:.. or class:..</li>
+  <li>L second and third level domains should be NI?</li>
+  <li>L maybe shouldn't add to second and third level domain list if nothing to the left</li>
+  <li>L improve extractquery, url= rarely useful</li>
+  <li>L add category "sucker" for wget etc</li>
+  <li>L modify printvisitdetail.pl to show the count of watched referrers in its summary.</li>
+  <li>L gen a total of nlqueries in header</li>
+  <li>L make browser barchart narrower, also duration</li>
+</ul>
+
+<h2>Ideas</h2>
+
+<h3>content</h3>
+<ul>
+  <li>M How bout a new attacks report summarizing by filename.</li>
+  <li>M Control boring-or-not with TLD or continent.  For me, hits from Russia, China, and India are boring.</li>
+  <li>M Report by day should remember unique pages, unique hosts, errors (~ summary.net).</li>
+  <li>M Report by protocol.</li>
+  <li>M Report by location/type of referrer.</li>
+  <li>M Report by which server did what resources, when there are multiple servers.</li>
+  <li>M Concurrent visits: average, max.</li>
+  <li>M Derived numbers, e.g. average hits/visit, pages/visit, over multiple time scales.</li>
+  <li>M Summarize page hits over the past month, or past 30 days. Similarly for referring domain, domain, browser, query</li>
+  <li>M Summarize browser, query, platform by year</li>
+  <li>M Summarize log processing time, time by step.</li>
+  <li>M log reformatting. Maybe should do this as a separate query/table.</li>
+  <li>M Funnel analysis. Define a funnel as a sequence of page groups. 
+    Show hits on each group, drop out rate, conversion, alt exits.
+    How to include data on conversion value?
+  </li>
+  <li>M Conversion analysis. What search terms and landing pages are converting.</li>
+  <li>M A/B analysis. Separately analyze visits based on whether a specific page/image is hit.</li>
+  <li>M Report by number of times a visitor has visited.</li>
+  <li>M Separate report for first time visitors, returning visitors, for some reports.</li>
+  <li>M Distinguish new/returning search terms.</li>
+  <li>M Treat webmail as a new visit source in visitdata.pl</li>
+  <li>M Trying to get a headline that characterizes what is significant about today...
+    Have each report add "bulletins" to a table with an urgency weight, and then print the top few.
+    Each report does INSERT INTO wtbulletin VALUES('reportname', 5, 'whatever'); 
+    might do this in a macro similar to deltacomment and deltandays    
+     CREATE TABLE wtbulletin(reportid VARCHAR(32), weight INT, message VARCHAR);
+    also add a "report-bulletin weight" to wtreports that selects how important a report's bulletin is
+     SELECT *, (wtbulletin.weight * wtreports.bullweight) AS x 
+       FROM wtbulletin, wtreports 
+       WHERE wtbulletin.reportid = wtreports.reportid 
+       ORDER BY x DESC LIMIT 5;
+    parameters:
+    month summary: any col in red = 9, number of visits = 3, number of hits = 4, unique visitors = 4, new visitors = 4
+    filetype1: any delta > 20% = 3
+    notfound, 403, illref: delta > 25% = 4
+    biggest visitor = 5
+    biggest browser = 3
+    biggest query, referrer = 4
+    attacks = 4
+  </li>
+  <li>M second and third level domain short report should show highest non-NONE</li>
+  <li>M RSS report: SELECT domain, COUNT(domain) AS x, browser FROM hits WHERE filename='rss.xml' GROUP BY domain ORDER BY x DESC;</li>
+  <li>M a monthly report that compares traffic to quota.  200GB/mo vs 6. Maybe fold this into monthsummary? </li>
+  <li>M when we have > 1 year's data, do we want year/year charts? Do we want calendar-year-end reset? Keep some data forever? </li>
+  <li>L For all the HTML pages, order them by DSLV, ascending order, show cum hits. oops, cannot do this, do not have date last ref on pages, have to add it, also shd have path.</li>
+  <li>L report on "exit pages", ie last page in a visit. </li>
+  <li>L Entry and exit pages report .. maybe I don't need to store entrypage and exitpage, gen them in sql
+    SELECT filename, COUNT(*) AS x 
+      FROM hits INNER JOIN visits ON vn=visitno 
+      WHERE visits.entrypage = hits.sn GROUP BY filename 
+      ORDER BY x DESC LIMIT 10;
+    multi-page visits: SELECT COUNT(*) FROM visits WHERE entrypage != exitpage;
+  </li>
+  <li>L how bout a way to watch newly updated pages for a week. 
+    find pub/thvv -mtime -7 -name '*.html' -print
+    then filter out files e.g. behind-tvv.html, add remaining ones to a table
+  </li>
+  <li>L report on what files have NOT been hit today, at least of the ones that have a pageclass
+      SELECT cfilename 
+      FROM wtpclasses LEFT OUTER JOIN (SELECT hits.path FROM hits INNER JOIN visits ON vn=visitno 
+      WHERE visits.visitclass != 'indexer') AS y ON y.path REGEXP cfilename WHERE y.path IS NULL;
+    exclude site suckers.  Still doesn't work, misses all the Multics pages.
+  </li>
+  <li>L Calculate "time on page" for HTML pages, and report on it, with big disclaimer</li>
+  <li>L avg and total visitors, pages, hits, bandwidth by month/week, with and without indexers</li>
+  <li>L avg hits per visitor</li>
+  <li>L if we had column space, we could put the days since last crawl in the file charts</li>
+  <li>L visit duration by bucket</li>
+  <li>L report on directories</li>
+  <li>L Make the bin sizes for file size report be configurable</li>
+  <li>L report on boring files: 
+    SELECT filename, COUNT(*) 
+    FROM hits INNER JOIN wtretcodes ON hits.retcode = wtretcodes.code LEFT OUTER JOIN wtboring ON hits.path REGEXP wtboring.borfilename 
+    WHERE borfilename IS NOT NULL AND wtretcodes.good = 1 GROUP BY path; </li>
+  <li>L Add more info that answers "how is today different from yesterday?"</li>
+  <li>L show sessions that are all 404 in details because it helps understand attacks (modify visitdata.pl)</li>
+  <li>L websuckers, crawlers
+    <ul>
+      <li>A session that hits more than N pages is a web sucker? What's N.</li>
+      <li>Different handling if they load graphics or not?</li>
+      <li>A session with a lot of hits very fast (&lt; 3 sec) is a web sucker? 
+	Sometimes good sessions do this, proxies, read-ahead</li>
+      <li>Recognize these in visitdata.pl, either by pattern or by agent name or url</li>
+    </ul>
+  </li>
+  <li>L Make sure it works to analyze more than one day's worth of hits in a logfile</li>
+  <li>L Stripe hits by file size, by what?</li>
+  <li>L Generalize the idea of watched and colored files.  A file may be colored without being watched et v/v. Referrers ditto</li>
+  <li>L Keep long term stats on more stuff, e.g. retcodes</li>
+  <li>L new cumulative table, (date, file, hits) == populate with only watched files
+    <ul>
+      <li>report square table, rows are filenames, cols are last N days, entries are hits</li>
+      <li>report square table, rows are filenames, cols are months, entries are hits</li>
+    </ul>
+  </li>
+  <li>L new cumulative table, (date, referrer, hits, html, graphic, bytes) == populate with only watched referrers
+    <ul>
+      <li>report square table, rows are referrers, cols are last N days, entries are hits</li>
+      <li>report square table, rows are referrers, cols are months, entries are hits</li>
+    </ul>
+  </li>
+  </li>
+  <li>L separate report on CGIs, what should it show</li>
+  <li>L add first seen, last seen, number of times seen, hits by indexers, to wtcumfile and wtcumref</li>
+  <li>L visits with no html etc implies something about the referrer or domain, what</li>
+  <li>L Cumulative hits by domain should count indexer and non-indexer hits separately.</li>
+  <li>L What is the percentage of repeat visits vs new visitors yearly?</li>
+  <li>L store the time of first hit in the year tables .. or get from todayline..</li>
+  <li>L eliminate head pages concept?  can we combine with watched pages?</li>
+  <li>L combine paths with static information about which pages link to which, can deduce backtracks/caching</li>
+  <li>L illref report has a lot more in swt than in wt and how many of them are interesting</li>
+  <li>L need something to deal with multiple index.html .. handling of directories in general</li>
+  <li>L referrers: whole bunch of hyphens, fix?</li>
+  <li>L unique visitors.  How determine.</li>
+  <li>L Pages not visited from search engines.</li>
+  <li>L local searches. can i distinguish failed from succeeded.</li>
+</ul>
+
+<h3>presentation</h3>
+<ul>
+  <li>L Low usage sites look funny, 0 MB on the pie charts and analysis.</li>
+  <li>L Move all knowledge of HTML out of printvisitdetail.pl into swt.sql</li>
+  <li>L Click on e.g. the visitors listing and get to the details for that visitor.</li>
+  <li>L some charts are too wide for my ibook, 4 cols, filename, barchart too big</li>
+  <li>L for invalid domain names, show (invalid)? ie no dots, *.woo, *.gbl</li>
+  <li>L when trimming to 40 chars add ...</li>
+  <li>L totals for most recent 7-day period?</li>
+  <li>L combine downloads, java classes, and source into one report?</li>
+  <li>L can i center the vert bar over the heading in the access time report</li>
+  <li>L year hits by referrer should be colored by html-search, image-search, other</li>
+  <li>L what about putting biggest number in red in more columns, e.g. duration ... define queries for max of each col...</li>
+  <li>L what about quantizing the fullscale so that similar graphs have the same scale</li>
+  <li>L all charts should adjust the MB/GB/TB scale, hmm, tricky, want to do this to the fullscale, not the total</li>
+  <li>L in accesstime, add cumdom, monthsum, queries, vhisto</li>
+  <li>L use explanations of visit classes and sources in TITLE attrs.</li>
+  <li>L awstats does the help with a rollover rather than a link to the help, do this consistently.</li>
+  <li>L change "important" to a better term</li>
+  <li>L change html pages report to show pageclass .. all the page reports?</li>
+  <li>L what about padding the filename to the same width for all filename graphs, less jumpy</li>
+  <li>L separate reports for indexers and non indexers?</li>
+  <li>L visits by duration: show when the visit began? (wd have to copy visit start to visits table)</li>
+  <li>L sessions that are only graphics.  sessions that are only xml. </li>
+  <li>L add "unknown" to various tables to make the totals balance</li>
+</ul>
+
+<h3>internals/mechanics/integration</h3>
+<ul>
+  <li>L replace swt and swtfunct with Makefile. Generate the Makefile from the database. Keep report fragments around, remake them when data or tpt is newer.  This might work nicely on a multi CPU machine using a parallel make, although there might be DBthrashing.</li>
+  <li>L visitdata.pl and printvisitdetail.pl shd use LOJ to determine local instead of Perl... speed issue here, indexes?</li>
+  <li>L reorg var names for total queries to match varname totaled</li>
+  <li>L can anything be speeded up by adding indices? not urgent, it's fast now</li>
+  <li>L select to find pages with no pageclass: 
+    SELECT hits.filename 
+    FROM hits INNER JOIN visits ON hits.vn = visits.visitno  
+    WHERE visits.visitclass = '' AND hits.filename != 'favicon.ico';</li>
+  <li>L handle multiple days per log or multiple logs per day</li>
+</ul>
+
+<h3>installation and configuration</h3>
+<ul>
+  <li>M Add more tailoring of cron job to configure.  Handle running logs as well as daily. </li>
+  <li>M Add more tailoring of cron job to configure.  Ask questions to choose tailoring of geoip and dns. </li>
+  <li>M Ask user for bin dir path and link from PROGRAMDIR for things to be run by cron. </li>
+  <li>M Build tool to check webroot versus swt-user and remark on extra TLDs etc. since these cause report degradation. </li>
+  <li>L generalize dashboard and important report to N different reports</li>
+  <li>L provide tailoring to swt queries, e.g. limit, exclude
+    <ul>
+      <li>could make some of the cliches be expandable vars</li>
+    </ul>
+  </li>
+</ul>
+
+<h3>graphical configurator (someday)</h3>
+<ul>
+  <li>L generate a configurator page with checkboxes from the database</li>
+  <li>L more checkboxes for what goes into the "important" report</li>
+  <li>L set values for the configurator page from a prefs file using java, and write updated values out to a prefs file
+    <ul>
+      <li>(would have to sign a local jar and get past DDWR screen)</li>
+    </ul>
+  </li>
+  <li>L maybe instead of a prefs file we write to the local database?  (now we reload it every day)
+    <ul>
+      <li>(wd have to have user install Connector) </li>
+    </ul>
+  </li>
+</ul>
+
+<!-- ================================================================ -->
+<h2>History</h2>
+<pre>
+04/20/06 Initial coding
+05/05/06 change mysql invocation
+05/27/06 general criteria for printvisitdetail.pl, important details report
+06/04/06 add vert bar chart by month, make hist by hour vertical
+06/07/06 stripe hist by hour, use LOJ on wtsuffixclass
+06/08/06 improve normalization in logvisits
+06/10/06 stripe reports, add domain on visits by number of hits, downcase tld
+06/12/06 accumulate paths through the site and feed to GraphViz
+06/14/06 add additional cumulative fields, stripe cum domain and month sum by html/graphic/other
+06/16/06 don't load cumulative data if duplicate, add dashboard report
+06/19/06 improve titles
+06/20/06 visits by duration: only show sessions that have some html
+06/20/06 add refwithquery to wtcumref; split configuration into sys and user
+06/21/06 further refinement of paths, error checking, etc; expand queries before use
+06/22/06 eliminate transforms.rc and put the transforms in swt-user.sql
+06/25/06 added non-indexer totals and adjusted some reports
+06/27/06 colored duration bars by visitclass, fixed bug in count-by-nhits
+06/28/06 colored visits-by-count bars by visitclass and fixed bug
+07/03/06 merge event log into visit detail
+07/03/06 report on local queries
+07/06/06 case insenstive comparison in striped bar charts
+07/08/06 added report on 403s
+07/11/06 v7 show myquery in printvisitdetail.pl, don't show KB in local query
+07/12/06 v7 add total and graphic lines to analysis, add alt tags (validates ok now), add report section number
+07/16/06 v7 reverse order of cols in 403 report and hotlink the url
+07/16/06 v7 add new table wtdomainday, report on dslv
+07/16/06 v7 introduce separate visit class "rss", exclude from duration report
+07/18/06 v7 introduce watched referrers list "wtreferrercolor", visit is interesting if from a watched referrer
+07/18/06 v7 put long title as TITLE attr on pie charts
+07/19/06 v7 watched referrers show in green in referrer reports, hotlink year referrer
+07/21/06 v7 lot of little fixes needed to handle Catalytic
+07/23/06 v8 fix referrer listings bug
+07/24/06 v8 don't hotlink unless things have http, always use nofollow
+07/26/06 v8 add charts by 2level and 3level domain
+07/27/06 v8 correct DSLV chart end date
+07/28/06 v8 restrict year listing of hits by filename to HTML
+08/01/06 v8 browser listing had wrong legend
+08/01/06 v8 last-7-days important report
+08/05/06 v8 compute dayhistfirst and use in title of month reports
+08/07/06 v8 generate wtglobals.sh, minor fix to total graphic bytes NI
+08/09/06 v8 get rid of swt-user.sh, most config is in SQL
+08/10/06 v8 tightened up CSS
+08/10/06 v8 added swtiches to enable reports to swt.sql and swt, overrides in swt-user.sql
+08/11/06 v8 improved configure and install
+08/13/06 v9 Added short and long reports.  All reports start short, click to show long.
+08/14/06 v9 Generate nav links from wtreports table
+08/14/06 v10 add options in sql to control which pie charts are in short report
+08/14/06 v10 add options in sql for eventlog 
+08/17/06 v10 move criteria for short and long details report into swt-user.sql
+08/17/06 v10 add file size report 
+08/18/06 v10 get queries from swt.sql
+08/19/06 v10 get report params from swt.sql
+08/23/06 v10 fix bug in histo3n1.htmt
+08/25/06 v11 eliminate wtglobals.htmi, everything is in wtglobals.sh
+08/25/06 v11 split webtraxhead.htmt into globalqueries.htmt and heading.htmt
+08/26/06 V11 Introduce swtfunct.sh and calls onto it.
+08/26/06 V11 Move printvisitdetail.pl, visitdata.pl, and cum load queries to SQL and get them back.
+08/27/06 V11 Add year report by query
+08/29/06 V11 Add attacks report
+08/29/06 V11 Fix heading for label col in year query
+09/01/06 V11 Retcode report show good percent in short form
+09/01/06 V11 Monthsum report show averages in short form
+09/08/06 V11 Suppress uninteresting 404s
+09/10/06 V11 Suppress referrer spam from short details report by marking in visitdata.pl
+09/16/06 V11 Fix paths so that a cronjob can find the tools
+09/17/06 V11 Fix wtcumpage to add only files that exist, not 404s, show watched files in color
+09/18/06 V11 Hack file check was failiing for hits not in a session, fix
+09/21/06 V11 Hack file check was failiing because not invoked, fix
+09/21/06 V11 Generate globalqueries.htmt from SQL so I don't forget to register globals
+09/21/06 V11 Fix ref spammer detection
+10/04/06 V11 Improve heading of month summary and short report
+10/05/06 V11 Add info.html
+10/07/06 V11 Update wtindexers to add more robots and wthackfilenames for more targets
+10/13/06 V11 Update wthackfilenames for more targets
+10/13/06 V11 In attacks report, show dirname
+10/17/06 v11 Fix colors in short monthsum
+10/17/06 v11 thvv: take out mail-history from inred
+10/17/06 v11 fix strings to set platform=win: "Firefox; Win 9x 4.90" and "MSIE 6.0; AOL rev1.2"
+10/19/06 v11 add comparison table to month summary
+10/20/06 v11 improve formatting of comparison table in month summary
+10/21/06 v11 add NI visits to comparison table.
+10/25/06 v11 Show attacks short reports in red if > 0.
+10/25/06 v11 Change the word "domain" to "visitor" everywhere, less techy.
+11/02/06 v11 Short and long reports on all file types were missing number of hits.
+11/05/06 v11 Change swt-user.sql to kill some referrer spam.
+11/07/06 v11 Change swtfunct.sh so printvisitdetail won't try to load nonexistent event log.
+11/08/06 v11 Fix local queries short report if no local queries
+11/10/06 v11 Add table of "boring files" to inihibit visit display on short report
+11/19/06 v11 Fix incorrect var usage in accesstime, use setscale macro for size
+11/20/06 v12 wtdomainday got big. 30MB after 4 months. wtcumdom also big, 23MB after 5 months, and redundant.
+	     New table wtdomhist, pkey on domain only, remove wtdomainday and wtcumdom.
+	     - Mod LOJ in query for (domain, nhits, nviews, visitdetail) reports
+	     - New query for year_domain and DSLV reports.
+	     - Changed queries for rpt_heading::qnewdomains and rpt_heading::qydomain.
+	     - Eliminated update_wtcumdom and update_wtdomainday from swt, added update_wtdomhist.
+	     - Removed wtcumdom and wtdomainday from backup, added wtdomhist.
+             - Did this all with no change to the template.
+11/20/06 v12 Query for earliest date in wtdomhist and use that in headings for year_domain and DSLV
+11/20/06 v12 Delete old entries from wtdomhist to reduce size. Use site-wide param of number of days to keep.
+             Add trim query to swt and swtfunct. 60 days cuts about 30%.  30 gets 50%.
+11/20/06 v12 install: generate "mys" from a tpt like we do the other scripts
+11/20/06 v12 install: install "mysize", add dependency on dbsize and databasesize.pm
+11/21/06 v12 Added visits and DSLV cols to year_domain report
+11/21/06 v12 Added DSPV col to domain report, fix headings and short report
+11/21/06 v12 Fix short report for domains by count
+11/25/06 v12 if the UA and the browser are equal (and nonblank) mark as refspam
+11/25/06 v12 added entrypage and exitpage to visits, set in visitdata.pl
+11/27/06 v12 added first time visitors, distinct hosts, distinct files/NI to Analysis
+11/28/06 v12 in pathsql.htmt, made multicians etc a parameter
+11/28/06 v12 accumulate per page record of last crawl by google
+11/28/06 v12 report last 10 crawls by google, short report is most recent crawl 
+12/04/06 v12 KB column in visits-by-duration was always 0
+12/06/06 v12 fix paths1.htmt to make the path arrows point correctly; fix paths report to take first 100 links
+12/13/06 v12 added a subtitle to attacks report explaining the hack probes and cgi attacks.
+12/19/06 v12 add a new select to blank the referrer in hits if the browser is PYCurl, eliminate some spam
+12/19/06 v12 improved help file, add pictures, generate from database
+12/20/06 v12 tighten up referrer spam detector
+12/21/06 v12 fix ggq.htmt to eliminate blank values in todayline.sql
+12/21/06 v12 Fix bug, googlebot was not being recognized if it had [us] suffix
+12/26/06 v12 add path to output sql, do domain mapping before visit detection
+12/28/06 v12 consistently distinguish same filename in different dirs:
+	      * modify logvisits to add hits.path and use it
+	      * modify filetype1, illref, localquery, fnf, paths, 403, attacks, and google reports to use path
+	      * modify printvisitdetail.pl to use path instead of filename
+	      * modify update_wtcumgoog to use path, redefine SQL, alter all vars, nobody reports on it now?
+12/28/06 v12 fix visitdata.pl so match on dir works in pageclass calc; modify swt-user.sql to eliminate pre-domain mappings
+12/28/06 v12 fix mysqldumpcum to dump wtcumgoog
+12/29/06 v12 add an attacks query on file type as well as file name
+01/05/07 v12 changed mysqldumpcum to gzip the database dump
+01/05/07 v12 generate visit slices in visitdata.pl to avoid blowing out sql
+01/10/07 v12 renamed logvisits and visitdata to end in .pl
+01/11/07 v12 rewrote visitdata.pl to assign visit class more clearly
+01/13/07 v12 Added pie chart on continent
+01/15/07 v12 Added some checks to swtfunct::initialsetup() to make sure things are present, fail hard otherwise
+01/18/07 v12 Added a toggle so one can show/hide indexer sessions in the long details report
+02/04/07 v12 Remember per-report history values; display deltas in short filetype reports.
+02/08/07 v12 Change swtconfig.txt to swtconfig.htmi
+02/10/07 v12 display deltas in short queries, referrer, and engine reports.  Fix bug in delta macro.  Introduce new ndays macro.
+02/19/07 v12 Summarize the year referrer report by domain rather than URL.
+02/20/07 v12 Add configdisplay.html and a "config" link in the navigation.
+04/10/07 v12 bug fix: attacks report was showing only filetype report if both specific files and filetypes were found.
+05/01/07 v12 super geoip: determine city from maxmind in logextractor and display in listings; populate "city" column in visitdata.
+05/14/07 v12 logextractor: extract city if the domain name contains a numeric IP.
+06/10/07 v12 add showanyway table to display jpgs if referred by specific pages, needed because of javascript gallery that does not gen html hits.
+06/13/07 v12 logextractor: 100x speedup for super geoip.
+07/06/07 v12 printvisitdetail: was looking in wrong table for blue domain.
+07/27/07 v12 visitdata.pl, swt.sql: change wtindexers table to specify more kinds of browser.
+09/12/07 v13 swt.sql: incorrect year_query query was showing just one for each number of hits.  Same for cumpage.
+09/13/07 v13 wtxmacros.htmi, cumdom, duration, visitsbycount, domain1: trim domain names to 64 chars.
+09/13/07 v13 configure was truncating sitename to one word, improved comm between configure and install
+09/15/07 v13 fix bug in total number of queries, was counting blank, off by 1
+09/15/07 v13 Fix bug in heading line of year referrer report, needed where clause
+09/17/07 v13 Printvisitdetail was counting one visit too many.
+09/17/07 v13 Incorrect link to the help file.
+09/18/07 v13 Bandwidth and quota in summary.
+09/19/07 v13 Recognize popular webmail referrers, webmail. gmail, yahoo, hotmail, etc., remove query term
+09/19/07 v13 wtdomhist had row with blank domain and beg date 0000-00-00; do not insert these
+09/20/07 v13 put init_wtsrhist into a separate function and alter swt to call it, remove tramp coupling
+11/13/07 v13 fix bug in logvisits.pl if exactly sqlrowlimit hits
+11/15/07 v13 fix visitdata.pl to classify a visit touching robots.txt as indexer.
+11/23/07 v13 added some more robot UserAgent strings to wtindexers after LiteFinder attack
+12/09/07 v13 fix bug in visitdata.pl if exactly sqlrowlimit hits
+12/26/07 v13 configure checked wrong value in askeither when getting value for reversedns
+12/26/07 v13 configure used test operator "==" but that does not work inside a sh script
+12/26/07 v13 install used test operator "==" but that does not work inside a sh script
+12/27/07 v13 notice the authid given by the user and include in the visit data
+12/27/07 v13 new report for authenticated visits, default disabled
+12/27/07 v13 added line to analysis for authenticated visits
+12/29/07 v13 configure: create swt-user.sql CONFIGFILE = swtconfig.htmi instead of swtconfig.txt
+12/29/07 v13 configure: fixed syntax error in swt-user.sql on short form of domain name
+12/29/07 v13 configure: fixed wrong column count in swt-user.sql wtindexers
+12/29/07 v13 configure: escaped the dots in the domain name
+01/04/08 v13 configure: swt-user predomain transforms were not working with [] stuff, removed the $
+01/04/08 v13 configure: added predomain transform for yahoo crawlers
+01/09/08 v13 printvisitdetail: show authenticated sessions in yellow and display username
+02/27/08 v13 swtfunct.sh: create runstep table and log steps, will detect down database and halt
+04/03/08 v13 logvisits.pl: change file query terms beginning with http to "(refspam)"
+07/04/08 v13 added divfilen to the distribution
+07/04/08 v13 fix logvisits to compress multiple slashes in pathname into one slash
+08/11/08 v13 install: added instructions on how to set up the cron job, including info on PATH settings.
+08/11/08 v13 install: move swtcronjob.sh to programdir
+08/11/08 v13 swtfunct.sh: do not check for globalqueries.htmt in initialsetup() because it is generated
+08/12/08 v13 printvisitdetail: (long|short)logcriteria to filter which log lines go in which report.
+08/13/08 v13 do not expand a sequence like percent-leftbracket whatever rightbracket-percen in the details report.
+08/14/08 v13 printvisitdetail, swt.sql: allow different suffixes visible on short and long report
+08/16/08 v13 printvisitdetail: fix bug in log merging entries after the last hit.
+09/18/08 v13 printvisitdetail: make refspamthresh a parameter set in swt.sql
+09/18/08 v13 swtfunct: add check for undefined visit classes
+09/23/08 v13 cronjob.tpt: fix to work with Linux and FreeBSD
+09/25/08 v13 visitdata.pl: fix bug in last slice
+10/22/08 v13 swt.sql, swt-user.sql init_wtcumref.sql, init_wtcumquery: fix comments so they work with MySQL 5.0.67, grrr
+10/28/08 v13 add pieappletextra parameter to pie chart
+03/20/09 v13 add section 3 to attacks report with overuse of selected files
+03/20/09 v13 fixed problem with heading of visitors by domain name report
+03/20/09 v13 improved detection of browsers and platforms
+03/23/09 V13 fixed bug in heading of browser chart
+03/27/09 V13 further improvements to browser chart
+03/29/09 V13 added visits by city and repeated hits on file charts
+03/30/09 V13 striped bars for visits by city in geoloc.htmt
+09/08/09 V13 various swt.sql changes to recognize robots
+12/04/09 v13 fix alarm code to be less verbose
+02/12/10 v13 remove uninteresting illegal referrers
+06/14/10 v13 remove hack files from 404 report
+06/17/10 v13 put full pathname in the filetype reports
+06/14/10 v13 remove indexer hits from 404 report
+07/21/10 v13 group attacks report by domain
+08/07/10 v13 add gTLDs
+08/19/10 v13 changed swtstyle.css to make the [*] control bigger
+09/07/10 v13 Ubuntu Sucks. Fix to make configure and install work with dash.
+09/10/10 v13 Add support for dashboard to configure, fix bugs in cronjob template.
+09/24/10 v13 Moved my IP's predomain to swt.sql.
+11/15/10 v13 Regexp match wthackfile against hits.path so PHPMyAdmin.nn.nn.nn/index.html is noticed
+11/26/10 v13 New chart, visits/MB/hits per year striped by HTML/graphic/other
+12/12/10 v13 Changed pie charts to use Javascript instead of Java
+04/18/11 v13 Handle IPV6 addresses in tld calc
+05/24/11 v13 Fix bug in normalizing .. in paths
+05/24/11 v13 Fix bug with 2ld and 3ld in numeric addresses.
+07/02/11 v13 Add iPad
+07/06/11 v13 Add ability to start any report open; improve the click-to-open
+07/28/11 v13 Add new report on referring domain; fix bug in referrer by URL
+07/29/11 v13 Fix bug in Queries short report, make referrer reports NI
+09/09/11 v13 handle google queries with # instead of ?, and cleanstring the query
+09/10/11 v13 add daily and cumulative charts of word usage in queries
+09/17/11 v13 change default short criteria to suppress sessions that are mostly 404s
+12/07/11 v13 if google omits the query, don't print garbage
+03/10/12 v13 visits from .ua, .ru, .by are marked refspam
+06/03/12 v13 if Google omits the query, don't print garbage
+01/04/14 v13 fix ORDER BY clause to sort on path, not filename, to fix bar stacking in filetype reports
+01/04/14 v13 recognize Android
+01/15/14 v13 fix bug in filetype reports that occasionally created bars longer than the total
+07/30/14 v13 use swtconfig.htmi from PROGRAMDIR, not HOME -- can now run more than one SWT per machine, each needs own SQL database.
+07/30/14 v13 fix logvisits.pl to make "myquery" bigger, hit MySQL strictness.
+07/30/14 v13 improve configure and install to work with changes since July 2011 or so
+09/30/14 v13 watch for shellshock attacks
+02/12/15 v13 update error handling in expandfile
+02/25/15 v13 fix bug in runstep with MySQL 5.6, NULL no longer means NOW() for timestamp
+03/13/15 v13 process refspam correctly
+04/29/15 v13 show a repeat-count on sequential hits on the same file
+06/26/15 v13 set "queriesinvisit" in printvisitdetail, for use in criteria
+06/26/15 v13 check for existence of preamble.txt and postamble.txt
+06/29/15 v13 initialize 'me' and '_currentfilename' in logvisits.pl visitdata.pl wordlist.pl
+08/21/15 v13 blank out garbagy yandex and yahoo queries, recognize more query introducers
+09/18/15 v13 fixed short report for words used in queries to have the top word, what was i thinking?
+09/22/15 v13 (encoded) should not be counted as a query for word purposes
+01/02/16 v13 detect MSIE 9-10-11 and Edge, other crawler, widened pie charts
+01/12/16 v13 added many pie charts
+04/10/16 v13 ---- set up local git repo
+08/05/16 v13 show 404/403/500 in gray in attacks report
+08/06/16 v13 modify queries so that MySQL 5.7.13 will not fail with ONLY_FULL_GROUP_BY.  Use MAX() rather than ANY_VALUE().
+08/15/16 v13 modify attacks report to only show totals in red if files were served
+01/27/17 v13 modify printvisitdetail to handle showanyway with and without www.
+02/12/17 v13 w3c changes
+04/05/17 v13 modify geoloc to use *format
+06/14/17 v13 fix bugs in refspam and queries
+07/12/17 v13 fix bug in geoloc.htmt to use *format correctly
+07/27/17 v13 modify printvisitdetail to handle filenames without leading slash.
+01/15/18 v13 modify logvisits.pl to be case insensitive in transform
+07/27/17 v13 change pageclass assignment in visitdata.pl to allow pathnames that do not begin with /
+05/25/18 v13 change pageclass assignment in visitdata.pl to not loop on pathnames that do not contain /
+08/24/18 v13 never generate a 'tld' value that is > 16 chars in visitdata.pl: it will crash MySQL load
+07/01/19 v13 never generate a 'browsername' or 'vdomain' value that is > 255 chars in visitdata.pl: it will crash MySQL load
+07/22/19 v13 change printvisitdetail DL COMPACT to DL STYLE="display: compact" which is still flagged by W3C
+07/22/19 v13 modify many templates to update to HTML standards.  remove summary= and type=, fix rows to have right number of cols, get rid of A NAME, etc
+09/18/20 v14 expandfile3 changes: _xf_ in config, eliminate comma and vbar syntax, use multiple args in set/concat
+09/18/20 v14 HTML changes: eliminate SUMMARY= and use ID= instead of A NAME=
+12/10/20 v14 update all Perl shebangs to be /usr/local/bin, use expandfile3. many Perl progs get a 2 or 3 on their name
+02/20/21 v14 split checkswtfiles out of swtfunct.sh, run at install and startup, tighten up
+03/01/21 v14 add REPORTDIR, TOOLSDIR, CHECKSWTFILES to swt.sql
+03/17/21 v14 replace swtdash.htmt with dashcsv.htmt, produce output in CSV instead of *set commands
+04/02/21 v14 cleaned up and tested configure and install, generate tarfile with a manifest file, better check for Perl modules
+04/02/21 v14 remove code for old geoip (does not work any more)
+06/11/21 v14 expandfile3 => expandfile
+</pre>
+</body>
+</html>
+%[** ================================================================ **]%
+%[**  Permission is hereby granted, free of charge, to any person obtaining  **]%
+%[**  a copy of this software and associated documentation files (the  **]%
+%[**  "Software"), to deal in the Software without restriction, including  **]%
+%[**  without limitation the rights to use, copy, modify, merge, publish,  **]%
+%[**  distribute, sublicense, and/or sell copies of the Software, and to  **]%
+%[**  permit persons to whom the Software is furnished to do so, subject to  **]%
+%[**  the following conditions:  **]%
+%[**  **]%
+%[**  The above copyright notice and this permission notice shall be included  **]%
+%[**  in all copies or substantial portions of the Software.  **]%
+%[**  **]%
+%[**  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,  **]%
+%[**  EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF  **]%
+%[**  MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  **]%
+%[**  IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY  **]%
+%[**  CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,  **]%
+%[**  TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE  **]%
+%[**  SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.   **]%
+%[** ================================================================ **]%

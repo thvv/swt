@@ -1,0 +1,8 @@
+%[** Template for SWT file 'mysqldumpcum' expanded by 'configure' if mysql version is old **]%
+#!/bin/sh
+# Command to invoke mysqldump to save the persistent data.
+# This command can get the password from .my.cnf if you have only one database.
+# THVV 12/28/06 add wtcumgoog
+%[MYSQLDUMPPATH]% -u%[SWTDBUSER]% -p%[SWTDBPASS]% -h%[SWTDBHOST]% %[SWTDB]% wtdayhist wtcumfile wtcumref wtcumpath wtcumquery wtdomhist wtcumgoog wtsrhist > cumdump.sql
+rm -f cumdump.sql.gz
+gzip cumdump.sql

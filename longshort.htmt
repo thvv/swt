@@ -1,0 +1,30 @@
+%[** Wrapper for choosing one of two files **]%
+%[** Parameters **]%
+%[** - charttitle - graph title **]%
+%[** - subtitle - optional subtitle **]%
+%[** - nameanchor - section name **]%
+%[** - longfile - long report **]%
+%[** - shortfile - short report **]%
+%[** - %[nameanchor]%_longclass - html class for long report **]%
+%[** - %[nameanchor]%_stclass - html class for subtitle of long report **]%
+%[** - %[nameanchor]%_shortclass - html class for short report **]%
+%[** - %[nameanchor]%_subsubtitle - optional subsubtitle for long report **]%
+%[**  **]%
+%[** Written 2006-2011 by Tom Van Vleck **]%
+%[**  THVV 08/13/06 **]%
+%[**  THVV 01/18/07 Add subsubtitle for details report **]%
+%[**  THVV 08/13/08 use includeraw **]%
+%[**  THVV 07/06/11 fix click on H2 **]%
+%[** ================================================================ **]%
+%[*include,=wtxmacros.htmi]%
+%[*if,ne,subtitle,="",*expandv,&s00,subtitle]%
+<h2 id="%[nameanchor]%"><a title="show/hide" class="h2title" href="javascript:peekaboo('%[nameanchor]%_a1','%[nameanchor]%_a2');">%[charttitle]%<span class="ctl">&otimes;</span></a></h2>
+<div class="%[%[nameanchor]%_longclass]% starthidden" id="%[nameanchor]%_a1">
+%[*if,ne,s00,="",*expand,="<p class=\"%[%[nameanchor]%_stclass]%\">%[s00]%</p>"]%
+%[*if,ne,%[nameanchor]%_subsubtitle,="",*expand,="<p><a href=\"javascript:hideshow('dt','indexer');hideshow('dd','indexer')\">%[%[nameanchor]%_subsubtitle]%</a></p>"]%
+%[*includeraw,=%[longfile]%]%
+</div>
+<div class="%[%[nameanchor]%_shortclass]%" id="%[nameanchor]%_a2">
+%[*includeraw,=%[shortfile]%]%
+</div>
+<br style="clear: both;">

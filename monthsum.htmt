@@ -1,0 +1,337 @@
+%[** Monthly summary table, summarizes wtdayhist **]%
+%[** .. data was just inserted by todayline **]%
+%[** Parameters **]%
+%[** - nameanchor - name of the report **]%
+%[** - rpt_summary_graphwidth - width of the bar graph **]%
+%[** - rpt_summary_lines - number of lines in summary (used in query) **]%
+%[** - rpt_summary_threshlo - show in gray if percent diff less **]%
+%[** - rpt_summary_threshhi - show in red/blue if percent diff greater **]%
+%[** - charttitle - graph title **]%
+%[**  **]%
+%[** Written 2006-2019 by Tom Van Vleck **]%
+%[**  THVV 04/20/06 **]%
+%[**  THVV 06/14/06 add graphic hits **]%
+%[**  THVV 08/05/06 use dayhistfirst **]%
+%[**  THVV 08/13/06 add short report **]%
+%[**  THVV 08/18/06 get queries from sql **]%
+%[**  THVV 09/05/06 include averages in short report **]%
+%[**  THVV 09/08/06 rearrange short report **]%
+%[**  THVV 10/17/06 fix colors in short report **]%
+%[**  THVV 10/19/06 add table with comparison to previous days **]%
+%[**  THVV 10/21/06 add col with indexer visits **]%
+%[**  THVV 09/18/07 show bandwidth and quota **]%
+%[**  THVV 03/10/12 fix peekaboo to be whole titlebar **]%
+%[**  THVV 07/17/19 fix err in titlebar **]%
+%[** ================================================================ **]%
+%[*include,=wtxmacros.htmi]%
+%[*if,ne,subtitle,="",*expandv,&s00,subtitle]%
+%[*set,&ndays,=0]%
+%[*set,&totalvisits,=0]%
+%[*set,&totalbytes,=0]%
+%[*set,&totalhits,=0]%
+%[*set,&totalpages,=0]%
+%[*set,&totalgraphic,=0]%
+%[*set,&totaludom,=0]%
+%[*set,&totalndom,=0]%
+%[*set,&totalnixv,=0]%
+%[** ================ query to find max and min in the history ================ **]%
+%[*callv,getquery,nameanchor,="qmonthsumtotb"]%
+%[*sqlloop,&junk,=x,x0]%
+%[*callv,getquery,nameanchor,="qmonthsumminhits"]%
+%[*sqlloop,&junk,=x,x0]%
+%[*callv,getquery,nameanchor,="qmonthsummaxhits"]%
+%[*sqlloop,&junk,=x,x0]%
+%[*callv,getquery,nameanchor,="qmonthsumminb"]%
+%[*sqlloop,&junk,=x,x0]%
+%[*callv,getquery,nameanchor,="qmonthsummaxb"]%
+%[*sqlloop,&junk,=x,x0]%
+%[*callv,getquery,nameanchor,="qmonthsumminv"]%
+%[*sqlloop,&junk,=x,x0]%
+%[*callv,getquery,nameanchor,="qmonthsummaxv"]%
+%[*sqlloop,&junk,=x,x0]%
+%[*callv,getquery,nameanchor,="qmonthsumminh"]%
+%[*sqlloop,&junk,=x,x0]%
+%[*callv,getquery,nameanchor,="qmonthsummaxh"]%
+%[*sqlloop,&junk,=x,x0]%
+%[*callv,getquery,nameanchor,="qmonthsumming"]%
+%[*sqlloop,&junk,=x,x0]%
+%[*callv,getquery,nameanchor,="qmonthsummaxg"]%
+%[*sqlloop,&junk,=x,x0]%
+%[*callv,getquery,nameanchor,="qmonthsumminud"]%
+%[*sqlloop,&junk,=x,x0]%
+%[*callv,getquery,nameanchor,="qmonthsummaxud"]%
+%[*sqlloop,&junk,=x,x0]%
+%[*callv,getquery,nameanchor,="qmonthsumminnd"]%
+%[*sqlloop,&junk,=x,x0]%
+%[*callv,getquery,nameanchor,="qmonthsummaxnd"]%
+%[*sqlloop,&junk,=x,x0]%
+%[*callv,getquery,nameanchor,="qmonthsumminnixv"]%
+%[*sqlloop,&junk,=x,x0]%
+%[*callv,getquery,nameanchor,="qmonthsummaxnixv"]%
+%[*sqlloop,&junk,=x,x0]%
+%[** ================ query to geneate today's line ================ **]%
+%[*callv,getquery,nameanchor,="qmonthsum"]%
+%[*sqlloop,&out2,iter2,x0]%
+%[** ---------------------------------------------------------------- **]%
+%[*block,&iter2,^END$]%
+%[*if,eq,.dow,=1,*set,&dayofweek,="Sun"]%
+%[*if,eq,.dow,=2,*set,&dayofweek,="Mon"]%
+%[*if,eq,.dow,=3,*set,&dayofweek,="Tue"]%
+%[*if,eq,.dow,=4,*set,&dayofweek,="Wed"]%
+%[*if,eq,.dow,=5,*set,&dayofweek,="Thu"]%
+%[*if,eq,.dow,=6,*set,&dayofweek,="Fri"]%
+%[*if,eq,.dow,=7,*set,&dayofweek,="Sat"]%
+%[*increment,&ndays,=1]%
+%[*increment,&totalvisits,wtdayhist.dvisits]%
+%[*increment,&totalbytes,wtdayhist.dbytes]%
+%[*increment,&totalhits,wtdayhist.dhits]%
+%[*increment,&totalpages,wtdayhist.dhtmlpages]%
+%[*increment,&totalgraphic,wtdayhist.dgraphicpages]%
+%[*increment,&totaludom,wtdayhist.dndomainstoday]%
+%[*increment,&totalndom,wtdayhist.dnewdomainstoday]%
+%[*set,&nixv,wtdayhist.dvisits]%
+%[*decrement,&nixv,wtdayhist.dnindexvisits]%
+%[*increment,&totalnixv,nixv]%
+%[*quotient,&mb,wtdayhist.dbytes,bytes2mb]%
+%[** ---------------- set css style for min and max in table **]%
+%[*set,&minmax1,="n"]%
+%[*if,eq,wtdayhist.dvisits,.mindvisits,*set,&minmax1,="min"]%
+%[*if,eq,wtdayhist.dvisits,.maxdvisits,*set,&minmax1,="max"]%
+%[*set,&minmax2,="n"]%
+%[*if,eq,wtdayhist.dbytes,.mindbytes,*set,&minmax2,="min"]%
+%[*if,eq,wtdayhist.dbytes,.maxdbytes,*set,&minmax2,="max"]%
+%[*set,&minmax3,="n"]%
+%[*if,eq,wtdayhist.dhits,.mindhits,*set,&minmax3,="min"]%
+%[*if,eq,wtdayhist.dhits,.maxdhits,*set,&minmax3,="max"]%
+%[*set,&minmax4,="n"]%
+%[*if,eq,wtdayhist.dhtmlpages,.mindhtmlpages,*set,&minmax4,="min"]%
+%[*if,eq,wtdayhist.dhtmlpages,.maxdhtmlpages,*set,&minmax4,="max"]%
+%[*set,&minmax5,="n"]%
+%[*if,eq,wtdayhist.dgraphicpages,.mindgraphicpages,*set,&minmax5,="min"]%
+%[*if,eq,wtdayhist.dgraphicpages,.maxdgraphicpages,*set,&minmax5,="max"]%
+%[*set,&minmax6,="n"]%
+%[*if,eq,wtdayhist.dudom,.mindudom,*set,&minmax6,="min"]%
+%[*if,eq,wtdayhist.dudom,.maxdudom,*set,&minmax6,="max"]%
+%[*set,&minmax7,="n"]%
+%[*if,eq,wtdayhist.dndom,.mindndom,*set,&minmax7,="min"]%
+%[*if,eq,wtdayhist.dndom,.maxdndom,*set,&minmax7,="max"]%
+%[*set,&minmax8,="n"]%
+%[*if,eq,wtdayhist.dnindexvisits,.minnixv,*set,&minmax8,="min"]%
+%[*if,eq,wtdayhist.dnindexvisits,.maxnixv,*set,&minmax8,="max"]%
+%[** ---- set style for element if min or max **]%
+%[*if,eq,frhits,="",*set,&frmm1,minmax1]%
+%[*if,eq,frhits,="",*set,&frmm2,minmax2]%
+%[*if,eq,frhits,="",*set,&frmm3,minmax3]%
+%[*if,eq,frhits,="",*set,&frmm4,minmax4]%
+%[*if,eq,frhits,="",*set,&frmm5,minmax5]%
+%[*if,eq,frhits,="",*set,&frmm6,minmax6]%
+%[*if,eq,frhits,="",*set,&frmm7,minmax7]%
+%[*if,eq,frhits,="",*set,&frmm8,minmax8]%
+%[** ---- save second row **]%
+%[*if,ne,frhits,="",*if,eq,schits,="",*set,&scbeg,.xbeg]%
+%[*if,ne,frhits,="",*if,eq,schits,="",*set,&scdow,dayofweek]%
+%[*if,ne,frhits,="",*if,eq,schits,="",*set,&scend,.xend]%
+%[*if,ne,frhits,="",*if,eq,schits,="",*set,&scvisits,wtdayhist.dvisits]%
+%[*if,ne,frhits,="",*if,eq,schits,="",*set,&scmb,mb]%
+%[*if,ne,frhits,="",*if,eq,schits,="",*set,&schtml,wtdayhist.dhtmlpages]%
+%[*if,ne,frhits,="",*if,eq,schits,="",*set,&scgraphic,wtdayhist.dgraphicpages]%
+%[*if,ne,frhits,="",*if,eq,schits,="",*set,&scudom,wtdayhist.dndomainstoday]%
+%[*if,ne,frhits,="",*if,eq,schits,="",*set,&scndom,wtdayhist.dnewdomainstoday]%
+%[*if,ne,frhits,="",*if,eq,schits,="",*set,&scnixv,nixv]%
+%[*if,ne,frhits,="",*if,eq,schits,="",*set,&schits,wtdayhist.dhits]%
+%[** ---- save week ago **]%
+%[*if,eq,dayofweek,frdow,*if,eq,wwhits,="",*set,&wwbeg,.xbeg]%
+%[*if,eq,dayofweek,frdow,*if,eq,wwhits,="",*set,&wwdow,dayofweek]%
+%[*if,eq,dayofweek,frdow,*if,eq,wwhits,="",*set,&wwend,.xend]%
+%[*if,eq,dayofweek,frdow,*if,eq,wwhits,="",*set,&wwvisits,wtdayhist.dvisits]%
+%[*if,eq,dayofweek,frdow,*if,eq,wwhits,="",*set,&wwmb,mb]%
+%[*if,eq,dayofweek,frdow,*if,eq,wwhits,="",*set,&wwhtml,wtdayhist.dhtmlpages]%
+%[*if,eq,dayofweek,frdow,*if,eq,wwhits,="",*set,&wwgraphic,wtdayhist.dgraphicpages]%
+%[*if,eq,dayofweek,frdow,*if,eq,wwhits,="",*set,&wwudom,wtdayhist.dndomainstoday]%
+%[*if,eq,dayofweek,frdow,*if,eq,wwhits,="",*set,&wwndom,wtdayhist.dnewdomainstoday]%
+%[*if,eq,dayofweek,frdow,*if,eq,wwhits,="",*set,&wwnixv,nixv]%
+%[*if,eq,dayofweek,frdow,*if,eq,wwhits,="",*set,&wwhits,wtdayhist.dhits]%
+%[** ---- save first row **]%
+%[*if,eq,frhits,="",*set,&frbeg,.xbeg]%
+%[*if,eq,frhits,="",*set,&frdow,dayofweek]%
+%[*if,eq,frhits,="",*set,&frend,.xend]%
+%[*if,eq,frhits,="",*set,&frvisits,wtdayhist.dvisits]%
+%[*if,eq,frhits,="",*set,&frmb,mb]%
+%[*if,eq,frhits,="",*set,&frhtml,wtdayhist.dhtmlpages]%
+%[*if,eq,frhits,="",*set,&frgraphic,wtdayhist.dgraphicpages]%
+%[*if,eq,frhits,="",*set,&frudom,wtdayhist.dndomainstoday]%
+%[*if,eq,frhits,="",*set,&frndom,wtdayhist.dnewdomainstoday]%
+%[*if,eq,frhits,="",*set,&frnixv,nixv]%
+%[*if,eq,frhits,="",*set,&frhits,wtdayhist.dhits]%
+%[** ---- compute widths of stacked bars -- **]%
+%[*scale,&x,wtdayhist.dhits,.maxdhits,rpt_summary_graphwidth]%
+%[*scale,&yh,wtdayhist.dhtmlpages,.maxdhits,rpt_summary_graphwidth]%
+%[*scale,&yg,wtdayhist.dgraphicpages,.maxdhits,rpt_summary_graphwidth]%
+%[*decrement,&x,y]%
+%[*decrement,&x,yh]%
+%[*decrement,&x,yg]%
+%[*shell,&fmtdv,=fmtnum %[wtdayhist.dvisits]% num]%
+%[*shell,&fmtdh,=fmtnum %[wtdayhist.dhits]% num]%
+%[*shell,&fmtdhp,=fmtnum %[wtdayhist.dhtmlpages]% num]%
+%[*shell,&fmtdgp,=fmtnum %[wtdayhist.dhtmlpages]% num]%
+%[*shell,&fmtdhp,=fmtnum %[wtdayhist.dgraphicpages]% num]%
+    <tr><td>%[.xbeg]%</td><td>%[dayofweek]%</td><td>%[.xend]%</td><td class="numcol"><span class="%[minmax1]%">%[fmtdv]%</span></td><td class="numcol"><span class="%[minmax2]%">%[mb]%</span></td><td class="numcol"><span class="%[minmax3]%">%[fmtdh]%</span></td><td class="numcol"><span class="%[minmax4]%">%[fmtdhp]%</span></td><td><img src="greenpix.gif" title="%[fmthp]% HTML hits" alt="" width=%[yh]% height=%[glb_bar_graph_height]%><img src="bluepix.gif" title="%[fmtdgp]% graphic hits" alt="" width=%[yg]% height=%[glb_bar_graph_height]%><img src="redpix.gif" title="other hits" alt="" width=%[x]% height=%[glb_bar_graph_height]%></td></tr>
+END
+%[** ================ output report ================ **]%
+%[*quotient,&ytotalmb,ytotalbytes,bytes2mb]%
+%[*quotient,&avgvisits,totalvisits,ndays]%
+%[*quotient,&avgbytes,totalbytes,ndays]%
+%[*quotient,&avghits,totalhits,ndays]%
+%[*quotient,&avgpages,totalpages,ndays]%
+%[*quotient,&avgmb,avgbytes,bytes2mb]%
+%[*quotient,&avghtml,totalpages,ndays]%
+%[*quotient,&avggraphic,totalgraphic,ndays]%
+%[*quotient,&avgudom,totaludom,ndays]%
+%[*quotient,&avgndom,totalndom,ndays]%
+%[*quotient,&avgnixv,totalnixv,ndays]%
+<div id="%[nameanchor]%">
+%[*shell,&fmtytotalhits,=fmtnum %[ytotalhits]% num]%
+%[*shell,&fmtytotalmb,=fmtnum %[ytotalmb]% num]%
+<p class="details">%[fmtytotalhits]% hits, %[fmtytotalmb]% MB since %[dayhistfirst]%</p>
+<h2><a title="show/hide" class="h2title" href="javascript:peekaboo('%[nameanchor]%_a1','%[nameanchor]%_a2');">%[charttitle]%: %[frdow]% %[frbeg]% to %[frend]%<span class="ctl">&otimes;</span></a></h2>
+<div class="monthsum starthidden" id="%[nameanchor]%_a1">
+%[*if,ne,s00,="",*expand,="<p class=\"subtitle\">%[s00]%</p>"]%
+%[*shell,&fmtavgvisits,=fmtnum %[avgvisits]% num]%
+%[*shell,&fmtavgmb,=fmtnum %[avgmb]% num]%
+%[*shell,&fmtavghits,=fmtnum %[avghits]% num]%
+%[*shell,&fmtavgpages,=fmtnum %[avgpages]% num]%
+  <table style="border-spacing: 10px;">
+    <tr><th>From</th><th></th><th>To</th><th class="numcol"><a href="%[helpfile]%#visit">Visits</a></th><th class="numcol">Mb</th><th class="numcol"><a href="%[helpfile]%#hit">Hits</a></th><th class="numcol"><a href="%[helpfile]%#page">Pages</a></th><th class="legendbar"><img src="greenpix.gif" alt="" width=%[glb_bar_graph_height]% height=%[glb_bar_graph_height]%> HTML&nbsp;&nbsp;&nbsp;<img src="bluepix.gif" alt="" width=%[glb_bar_graph_height]% height=%[glb_bar_graph_height]%> Graphic&nbsp;&nbsp;&nbsp;<img src="redpix.gif" alt="" width=%[glb_bar_graph_height]% height=%[glb_bar_graph_height]%> Other</th></tr>
+%[*expand,out2]%
+    <tr><th> %[ndays]% days</th><th></th><th class="numcol">Avg</th><th class="numcol">%[fmtavgvisits]%</th><th class="numcol">%[fmtavgmb]%</th><th class="numcol">%[fmtavghits]%</th><th class="numcol">%[fmtavgpages]%</th><th></th></tr>
+  </table>
+</div>
+<div class="short" id="%[nameanchor]%_a2">
+%[** .. calculate bandwidth in GB, dropping highest day if required, and compare to quota if any **]%
+%[*set,&ndm1,ndays]%
+%[*if,eq,gbquotadrophighest,="Y",*decrement,&ndm1,=1]%
+%[*if,eq,gbquotadrophighest,="Y",*decrement,&.totdbytes,.maxdbytes]%
+%[*quotient,&gbmo,.totdbytes,bytes2gb]%
+%[*scale,&gbpct,gbmo,gbquota,=100]%
+%[*if,ne,gbquota,=0,*expandv,&bwtail,gbquaotafmt]%
+%[*block,&gbquaotafmt,^END]%
+ / %[gbquota]% (%[gbpct]%%)
+END
+  <p>Average for %[ndays]% days: %[fmtavgvisits]% visits, %[fmtavgmb]% MB, %[fmtavghits]% hits, %[fmtavgpages]% pages. %[ndm1]%-day bandwidth %[gbmo]% GB%[bwtail]%</p>
+</div>
+%[** ================ comparison table cells ================ **]%
+%[** color thresh for Saturday and Monday is higher for rows 1 and 3 **]%
+%[** ------- row 1, versus day before -- transition to and from weekend will have expected diff --------- **]%
+%[*set,&threshlo,%[nameanchor]%_threshlo]%
+%[*set,&threshhi,%[nameanchor]%_threshhi]%
+%[*if,eq,frdow,="Sat",*increment,&threshhi,%[nameanchor]%_threshwk]%
+%[*if,eq,frdow,="Mon",*increment,&threshhi,%[nameanchor]%_threshwk]%
+%[*subst,&scbeg,=" .*$",=""]%
+%[*callv,onecell,frvisits,scvisits,threshlo,threshhi]%
+%[*set,&r1c1,x]%
+%[*callv,onecell,frmb,scmb,threshlo,threshhi]%
+%[*set,&r1c2,x]%
+%[*callv,onecell,frhits,schits,threshlo,threshhi]%
+%[*set,&r1c3,x]%
+%[*callv,onecell,frhtml,schtml,threshlo,threshhi]%
+%[*set,&r1c4,x]%
+%[*callv,onecell,frgraphic,scgraphic,threshlo,threshhi]%
+%[*set,&r1c5,x]%
+%[*callv,onecell,frudom,scudom,threshlo,threshhi]%
+%[*set,&r1c6,x]%
+%[*callv,onecell,frndom,scndom,threshlo,threshhi]%
+%[*set,&r1c7,x]%
+%[*callv,onecell,frnixv,scnixv,threshlo,threshhi]%
+%[*set,&r1c8,x]%
+%[** ------- row 2, versus week ago --------- **]%
+%[*set,&threshlo,%[nameanchor]%_threshlo]%
+%[*set,&threshhi,%[nameanchor]%_threshhi]%
+%[*subst,&wwbeg,=" .*$",=""]%
+%[*callv,onecell,frvisits,wwvisits,threshlo,threshhi]%
+%[*set,&r2c1,x]%
+%[*callv,onecell,frmb,wwmb,threshlo,threshhi]%
+%[*set,&r2c2,x]%
+%[*callv,onecell,frhits,wwhits,threshlo,threshhi]%
+%[*set,&r2c3,x]%
+%[*callv,onecell,frhtml,wwhtml,threshlo,threshhi]%
+%[*set,&r2c4,x]%
+%[*callv,onecell,frgraphic,wwgraphic,threshlo,threshhi]%
+%[*set,&r2c5,x]%
+%[*callv,onecell,frudom,wwudom,threshlo,threshhi]%
+%[*set,&r2c6,x]%
+%[*callv,onecell,frndom,wwndom,threshlo,threshhi]%
+%[*set,&r2c7,x]%
+%[*callv,onecell,frnixv,wwnixv,threshlo,threshhi]%
+%[*set,&r2c8,x]%
+%[** ------- row 3, versus average -- weekend days depart from average --------- **]%
+%[*set,&threshlo,%[nameanchor]%_threshlo]%
+%[*set,&threshhi,%[nameanchor]%_threshhi]%
+%[*if,eq,frdow,="Sat",*increment,&threshhi,%[nameanchor]%_threshwk]%
+%[*if,eq,frdow,="Sun",*increment,&threshhi,%[nameanchor]%_threshwk]%
+%[*callv,onecell,frvisits,avgvisits,threshlo,threshhi]%
+%[*set,&r3c1,x]%
+%[*callv,onecell,frmb,avgmb,threshlo,threshhi]%
+%[*set,&r3c2,x]%
+%[*callv,onecell,frhits,avghits,threshlo,threshhi]%
+%[*set,&r3c3,x]%
+%[*callv,onecell,frhtml,avghtml,threshlo,threshhi]%
+%[*set,&r3c4,x]%
+%[*callv,onecell,frgraphic,avggraphic,threshlo,threshhi]%
+%[*set,&r3c5,x]%
+%[*callv,onecell,frudom,avgudom,threshlo,threshhi]%
+%[*set,&r3c6,x]%
+%[*callv,onecell,frndom,avgndom,threshlo,threshhi]%
+%[*set,&r3c7,x]%
+%[*callv,onecell,frnixv,avgnixv,threshlo,threshhi]%
+%[*set,&r3c8,x]%
+%[** ================ output totals table ================ **]%
+<div class="monthsum">
+%[*shell,&fmtytotalhits,=fmtnum %[ytotalhits]% num]%
+%[*shell,&fmtfrvisits,=fmtnum %[frvisits]% num]%
+%[*shell,&fmtfrmb,=fmtnum %[frmb]% num]%
+%[*shell,&fmtfrhits,=fmtnum %[frhits]% num]%
+%[*shell,&fmtfrhtml,=fmtnum %[frhtml]% num]%
+%[*shell,&fmtfrgraphic,=fmtnum %[frgraphic]% num]%
+%[*shell,&fmtfrudom,=fmtnum %[frudom]% num]%
+%[*shell,&fmtfrndom,=fmtnum %[frndom]% num]%
+%[*shell,&fmtfrnixv,=fmtnum %[frnixv]% num]%
+  <table>
+    <tr><th></th><th><span class="%[frmm1]%">%[fmtfrvisits]%</span></th><th><span class="%[frmm2]%">%[fmtfrmb]%</span></th><th><span class="%[fmtfrmm3]%">%[fmtfrhits]%</span></th><th><span class="%[frmm4]%">%[fmtfrhtml]%</span></th><th><span class="%[frmm5]%">%[fmtfrgraphic]%</span></th><th><span class="%[frmm6]%">%[fmtfrudom]%</span></th><th><span class="%[frmm7]%">%[fmtfrndom]%</span></th><th><span class="%[frmm8]%">%[fmtfrnixv]%</span></th></tr>
+    <tr><th>Compared to</th><th>Visits</th><th>MB</th><th>Hits</th><th>HTML</th><th>Graphics</th><th title="unique domains">Visitors</th><th>New visitors</th><th title="non indexer visits">NI visits</th></tr>
+    <tr><td>Previous Day (%[scbeg]%)</td><td class="numcol">%[r1c1]%</td><td class="numcol">%[r1c2]%</td><td class="numcol">%[r1c3]%</td><td class="numcol">%[r1c4]%</td><td class="numcol">%[r1c5]%</td><td class="numcol">%[r1c6]%</td><td class="numcol">%[r1c7]%</td><td class="numcol">%[r1c8]%</td></tr>
+    <tr><td>Week Ago (%[wwbeg]%)</td><td class="numcol">%[r2c1]%</td><td class="numcol">%[r2c2]%</td><td class="numcol">%[r2c3]%</td><td class="numcol">%[r2c4]%</td><td class="numcol">%[r2c5]%</td><td class="numcol">%[r2c6]%</td><td class="numcol">%[r2c7]%</td><td class="numcol">%[r2c8]%</td></tr>
+    <tr><td>%[ndays]% day average</td><td class="numcol">%[r3c1]%</td><td class="numcol">%[r3c2]%</td><td class="numcol">%[r3c3]%</td><td class="numcol">%[r3c4]%</td><td class="numcol">%[r3c5]%</td><td class="numcol">%[r3c6]%</td><td class="numcol">%[r3c7]%</td><td class="numcol">%[r3c8]%</td></tr>
+  </table>
+</div>
+</div>
+%[** ================================================================ **]%
+%[** macro to generate one cell in the form +nnn (up xx%) **]%
+%[** callv,onecell,new,old,threshlo,threshhi **]%
+%[** result in x0 **]%
+%[** gray if < threshlo% **]%
+%[** red/blue if > threshhi% **]%
+%[** **]%
+%[*block,&onecell,^END]%
+%[*set,&xmmclass,="n"]%
+%[*set,&xdelta,param1]%
+%[*decrement,&xdelta,param2]%
+%[*set,&xabsdelta,xdelta]%
+%[*if,lt,xdelta,=0,*set,&xabsdelta,param2]%
+%[*if,lt,xdelta,=0,*decrement,&xabsdelta,param1]%
+%[*scale,&xpct,xabsdelta,param2,=100]%
+%[*if,gt,param3,xpct,*set,&xmmclass,="ingray"]%
+%[*if,lt,param4,xpct,*if,lt,=0,xdelta,*set,&xmmclass,="max"]%
+%[*if,lt,param4,xpct,*if,gt,=0,xdelta,*set,&xmmclass,="min"]%
+%[*set,&x,=""]%
+%[*concat,&x,="<span class=\""]%
+%[*concat,&x,xmmclass]%
+%[*concat,&x,="\">"]%
+%[*if,ge,xdelta,=0,*concat,&x,="+"]%
+%[*concat,&x,xdelta]%
+%[*concat,&x,=" ("]%
+%[*if,lt,=0,xdelta,*concat,&x,=""]%
+%[*if,gt,=0,xdelta,*concat,&x,="-"]%
+%[*concat,&x,xpct]%
+%[*concat,&x,="%)"]%
+%[*concat,&x,="</span>"]%
+END

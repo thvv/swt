@@ -1,0 +1,57 @@
+%[** Horizontal bar graph of two numeric columns, last with barchart **]%
+%[** Parameters **]%
+%[** - nameanchor - report name (used for getting query) **]%
+%[** - charttitle - graph title **]%
+%[** - subtitle - graph subtitle **]%
+%[** - %[nameanchor]%_totv - varname for total **]%
+%[** - %[nameanchor]%_col1v - varname for column 1 **]%
+%[** - %[nameanchor]%_col1t - title for column 1 **]%
+%[** - %[nameanchor]%_col2v - varname for column 2 **]%
+%[** - %[nameanchor]%_col2t - title for column 2 **]%
+%[** - %[nameanchor]%_col2s - scale for column 2 **]%
+%[** - %[nameanchor]%_col3v - varname for column 3 - this is bar graphed **]%
+%[** - %[nameanchor]%_col3t - title for column 3 **]%
+%[** - glb_bar_graph_width - global width in pixels for bar graph **]%
+%[** - glb_bar_graph_height - global height in pixels for bar graph **]%
+%[**  **]%
+%[**  THVV 08/17/06 **]%
+%[**  THVV 08/18/06 - fetch query from sql **]%
+%[**  THVV 07/21/19 - escape the less-than sign **]%
+%[** ================================================================ **]%
+%[*include,=wtxmacros.htmi]%
+%[*if,ne,subtitle,="",*expandv,&s00,subtitle]%
+%[*callv,getquery,nameanchor,="query2"]%
+%[*sqlloop,&junk,=x,x0]%
+%[*set,&fullscale,%[%[nameanchor]%_totv]%]%
+%[*callv,getquery,nameanchor,="query1"]%
+%[*sqlloop,&chartout,chartiter,x0]%
+%[** ================================================================ **]%
+%[*block,&chartiter,^END$]%
+%[*set,&x,%[%[nameanchor]%_col1v]%]%
+%[*if,eq,x,="",*set,&x,="0"]%
+%[*if,ne,x,="0",*set,&t,="&lt;"]%
+%[*if,ne,x,="0",*concat,&t,x]%
+%[*if,ne,x,="0",*set,&x,t]%
+%[*subst,&x,="000000$",="M"]%
+%[*subst,&x,="000$",="K"]%
+%[*set,&y,%[%[nameanchor]%_col3v]%]%
+%[*set,&w,%[%[nameanchor]%_col2v]%]%
+%[*quotient,&w,w,%[nameanchor]%_col2s]%
+%[*scale,&y1,y,fullscale,glb_bar_graph_width]%
+%[*if,eq,y,fullscale,*set,&f2,w]%
+%[*if,eq,y,fullscale,*set,&f3,y]%
+%[*if,eq,y,fullscale,*set,&f1,x]%
+    <tr><td class="numcol">%[x]%</td><td class="numcol">%[w]%</td><td class="numcol">%[y]%</td><td><img src="redpix.gif" alt="" width=%[y1]% height=%[glb_bar_graph_height]%></td></tr>
+END
+%[** ================================================================ **]%
+%[*include,=rptheader.htmi]%
+<div class="chart%[longhidden]%" id="%[nameanchor]%_a1">
+%[*if,ne,s00,="",*expand,="<p class=\"subtitle\">%[s00]%</p>"]%
+  <table>
+    <tr><th class="numcol">%[%[nameanchor]%_col1t]%</th><th class="numcol">%[%[nameanchor]%_col2t]%</th><th class="numcol">%[%[nameanchor]%_col3t]%</th><th></th></tr>
+%[chartout]%
+  </table>
+</div>
+<div class="short%[shorthidden]%" id="%[nameanchor]%_a2">
+  <p><b>size %[f1]%, %[f2]% %[%[nameanchor]%_col2t]%, %[f3]% %[%[nameanchor]%_col3t]%</b></p>
+</div>

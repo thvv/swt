@@ -1,0 +1,52 @@
+    <a href="http://www.multicians.org/thvv/webtrax-helpvS24.html">Webtrax S24 help</a>
+    | <a href="#top">Top</a>
+    | <a href="#rpt_summary" title="Month Summary">Month</a>
+    | <a href="#rpt_pie2" title="Pie Charts">Pie</a>
+    | <a href="#rpt_analysis" title="Analysis">Analysis</a>
+    | <a href="#rpt_html" title="HTML pages">HTML</a>
+    | <a href="#rpt_graphics" title="Graphic files">Graphics</a>
+    | <a href="#rpt_css" title="CSS files">CSS</a>
+    | <a href="#rpt_dl" title="Files Downloaded">Down</a>
+    | <a href="#rpt_xml" title="XML files">XML</a>
+    | <a href="#rpt_java" title="Java Class files">Java</a>
+    | <a href="#rpt_src" title="Source files">Source</a>
+    | <a href="#rpt_other" title="Other files">Other</a>
+    | <a href="#rpt_fnf" title="Files not found">404</a>
+    | <a href="#rpt_403" title="Forbidden transactions">403</a>
+    | <a href="#rpt_illref" title="Illegal referrers">Illref</a>
+    | <a href="#rpt_accesstime" title="Hits by access time">Time</a>
+    | <a href="#rpt_duration" title="NI Visits by duration">Duration</a>
+    | <a href="#rpt_nhits" title="NI Visits by number of hits">Nhits</a>
+    | <a href="#rpt_nviews" title="NI Visits by number of page views">Nviews</a>
+    | <a href="#rpt_domain" title="Visitors">Visitors</a>
+    | <a href="#rpt_tld" title="Visits by Top Level Domain">TLD</a>
+    | <a href="#rpt_domain2" title="Visits by Second Level Domain">2LD</a>
+    | <a href="#rpt_domain3" title="Visits by Third Level Domain">3LD</a>
+    | <a href="#rpt_geoloc" title="Visits by City">City</a>
+    | <a href="#rpt_authid" title="Visits by Authenticated Users">Authid</a>
+    | <a href="#rpt_class" title="Visits by Class">Class</a>
+    | <a href="#rpt_browser" title="Hits by Browser">Browser</a>
+    | <a href="#rpt_query" title="Hits by Query">Query</a>
+    | <a href="#rpt_day_words" title="Word Usage in Queries">Words</a>
+    | <a href="#rpt_engine" title="Visits by Search Engine">Engine</a>
+    | <a href="#rpt_google" title="Files Crawled by Google">Google</a>
+    | <a href="#rpt_referrer" title="Hits by Referrer">Referrer</a>
+    | <a href="#rpt_referrerdom" title="Hits by Referring Domain">RefDom</a>
+    | <a href="#rpt_filesize" title="Number of Hits by file size">Size</a>
+    | <a href="#rpt_localquery" title="Hits by Local Query">Local</a>
+    | <a href="#rpt_repeat" title="Repeated Hits by Domain">Repeat</a>
+    | <a href="#rpt_attacks" title="Attacks on the site">Attacks</a>
+    | <a href="#rpt_retcode" title="Transactions by server return code">Retcode</a>
+    | <a href="#rpt_verb" title="Transactions by protocol verb">Verb</a>
+    | <a href="#rpt_details" title="Visit Details">Details</a>
+    | <a href="#rpt_year_referrer" title="Cumulative Non-search Hits by Referrer Domain">yReferrer</a>
+    | <a href="#rpt_year_query" title="Cumulative Hits by Query">yQuery</a>
+    | <a href="#rpt_year_domain" title="Cumulative hits by visitor">yDomain</a>
+    | <a href="#rpt_dslv_domain" title="Visitors by days since last visit">DSLV</a>
+    | <a href="#rpt_year_words" title="Cumulative Query Word Usage">yWords</a>
+    | <a href="#rpt_byyear" title="Traffic by year">ByYear</a>
+    | <a href="#rpt_cumpage" title="Cumulative hits on HTML Pages">yPage</a>
+    | <a href="#rpt_bymonth" title="Hits by month">Bymonth</a>
+    | Return to <a href="index.html">Tom Van Vleck Website</a>
+    | <a href="info.html">Info</a>
+    | <a href="configdisplay.html">Config</a>

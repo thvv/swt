@@ -1,0 +1,7 @@
+%[** Template for SWT file 'mys' expanded by 'configure' if mysql is old **]%
+%[** ================================================================ **]%
+#!/bin/sh
+# Command to invoke mysql to run interactively.
+# This command can get the password from .my.cnf if you have only one database.
+%[MYSQLPATH]% -u%[SWTDBUSER]% -p%[SWTDBPASS]% -h%[SWTDBHOST]% %[SWTDB]%
+

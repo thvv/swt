@@ -1,0 +1,87 @@
+%[** Funnel Analysis for Authus **]%
+%[** - number of authus seals displayed and number of  **]%
+%[** Parameters **]%
+%[** - charttitle - title **]%
+%[**  **]%
+%[** THVV 08/12/08 **]%
+%[** THVV 09/23/08 fix to count authenticator.swf **]%
+%[** THVV 09/25/08 add cumulative totals **]%
+%[** THVV 09/26/08 use config parameters **]%
+%[** THVV 10/07/08 count errors **]%
+%[** THVV 10/14/08 count distinct seal IPs **]%
+%[** THVV 10/24/09 Authus 2.0, do not use applog_event **]%
+%[** ================================================================ **]%
+%[*include,=wtxmacros.htmi]%
+%[*if,ne,subtitle,="",*expandv,&s00,subtitle]%
+%[*set,&pilotbegin,rpt_funnel_begindate]%
+%[*sqlloop,&junk,=x,=SELECT UNIX_TIMESTAMP('%[pilotbegin]%') AS pilotbeginunix]%
+%[** ================================================================ **]%
+%[** ---------------- output one line for each field1 value ---------------- **]%
+%[*block,&trline,^END]%
+%[*sqlloop,&junk,=x,param3]%
+%[*sqlloop,&junk,=x,param4]%
+%[*set,&xpct,=""]%
+%[*if,!=,param1,="--",*scale,&xpct,.xx,param1,=100]%
+%[*if,!=,param1,="--",*subst,&xpct,="$",="%"]%
+    <tr><td>%[param2]%</td><td align=right>%[.yy]%</td><td align=right>%[.xx]%</td><td align=right>%[xpct]%</td></tr>
+END
+%[** ================================================================ **]%
+%[*sqlloop,&junk,=x,=SELECT SUM(dhvisits) AS ytdvisits FROM wtdomhist]%
+%[** .. ytdvisits will be too high because we can't eliminate visits before pilot started **]%
+%[*decrement,&.ytdvisits,rpt_funnel_ignorevisits]%
+%[** ================================================================ **]%
+%[*sqlloop,&brandtab,tabiter,="SELECT assertion_types.brand AS label, assertion_types.lang, COUNT(*) AS nbl FROM hits INNER JOIN assertion_types ON CONCAT(TRIM(LEADING 'amp;a=' FROM SUBSTRING_INDEX(SUBSTRING_INDEX(hits.myquery,'&',3),'&',-1)),'.xml') = assertion_types.filename WHERE hits.filename = 'seal.html' GROUP BY assertion_types.brand, assertion_types.lang"]%
+%[*sqlloop,&merchtab,tabiter,="SELECT assertion_types.merchant_id AS label, assertion_types.lang, COUNT(*) AS nbl FROM hits INNER JOIN assertion_types ON CONCAT(TRIM(LEADING 'amp;a=' FROM SUBSTRING_INDEX(SUBSTRING_INDEX(hits.myquery,'&',3),'&',-1)),'.xml') = assertion_types.filename WHERE hits.filename = 'seal.html' GROUP BY assertion_types.merchant_id, assertion_types.lang"]%
+%[** ================================================================ **]%
+%[*block,&tabiter,^END]%
+    <tr><td>%[assertion_types.label]%</td><td>%[assertion_types.lang]%</td><td align=right>%[.nbl]%</td></tr>
+END
+%[** ================================================================ **]%
+<h2 id="%[nameanchor]%">%[charttitle]%</h2>
+%[*if,ne,s00,="",*expand,="<p class=\"subtitle\">%[s00]%</p>"]%
+<div class="analysis">
+  <table>
+    <tr><th></th><th>Since<br>%[pilotbegin]%</th><th>Today</th><th></th></tr>
+    <tr><td>Total visits</td><td align=right>%[.ytdvisits]%</td><td align=right>%[totalvisits]%</td><td></td></tr>
+%[*set,&base,="--"]%
+%[** count hits on seal.html **]%
+%[*callv,trline,base,="Hits on seal.html",=SELECT COUNT(*) AS xx FROM hits WHERE path LIKE '%seal.html',=SELECT COUNT(*) AS yy FROM access_log WHERE time_stamp > %[.pilotbeginunix]% AND request_uri LIKE '%seal.html']%
+%[*callv,trline,base,="Distinct Seal IPs",=SELECT COUNT(DISTINCT domain) AS xx FROM hits WHERE filename LIKE '%seal.html',=SELECT COUNT(DISTINCT remote_host) AS yy FROM access_log WHERE time_stamp > %[.pilotbeginunix]% AND request_uri LIKE '%seal.html']%
+%[*set,&base,.xx]%
+%[** count rollovers from applog **]%
+%[*callv,trline,base,="Seals mouseover",=SELECT COUNT(*) AS xx FROM applog WHERE unixtime >= %[firstdatebin]% AND unixtime <= %[lastdatebin]%+60 AND content LIKE '%:rollover:%',=SELECT COUNT(*) AS yy FROM applog WHERE unixtime > %[.pilotbeginunix]% AND content LIKE '%:rollover:%']%
+%[** count seal clicks from applog **]%
+%[*callv,trline,base,="Seals clicked",=SELECT COUNT(*) AS xx FROM applog WHERE unixtime >= %[firstdatebin]% AND unixtime <= %[lastdatebin]%+60 AND content LIKE '%:seal_click:%',=SELECT COUNT(*) AS yy FROM applog WHERE unixtime > %[.pilotbeginunix]% AND content LIKE '%:seal_click:%']%
+%[** lookup window does not record when it opens.  it is always delivered and constructed. **]%
+%[** cannot get LW-close **]%
+%[** count seal navigates from applog **]%
+%[*callv,trline,base,="Navigation",=SELECT COUNT(*) AS xx FROM applog WHERE unixtime >= %[firstdatebin]% AND unixtime <= %[lastdatebin]%+60 AND content LIKE '%:navigate:%',=SELECT COUNT(*) AS yy FROM applog WHERE unixtime > %[.pilotbeginunix]% AND content LIKE '%:navigate:%']%
+%[** ---------------- kinds of navigation ---------------- **]%
+%[*callv,trline,base,="    about Authus",=SELECT COUNT(*) AS xx FROM applog WHERE unixtime >= %[firstdatebin]% AND unixtime <= %[lastdatebin]%+60 AND content LIKE '%:navigate:about Authus:%',=SELECT COUNT(*) AS yy FROM applog WHERE unixtime > %[.pilotbeginunix]% AND content LIKE '%:navigate:about Authus:%']%
+%[*callv,trline,base,="    contact",=SELECT COUNT(*) AS xx FROM applog WHERE unixtime >= %[firstdatebin]% AND unixtime <= %[lastdatebin]%+60 AND content LIKE '%:navigate:contact:%',=SELECT COUNT(*) AS yy FROM applog WHERE unixtime > %[.pilotbeginunix]% AND content LIKE '%:navigate:contact:%']%
+%[*callv,trline,base,="    customize your icon",=SELECT COUNT(*) AS xx FROM applog WHERE unixtime >= %[firstdatebin]% AND unixtime <= %[lastdatebin]%+60 AND content LIKE '%:navigate:customize your icon:%',=SELECT COUNT(*) AS yy FROM applog WHERE unixtime > %[.pilotbeginunix]% AND content LIKE '%:navigate:customize your icon:%']%
+%[*callv,trline,base,="    done_icons",=SELECT COUNT(*) AS xx FROM applog WHERE unixtime >= %[firstdatebin]% AND unixtime <= %[lastdatebin]%+60 AND content LIKE '%:navigate:done_icons:%',=SELECT COUNT(*) AS yy FROM applog WHERE unixtime > %[.pilotbeginunix]% AND content LIKE '%:navigate:done_icons:%']%
+%[*callv,trline,base,="    fulfillment",=SELECT COUNT(*) AS xx FROM applog WHERE unixtime >= %[firstdatebin]% AND unixtime <= %[lastdatebin]%+60 AND content LIKE '%:navigate:fulfillment:%',=SELECT COUNT(*) AS yy FROM applog WHERE unixtime > %[.pilotbeginunix]% AND content LIKE '%:navigate:fulfillment:%']%
+%[*callv,trline,base,="    home",=SELECT COUNT(*) AS xx FROM applog WHERE unixtime >= %[firstdatebin]% AND unixtime <= %[lastdatebin]%+60 AND content LIKE '%:navigate:home:%',=SELECT COUNT(*) AS yy FROM applog WHERE unixtime > %[.pilotbeginunix]% AND content LIKE '%:navigate:home:%']%
+%[*callv,trline,base,="    more_icons",=SELECT COUNT(*) AS xx FROM applog WHERE unixtime >= %[firstdatebin]% AND unixtime <= %[lastdatebin]%+60 AND content LIKE '%:navigate:more_icons:%',=SELECT COUNT(*) AS yy FROM applog WHERE unixtime > %[.pilotbeginunix]% AND content LIKE '%:navigate:more_icons:%']%
+%[*callv,trline,base,="    privacy & security",=SELECT COUNT(*) AS xx FROM applog WHERE unixtime >= %[firstdatebin]% AND unixtime <= %[lastdatebin]%+60 AND content LIKE '%:navigate:privacy & security:%',=SELECT COUNT(*) AS yy FROM applog WHERE unixtime > %[.pilotbeginunix]% AND content LIKE '%:navigate:privacy & security:%']%
+%[*callv,trline,base,="    report misuse",=SELECT COUNT(*) AS xx FROM applog WHERE unixtime >= %[firstdatebin]% AND unixtime <= %[lastdatebin]%+60 AND content LIKE '%:navigate:report misuse:%',=SELECT COUNT(*) AS yy FROM applog WHERE unixtime > %[.pilotbeginunix]% AND content LIKE '%:navigate:report misuse:%']%
+%[*callv,trline,base,="    returns & refunds",=SELECT COUNT(*) AS xx FROM applog WHERE unixtime >= %[firstdatebin]% AND unixtime <= %[lastdatebin]%+60 AND content LIKE '%:navigate:returns & refunds:%',=SELECT COUNT(*) AS yy FROM applog WHERE unixtime > %[.pilotbeginunix]% AND content LIKE '%:navigate:returns & refunds:%']%
+%[*callv,trline,base,="    warranty",=SELECT COUNT(*) AS xx FROM applog WHERE unixtime >= %[firstdatebin]% AND unixtime <= %[lastdatebin]%+60 AND content LIKE '%:navigate:warranty:%',=SELECT COUNT(*) AS yy FROM applog WHERE unixtime > %[.pilotbeginunix]% AND content LIKE '%:navigate:warranty:%']%
+%[** ---------------- **]%
+%[** count icon changes from applog **]%
+%[*callv,trline,base,="Change Icon",=SELECT COUNT(*) AS xx FROM applog WHERE unixtime >= %[firstdatebin]% AND unixtime <= %[lastdatebin]%+60 AND content LIKE '%:change_icon:%',=SELECT COUNT(*) AS yy FROM applog WHERE unixtime > %[.pilotbeginunix]% AND content LIKE '%:change_icon:%']%
+%[** count errors from applog **]%
+%[*callv,trline,base,="Errors",=SELECT COUNT(*) AS xx FROM applog WHERE unixtime >= %[firstdatebin]% AND unixtime <= %[lastdatebin]%+60 AND content LIKE '%error:%',=SELECT COUNT(*) AS yy FROM applog WHERE unixtime > %[.pilotbeginunix]% AND content LIKE '%error:%']%
+  </table>
+  <h3>Seal Views By Brand</h3>
+  <table border=1>
+    <tr><th>Brand</th><th>Lang</th><th>Count</th></tr>
+%[brandtab]%
+  </table>
+  <h3>Seal Views By Merchant</h3>
+  <table border=1>
+    <tr><th>Merchant</th><th>Lang</th><th>Count</th></tr>
+%[merchtab]%
+  </table>
+</div>

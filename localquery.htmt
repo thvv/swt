@@ -1,0 +1,70 @@
+%[** Horizontal bar graph of filename, query and one numeric column,  with barchart **]%
+%[** .. trim the name to 40 chars **]%
+%[** assumes that full scale of the bars is the first value in col1]%
+%[** Parameters **]%
+%[** - nameanchor - report name (used for getting query) **]%
+%[** - charttitle - graph title **]%
+%[** - subtitle - graph subtitle **]%
+%[** - %[nameanchor]%_a1head - title for label column 1 **]%
+%[** - %[nameanchor]%_a2head - title for label column 2 **]%
+%[** - %[nameanchor]%_a1var - varname for label table col1  **]%
+%[** - %[nameanchor]%_a2var - varname for label table col2 **]%
+%[** - %[nameanchor]%_col1v - varname for column 1 - this is bar graphed **]%
+%[** - %[nameanchor]%_col1t - title for column 1 **]%
+%[** - %[nameanchor]%_col1tv - count for title for column 2 **]%
+%[** - glb_bar_graph_width - global width in pixels for bar graph **]%
+%[** - glb_bar_graph_height - global height in pixels for bar graph **]%
+%[**  **]%
+%[** Written 2006 by Tom Van Vleck **]%
+%[**  THVV 04/20/06 **]%
+%[**  THVV 06/25/06 add second query for totals **]%
+%[**  THVV 07/11/06 remove byte count, who cares **]%
+%[**  THVV 08/13/06 long and short **]%
+%[**  THVV 08/18/06 fetch query from sql **]%
+%[** ================================================================ **]%
+%[*include,=wtxmacros.htmi]%
+%[*set,&fullscale,=""]%
+%[*if,ne,subtitle,="",*expandv,&s00,subtitle]%
+%[*callv,getquery,nameanchor,="query2"]%
+%[*if,ne,x0,="",*sqlloop,&junk,=x,x0]%
+%[*callv,getquery,nameanchor,="query1"]%
+%[*sqlloop,&chartout,chartiter,x0]%
+%[*set,&totalnum,%[%[nameanchor]%_col1tv]%]%
+%[** ================================================================ **]%
+%[** what about ^{|} backslash doublequote **]%
+%[*block,&chartiter,^END$]%
+%[*if,eq,fullscale,="",*set,&fullscale,%[%[nameanchor]%_col1v]%]%
+%[*set,&y,%[%[nameanchor]%_col1v]%]%
+%[*scale,&z1,y,fullscale,glb_bar_graph_width]%
+%[*set,&a1,%[%[nameanchor]%_a1var]%]%
+%[*subst,&a1,="^(........................................).*$",="\\1"]%
+%[*set,&a2,%[%[nameanchor]%_a2var]%]%
+%[*subst,&a2,="^(........................................).*$",="\\1"]%
+%[*if,eq,fn,="",*set,&f1,y]%
+%[*if,eq,fn,="",*set,&fx,a2]%
+%[*if,eq,fn,="",*set,&fn,a1]%
+    <tr><td>%[a1]%</td><td>%[a2]%</td><td class="numcol">%[y]%</td><td><img src="redpix.gif" alt="" width=%[z1]% height=%[glb_bar_graph_height]%></td></tr>
+END
+%[** ================================================================ **]%
+%[*block,&shortrep,^END]%
+  <p>%[totalnum]% %[%[nameanchor]%_col1t]%; <b>%[fn]% %[fx]%, %[f1]% %[%[nameanchor]%_col1t]%</b></p>
+END
+%[*block,&nullrep,^END]%
+  <p>No local queries.</p>
+END
+%[** ================================================================ **]%
+%[*include,=rptheader.htmi]%
+<div class="chart%[longhidden]%" id="%[nameanchor]%_a1">
+%[*if,ne,s00,="",*expand,="<p class=\"subtitle\">%[s00]%</p>"]%
+%[*if,ne,%[nameanchor]%_a1head,="",*expandv,&a1,%[nameanchor]%_a1head]%
+%[*if,ne,%[nameanchor]%_a2head,="",*expandv,&a2,%[nameanchor]%_a2head]%
+  <table>
+    <tr><th></th><th></th><th class="numcol">%[%[%[nameanchor]%_col1tv]%]%</th><th></th></tr>
+    <tr><th>%[a1]%</th><th>%[a2]%</th><th class="numcol">%[%[nameanchor]%_col1t]%</th><th></th></tr>
+%[chartout]%
+  </table>
+</div>
+<div class="short%[shorthidden]%" id="%[nameanchor]%_a2">
+%[*if,ne,totalnum,=0,*expand,shortrep]%
+%[*if,eq,totalnum,=0,*expand,nullrep]%
+</div>

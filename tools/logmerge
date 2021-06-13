@@ -1,0 +1,197 @@
+#!/usr/local/bin/perl
+#####################################################################
+#
+# Web Log Merge
+#
+# Reads NCSA [combined] web server logs and writes a new log.
+# Usage:
+#    logmerge f1 f2 f3 ... > out
+# where
+#    fi are the filenames
+#    each filename can be preceded by -add prefix/ or by -drop prefix/ .. or both, i guess, haven't tested it
+#
+# this program is invoked by combinelogs
+#
+# 04/21/10 THVV 1.0 derived from logextractor
+# 05/23/11 THVV 1.01 minor fix
+
+#  Permission is hereby granted, free of charge, to any person obtaining
+#  a copy of this software and associated documentation files (the
+#  "Software"), to deal in the Software without restriction, including
+#  without limitation the rights to use, copy, modify, merge, publish,
+#  distribute, sublicense, and/or sell copies of the Software, and to
+#  permit persons to whom the Software is furnished to do so, subject to
+#  the following conditions:
+ 
+#  The above copyright notice and this permission notice shall be included
+#  in all copies or substantial portions of the Software.
+ 
+#  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+#  EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+#  MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+#  IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+#  CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+#  TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+#  SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. 
+
+use readapacheline;
+
+$version = '1.0';
+$me ='logmerge';
+%mons = ('Jan'=>1, 'Feb'=> 2, 'Mar'=> 3, 'Apr'=> 4, 'May'=> 5, 'Jun'=> 6, 'Jul'=> 7, 'Aug'=> 8, 'Sep'=> 9, 'Oct'=> 10, 'Nov'=> 11, 'Dec'=> 12);
+
+if ($#ARGV < 0) {
+    die "$me: too few arguments";
+}
+
+my %v = ();
+my @filename;
+my @drop;
+my @add;
+my @fh;
+my @line;
+my @acctime;
+
+my $filehandle = 0;
+
+my $verbose = 0;
+my $nfiles = 0;
+
+$filename[$nfiles] = '';
+$drop[$nfiles] = '';
+$add[$nfiles] = '';
+$fh[$nfiles] = '';
+$line[$nfiles] = '';
+$acctime[$nfiles] = '';
+
+while ($#ARGV >= 0) {
+    $arg = shift;
+    if ($arg eq "-v") {
+	$verbose = 1;
+    } elsif ($arg eq "-drop") {
+	$drop[$nfiles] = shift;
+    } elsif ($arg eq "-add") {
+	$add[$nfiles] = shift;
+    } else {
+	$filename[$nfiles] = $arg;
+	$fh[$nfiles] = $filehandle++;
+	$nfiles++;
+	$filename[$nfiles] = '';
+	$drop[$nfiles] = '';
+	$add[$nfiles] = '';
+	$fh[$nfiles] = '';
+	$line[$nfiles] = '';
+	$acctime[$nfiles] = '';
+    }
+} # while
+
+my $i;
+my $lowest;
+my $lowx;
+my $ec;
+
+# open all the logfiles
+for ($i=0;  $i<$nfiles; $i++) {
+    if ($filename[$i] =~ /\.gz$|\.z$/i) {
+	open($fh[$i], "gzcat $filename[$i] |") or die "cannot open $filename[$i]";
+    } else {
+	open($fh[$i], "$filename[$i]") or die "cannot open $filename[$i]";
+    }
+} # for
+
+$more = 1;
+while ($more) {
+    for ($i=0;  $i<$nfiles; $i++) {
+	if (!eof($fh[$i]) && $line[$i] eq '') {
+            $tfh = $fh[$i];
+	    $temp = <$tfh>; # read a line
+            chop $temp;
+	    $ec = &readApacheLine($temp, $verbose, \%v);
+	    if ($ec == 0) {
+		$line[$i] = $temp;
+		$acctime[$i] = $v{'accesstime'};
+	    } else {
+		$acctime[$i] = '';
+	    }
+	}
+    } # for
+    $lowest = '';
+    $lowx = -1;
+    for ($i=0;  $i<$nfiles; $i++) {
+#print "comp $i '$lowest' '$acctime[$i]'\n";
+	if (($line[$i] ne '') && $acctime[$i] ne '') {
+	    if (($lowest eq '') || (&dategrt($lowest, $acctime[$i]))) {
+#print "switch $lowx\n";
+		$lowest = $acctime[$i];
+		$lowx = $i;
+	    }
+	}
+    } # for
+#print "lowx $lowx\n";
+    if ($lowx >= 0) {
+#print "reparse $lowx\n";
+	$ec = &readApacheLine($line[$lowx], $verbose, \%v);
+	# handle drop and add
+	if ($drop[$lowx] ne '') {
+	    if (substr($v{'path'}, 0, length($drop[$lowx])) eq $drop[$lowx]) {
+		$v{'path'} = substr($v{'path'}, length($drop[$lowx]));
+	    }
+	}
+	if ($add[$lowx] ne '') {
+	    $v{'path'} = '/' . $v{'path'} if substr($v{'path'}, 0, 1) ne '/'; # malformed 
+	    $v{'path'} = $add[$lowx] . $v{'path'};
+	}
+	print "$v{'domain'} $v{'accesseddir'} $v{'authid'} \[$v{'accesstime'}\] \"$v{'verb'} $v{'path'} $v{'protocol'}\" $v{'retcode'} $v{'size'} \"$v{'referrer'}\" \"$v{'browser'}\"\n";
+	$line[$lowx] = '';
+    }
+    $more = 0;
+    for ($i=0;  $i<$nfiles; $i++) {
+	if (!eof($fh[$i])) {
+#print "more $i\n";
+	    $more = 1;
+	}
+    } # for
+} # while $more
+
+exit(0);
+
+# 20/Apr/2010:16:36:44 -0400
+sub dategrt {
+    my $a1 = shift;
+    my $a2 = shift;
+    my ($y1, $d1, $m1, $hh1, $mm1, $ss1);
+    my ($y2, $d2, $m2, $hh2, $mm2, $ss2);
+    if ($a1 =~ /^(\d\d)\/(...)\/(\d\d\d\d):(\d\d):(\d\d):(\d\d)/) {
+	$d1 = $1;
+	$m1 = $2;
+	$y1 = $3;
+	$hh1 = $4;
+	$mm1 = $5;
+	$ss1 = $6;
+    } else {
+	die "bad date1 $a1";
+    }
+    if ($a2 =~ /^(\d\d)\/(...)\/(\d\d\d\d):(\d\d):(\d\d):(\d\d)/) {
+	$d2 = $1;
+	$m2 = $2;
+	$y2 = $3;
+	$hh2 = $4;
+	$mm2 = $5;
+	$ss2 = $6;
+    } else {
+	die "bad date2 $a2";
+    }
+    return 1 if $y1 > $y2;
+    return 0 if $y1 < $y2;
+    return 1 if $m1 > $m2;
+    return 0 if $m1 < $m2;
+    return 1 if $d1 > $d2;
+    return 0 if $d1 < $d2;
+    return 1 if $hh1 > $hh2;
+    return 0 if $hh1 < $hh2;
+    return 1 if $mm1 > $mm2;
+    return 0 if $mm1 < $mm2;
+    return 1 if $ss1 > $ss2;
+    return 0 if $ss1 < $ss2;
+    return 0;
+} # dategrt

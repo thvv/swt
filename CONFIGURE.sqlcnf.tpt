@@ -1,0 +1,8 @@
+%[** Template for SWT file 'sql.cnf' expanded by 'configure' **]%
+%[** ================================================================ **]%
+[client]
+user=%[SWTDBUSER]%
+password=%[SWTDBPASS]%
+host=%[SWTDBHOST]%
+[mysql]
+database=%[SWTDB]%

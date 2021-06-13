@@ -1,0 +1,361 @@
+#!/bin/sh
+# Installation script for Super Webtrax
+# THVV 07/19/06 1.0
+# THVV 09/10/07 1.1 improve error checking
+# THVV 09/13/07 1.2 use CONFIGURE.status
+# THVV 08/01/08 1.3 eliminate cp -n, fails on Ubuntu
+# THVV 09/07/10 1.4 fix insertion of CONFIGURE.status, fails on Ubuntu cause of dash
+# THVV 12/12/10 1.5 add piecanvas.js and excanvas.js
+# THVV 01/14/16 install readbindxml.pm wordlist.pl fmtnum byyear.htmt
+# THVV 01/14/16 check for missing files
+# THVV 11/27/16 create a default postamble.txt
+# THVV 02/18/21 adapt for expandfile3 and accumulated changes
+
+# bugs ... logextractor2 should use zcat or gzcat depending on which is installed
+
+# install is supposed to be idempotent.
+
+# ----------------------------------------------------------------
+# print a message on console and append it to CONFIGURE.status
+message()
+{
+    local msg=""
+    msg="$1"
+    echo "$0: $msg"
+    echo "## `date` $0 $msg" >> CONFIGURE.status
+} # message
+# ----------------------------------------------------------------
+# ----------------------------------------------------------------
+# run this script in the install-swt directory after running configure
+# ----------------------------------------------------------------
+# TODO
+# - if the db schema changes, how to handle this .. so far we have been upward compatible
+# ----------------------------------------------------------------
+export INSTALLDIR=`pwd`
+
+# has config been run?  if so, load.  It is a list of export commands.
+if test -s CONFIGURE.status
+then
+    # source in CONFIGURE.status
+    . `pwd`/CONFIGURE.status
+    if test -z "$SWTCONFIG" 
+    then
+	{ echo "$0: ***** ERROR: loaded configuration but SWTCONFIG not set" >&2
+	  { (exit 1); exit 1; }; }
+    fi
+else
+    echo "$0: ***** ERROR: CONFIGURE.status not found in $INSTALLDIR, run $INSTALLDIR/configure first"
+    exit 127
+fi
+if test "$TOOLSDIR" = ""
+then
+    echo "$0: ***** ERROR: TOOLSDIR not set by configure"
+    exit 127
+fi
+
+if test ! -d $TOOLSDIR
+then
+    echo "$0: ***** ERROR: tools directory $TOOLSDIR not found"
+    exit 127
+fi
+
+# TOOLSDIR is a relative path .. need to copy dir contents to $PROGRAMDIR/tools
+
+# this is where the files for REPORTDIR are shipped in the tarfile
+if test ! -d $LIVEDIR
+then
+    echo "$0: ***** ERROR: runtime directory $LIVEDIR not found"
+    exit 127
+fi
+
+if test ! -d $PROGRAMDIR
+then
+    echo "$0: ***** ERROR: templates directory $PROGRAMDIR not found"
+    exit 127
+fi
+
+if test ! -d $DATADIR
+then
+    echo "$0: ***** ERROR: data directory $DATADIR not found"
+    exit 127
+fi
+
+if test ! -d $TOOLSDIR
+then
+    echo "$0: ***** ERROR: tools directory $TOOLSDIR not found"
+    exit 127
+fi
+
+if test ! -f $CHECKSWTFILES
+then
+    echo "$0: ***** ERROR: file presence tool $CHECKSWTFILES not found"
+    exit 127
+fi
+
+if test ! -d $CONFIGFILEDIR
+then
+    echo "$0: ***** ERROR: target directory $CONFIGFILEDIR should exist"
+    exit 127
+fi
+
+if test ! -d $REPORTDIR
+then
+    echo "$0: ***** ERROR: report target directory $REPORTDIR should exist"
+    exit 127
+fi
+
+# do you really mean to install?
+export NEWSWTDIR=$(dirname `pwd`)
+read -p "$0: install into $NEWSWTDIR ??? " readvar
+if [ "$readvar" = "yes" ] ; then
+    message "Installing Super Webtrax `cat vnfile` from `pwd` into $NEWSWTDIR"
+else
+    exit 1
+fi
+
+# wipe out old database if it exists?
+read -p "$0: ****** reset database??? " readvar
+if [ "$readvar" = "yes" ] ; then
+    message "Fresh installation of Super Webtrax `cat vnfile`"
+    export FRESH=yes
+else
+    export FRESH=no
+    message "Updating previous installation (`cat $PROGRAMDIR/vnfile`) of Super Webtrax to `cat vnfile` in $NEWSWTDIR"
+fi
+
+# ----------------------------------------------------------------
+echo ".. checking if files are present"
+$CHECKSWTFILES -preinstall $LIVEDIR
+errorwas=$?
+if [ "$errorwas" != "0" ] ; then
+    echo 1>&2 "$0: ***** failed: $CHECKSWTFILES -preinstall $LIVEDIR"
+    exit 127
+fi
+echo "## `date` install $CHECKSWTFILES -preinstall OK" >> CONFIGURE.status
+
+# ----------------------------------------------------------------
+# copy things to where they go
+# if something is there already, fuss
+copyfile()
+{
+    local file=""
+    file="$1"
+    local targetdir=""
+    targetdir="$2"
+    local mode=""
+    mode="$3"
+    local readval
+
+    if test ! -f $file
+    then
+	echo "$0: **** ERROR: $file is missing from `pwd`, should have been created by ./configure"
+	exit 127
+    fi
+    if test ! -d $targetdir
+    then
+	echo "$0: **** ERROR: $targetdir is not a directory, should have been created by ./configure"
+	exit 127
+    fi
+    if test -f $targetdir/$file
+    then
+	# file is already there, see if there are changes
+	echo "$0: diff -b $targetdir/$file $file"
+	diff -b $targetdir/$file $file
+	if [ $? != 0 ] ; then
+	    echo "$0: **** warning: diff $targetdir/$file install-swt/$file ; merge changes ****"
+	    echo "## `date` install $targetdir/$file differs from old" >> CONFIGURE.status
+	    export FILESDIFF="$FILESDIFF $file"
+	else
+	    echo "## `date` install $targetdir/$file same as old" >> CONFIGURE.status
+	fi
+    else
+	echo ".. copying $file to $targetdir"
+	echo "## `date` install $0 copying $file to $targetdir" >> CONFIGURE.status
+	if [ ! -e $targetdir/$file ] ; then
+	    cp  $file $targetdir-f
+	    if [ $? != 0 ] ; then
+		echo "$0: **** ERROR: failed to cp install-swt/$file $targetdir "
+	    fi
+	fi
+	chmod $mode $targetdir/$file
+	if [ $? != 0 ] ; then
+	    echo "$0: **** ERROR: failed to chmod $mode $targetdir/$file "
+	fi
+    fi
+} # copyfile
+# ----------------------------------------------------------------
+# ----------------------------------------------------------------
+
+export FILESDIFF=""
+
+# copy files that were created by configure
+# these contain passwords so secure them against strangers reading them.
+copyfile swtconfig.htmi $CONFIGFILEDIR 400
+
+# (put them in PROGRAMDIR and also in TOOLSDIR .. (should hardlink them))
+copyfile tools/mys $PROGRAMDIR 500
+copyfile tools/mysqldumpcum $PROGRAMDIR 500
+copyfile tools/mysqlload $PROGRAMDIR 500
+copyfile tools/mysqlrun $PROGRAMDIR 500
+
+copyfile tools/mys $TOOLSDIR 500
+copyfile tools/mysqldumpcum $TOOLSDIR 500
+copyfile tools/mysqlload $TOOLSDIR 500
+copyfile tools/mysqlrun $TOOLSDIR 500
+
+# if this is "new mysql"
+copyfile sql.cnf $PROGRAMDIR 400
+copyfile postamble.txt $PROGRAMDIR 600
+
+# if the user has an old version of swt-user.sql, tell him to merge it
+copyfile swt-user.sql $PROGRAMDIR 600
+
+# cron job
+copyfile swtcronjob2.sh $PROGRAMDIR 700
+echo "## `date` $0 copy $PROGRAMDIR/swtcronjob2.sh"
+
+# ----------------------------------------------------------------
+echo "$0: installing Super Webtrax code into $PROGRAMDIR"
+# these files are replaced on every version upgrade
+# user should have done a diff first
+echo "## `date` install copying template files to $PROGRAMDIR" >> CONFIGURE.status
+cp -f *.htmt *.htmi swt swt.sql swtfunct.sh $PROGRAMDIR
+cp -f vnfile init_*.sql tablecleanupsql.tpt filecleanupsh.tpt configdisplay.htmx $PROGRAMDIR
+
+#copy the gifs, css and js files to report directory, e.g. $HOME/public_html/urpt
+if [ "$REPORTDIR" != "./live" ] ; then
+    echo "$0: installing SWT gifs, .js, and .css into $REPORTDIR"
+    echo "## `date` install SWT gifs, .js, and .css into $REPORTDIR" >> CONFIGURE.status
+    cp -f ./live/*.gif $REPORTDIR
+    cp -f ./live/swtstyle.css $REPORTDIR
+    cp -f ./live/swt.js $REPORTDIR
+    cp -f ./live/piecanvas.js $REPORTDIR
+    cp -f ./live/excanvas.js $REPORTDIR
+fi
+
+# TOOLSDIR is a relative path in $INSTALLDIR .. copy dir contents to $PROGRAMDIR/tools
+echo "$0: installing tools into $PROGRAMDIR/tools"
+echo "## `date` $0 copy $TOOLSDIR to $PROGRAMDIR/tools" >> CONFIGURE.status
+test -d $PROGRAMDIR/tools || mkdir $PROGRAMDIR/tools # create if not present
+echo "## `date` install copying tools to $PROGRAMDIR/tools" >> CONFIGURE.status
+cp -f ./tools/* $PROGRAMDIR/tools
+
+## copy tools programs to $HOME/bin -- if not already there -- should I hardlink??
+echo "$0: copy tools into $HOME/bin"
+echo "## `date` $0 copy tools to $HOME/bin" >> CONFIGURE.status
+copyfile tools/logextractor2 $HOME/bin 755
+copyfile tools/combinelogs $HOME/bin 755
+copyfile tools/logmerge $HOME/bin 755
+copyfile tools/fmtnum $HOME/bin 755
+
+# symlink logextractor2 and expandfile in $PROGRAMDIR .. do we need this
+ln -s $HOME/bin/logextractor2
+ln -s $HOME/bin/expandfile
+
+# $PERL5LIB is now set in the cronjob probably don't need this
+#ln -s $HOME/bin/readapacheline.pm $RAWLOGS/readapacheline.pm
+
+# ----------------------------------------------------------------
+if [ "$FILESDIFF" != "" ] ; then
+    echo "$0: ================ Files not copies, resolve diffs ================"
+    echo "$FILESIDFF"
+    echo "================================================================"
+    echo "## `date` $0: files different, need resolving: $FILESIDFF" >> CONFIGURE.status
+fi
+# ----------------------------------------------------------------
+cd $PROGRAMDIR
+
+if [ "$FRESH" = "no" ] ; then
+    echo ".. not a fresh install, not reinitializing database"
+else
+    echo "**..**..**..**..**..**..**..**..**..**..**..**..**..**..**..**.."
+    read -p "$0: really reset database??? " readvar
+    if [ "$readvar" = "yes" ] ; then
+	message "reinitializing database"
+	touch important.1 important.2 important.3 important.4 important.5 important.6 important.7 preamble.txt
+	ed postamble.txt <<EOF
+a
+This product includes GeoLite data created by MaxMind, available from https://www.maxmind.com. 
+.
+w
+q
+EOF
+	export MYSQLLOAD="./mysqlload"
+	#$MYSQLLOAD init_wtcumdom.sql     # obsolete, see wtdomhist
+	#$MYSQLLOAD init_wtdomainday.sql  # obsolete?
+	#$MYSQLLOAD init_wtfilehist.sql   # obsolete?
+	$MYSQLLOAD init_wtcumfile.sql     # cumulative usage by filename
+	$MYSQLLOAD init_wtcumgoog.sql     # google visits
+	$MYSQLLOAD init_wtcumpath.sql     # cumulative paths through site
+	$MYSQLLOAD init_wtcumquery.sql    # cumulative query
+	$MYSQLLOAD init_wtcumref.sql      # cumulative referrer
+	$MYSQLLOAD init_wtdayhist.sql     # history by day
+	$MYSQLLOAD init_wtlog.sql         # events (need not be dumped, reloaded in full from client)
+	$MYSQLLOAD init_wtsrhist.sql      # data saved from one run to the next
+	$MYSQLLOAD init_wtdomhist.sql     # domain by day
+	$MYSQLLOAD init_wtyquerywords.sql # query words cumulative
+
+	touch dnscache		# just in case
+    fi
+fi
+
+cd $INSTALLDIR
+# check for existence of SQL tables using script generated by config .. shd also do this on each run in initialsetup
+echo ".. checking that needed tables exist"
+if [ -f CONFIGURE.check-tables.sql ] ; then
+    rm -f INSTALL.tableprobs.txt
+    mysql --skip-column-names < CONFIGURE.check-tables.sql | grep -v "ok$" > INSTALL.tableprobs.txt
+    if [ -s INSTALL.tableprobs.txt ] ; then
+	echo "$0: *** ERROR, table problems follow ***"
+	cat INSTALL.tableprobs.txt
+	echo "## `date` $0: ERROR, table problems" >> CONFIGURE.status
+    else
+	echo "... tables OK"
+ 	echo "## `date` $0: tables OK" >> CONFIGURE.status
+	rm -f INSTALL.tableprobs.txt
+   fi
+else
+    echo "$0: *** WARNING: CONFIGURE.check-tables.sql not found, should have been created by configure ***"
+fi
+
+echo ""
+echo "$0: ---- how to set up cron job ----"
+echo "1. cd; ln -s $PROGRAMDIR/swtcronjob2.sh"
+echo "2. export EDITOR=/bin/ed"
+echo "3. crontab -e"
+echo "   a"
+echo "   MAILTO=YOU@yourdomain.com"
+echo "   USER=\"YOU\""
+echo "   .. depending on your OS"
+echo "   PATH=\"/usr/home/YOU/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin\""
+echo "   PERL5LIB=\"/usr/home/YOU/bin\""
+echo "   .. or"
+echo "   PATH=\"/home/YOU/bin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/local/sbin:/usr/bin\""
+echo "   PERL5LIB=\"/home/YOU/bin\""
+echo "   .. then pick the minute and hour to run the job"
+echo "   mm hh * * * ./swtcronjob2.sh"
+echo "   ."
+echo "   w"
+echo "   q"
+
+echo "## `date` $0: done" >> CONFIGURE.status
+echo "$0: done"
+
+#  Permission is hereby granted, free of charge, to any person obtaining
+#  a copy of this software and associated documentation files (the
+#  "Software"), to deal in the Software without restriction, including
+#  without limitation the rights to use, copy, modify, merge, publish,
+#  distribute, sublicense, and/or sell copies of the Software, and to
+#  permit persons to whom the Software is furnished to do so, subject to
+#  the following conditions:
+
+#  The above copyright notice and this permission notice shall be included
+#  in all copies or substantial portions of the Software.
+
+#  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+#  EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+#  MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+#  IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+#  CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+#  TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+#  SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. 

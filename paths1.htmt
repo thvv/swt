@@ -1,0 +1,37 @@
+%[** Visualize paths through a site **]%
+%[** THVV 04/30/06 **]%
+%[** **]%
+%[** called by swt **]%
+%[** **]%
+%[** Parameters**]%
+%[** - nameanchor - report name (used for getting query) **]%
+%[** - %[nameanchor]%_countvar - number of times path used **]%
+%[** - %[nameanchor]%_fromvar - from page **]%
+%[** - %[nameanchor]%_tovar - to page **]%
+%[** **]%
+%[** Written 2006 by Tom Van Vleck **]%
+%[**  THVV 06/13/06 **]%
+%[**  THVV 08/18/06 - fetch query from sql **]%
+%[**  THVV 11/28/06 - remove box coloring and name dependencies **]%
+%[**  THVV 12/06/06 - make arrows point right way **]%
+%[** ================================================================ **]%
+%[*include,=wtxmacros.htmi]%
+%[*callv,getquery,nameanchor,="query2"]%
+%[*sqlloop,&transitions,iter,x0]%
+%[** ---------------------------------------------------------------- **]%
+%[*block,&iter,^END]%
+%[*set,&n,=2]%
+%[*if,gt,%[%[nameanchor]%_countvar]%,=10,*set,&n,=3]%
+%[*if,gt,%[%[nameanchor]%_countvar]%,=100,*set,&n,=4]%
+%[*if,gt,%[%[nameanchor]%_countvar]%,=1000,*set,&n,=5]%
+%[%[%[nameanchor]%_tovar]%]% -> %[%[%[nameanchor]%_fromvar]%]% [label="%[%[%[nameanchor]%_countvar]%]%",style="setlinewidth(%[n]%)"];
+END
+%[** ================================================================ **]%
+digraph x {
+ rankdir = LR;
+ node [shape=record, style=filled];
+ graph [order=out];
+
+%[transitions]%
+
+}

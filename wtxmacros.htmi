@@ -1,0 +1,218 @@
+%[** Macros for Super Webtrax **]%
+%[** ]%
+%[** general rules: **]%
+%[** .. macros can return their value in x0 or be passed a varname that they are to set **]%
+%[** .. use other letter-digit values as temps **]%
+%[** -- could really use a general push/pop discipline for vars, right now caller has to know what callee clobbers **]%
+%[** ]%
+%[** Written 2006-2020 by Tom Van Vleck **]%
+%[** ]%
+%[**  THVV 04/20/06 **]%
+%[**  THVV 11/19/06 fix setscale to round **]%
+%[**  THVV 02/04/07 add savehist, fetchhist, deltacomment, trace **]%
+%[**  THVV 09/18/20 expandfile3 **]%
+%[** ================================================================ **]%
+%[** convert systime to h:mm:ss, m:ss, or 0:ss **]%
+%[**   callv,formatsecs,numsecs **]%
+%[** Parameters: **]%
+%[** - param1 = a duration in seconds **]%
+%[** Return: **]%
+%[** - x0 = "hh:mm:ss" **]%
+%[**  **]%
+%[*block,&formatsecs,^END$]%
+%[*quotient,&h1,param1,=3600]%
+%[*product,&m2,h1,=60]%
+%[** h1 contains hours, m2 contains hours conv to minutes]%
+%[*quotient,&m1,param1,=60]%
+%[*decrement,&m1,m2]%
+%[** m1 contains leftover minutes]%
+%[*product,&s2,m1,=60]%
+%[** s2 contains minutes conv to seconds]%
+%[*set,&s1,param1]%
+%[*decrement,&s1,s2]%
+%[*product,&s2,h1,=3600]%
+%[*decrement,&s1,s2]%
+%[** s1 contains leftover seconds]%
+%[** build answer in h1]%
+%[*concat,&h1,=":"]%
+%[*if,eq,h1,="0:",*set,&h1,=""]%
+%[*if,ne,h1,="",*callv,twodigit,m1]%
+%[*if,ne,h1,="",*set,&m1,x0]%
+%[*concat,&h1,m1,=":"]%
+%[*callv,twodigit,s1]%
+%[*concat,&h1,x0]%
+%[*set,&x0,h1]%
+END
+%[** ================================================================ **]%
+%[** convert integer to two digits **]%
+%[**   callv,twodigit,x **]%
+%[** Parameters: **]%
+%[** - param1 = an integer <= 99 **]%
+%[** Return: **]%
+%[** - x0 = 00 if input was null or 0 **]%
+%[** - x0 = 0x if input was x <= 9 **]%
+%[** - x0 = input otherwise **]%
+%[**  **]%
+%[*block,&twodigit,^END$]%
+%[*set,&x0,="00"]%
+%[*concat,&x0,param1]%
+%[*subst,&x0,="^.*(..)$",="\\1"]%
+END
+%[** ================================================================ **]%
+%[** convert bytes to appropriate scale **]%
+%[**   callv,setscale,number **]%
+%[** Parameters: **]%
+%[** - param1 = count of bytes **]%
+%[** Return: **]%
+%[** - x0 = int(param1/1024); y0 = "KB"; z0 = 1024 etc **]%
+%[**  **]%
+%[*block,&setscale,^END$]%
+%[*set,&x0,param1]%
+%[*set,&y0,=""]%
+%[*set,&z0,=1]%
+%[*if,eq,x0,="",*set,&x0,=0]%
+%[*if,ge,x0,=512,*set,&y0,="KB"]%
+%[*if,ge,x0,=512,*product,&z0,z0,=1024]%
+%[*if,ge,x0,=512,*quotientrounded,&x0,x0,=1024]%
+%[*if,ge,x0,=512,*set,&y0,="MB"]%
+%[*if,ge,x0,=512,*product,&z0,z0,=1024]%
+%[*if,ge,x0,=512,*quotientrounded,&x0,x0,=1024]%
+%[*if,ge,x0,=512,*set,&y0,="GB"]%
+%[*if,ge,x0,=512,*product,&z0,z0,=1024]%
+%[*if,ge,x0,=512,*quotientrounded,&x0,x0,=1024]%
+%[*if,ge,x0,=512,*set,&y0,="TB"]%
+%[*if,ge,x0,=512,*product,&z0,z0,=1024]%
+%[*if,ge,x0,=512,*quotientrounded,&x0,x0,=1024]%
+END
+%[** ================================================================ **]%
+%[** fetch a query from wtqueries table that may have percent-bracketed vardiables and expand them. **]%
+%[**   callv,getquery,="rpt_html",="q1" **]%
+%[** Parameters: **]%
+%[** - param1 = report name anchor, e.g. rpt_html **]%
+%[** - param2 = query ID in wtqueries table **]%
+%[** Return: **]%
+%[** - x0 = the query **]%
+%[**  **]%
+%[*block,&getquery,^END]%
+%[*sqlloop,&junk,=x,=SELECT qvalue FROM wtqueries WHERE qrpt='%[param1]%' AND qname='%[param2]%']%
+%[*expandv,&x0,wtqueries.qvalue]%
+END
+%[** ================================================================ **]%
+%[** Append a SQL command to remember a per-report parameter in wtsrhist to file load_wtsrhist.sql **]%
+%[** (rewrites file load_wtsrhist_sep.txt to be a comma) **]%
+%[**   callv,savehist,varname,value **]%
+%[** Parameters: **]%
+%[** - param1 = valuename **]%
+%[** - param2 = value **]%
+%[** Return: **]%
+%[** - nothing **]%
+%[**  **]%
+%[*block,&savehist,^END]%
+%[*fread2,&x0,=load_wtsrhist_sep.txt]%
+%[*fappend,=load_wtsrhist.sql,x0]%
+%[*set,&x0,=","]%
+%[*fwrite,=load_wtsrhist_sep.txt,x0]%
+%[**format,&x0,="($1,$2,'$3','$4','$5')",firstdatebin,lastdatebin,nameanchor,param1,param2]%
+%[*set,&x0,="(",firstdatebin,=",",lastdatebin,=",'",nameanchor,="','",param1,="','",param2,="')"]%
+%[*fappend,=load_wtsrhist.sql,x0]%
+END
+%[** ================================================================ **]%
+%[** Retrieve a per-report value from wtsrhist **]%
+%[**   callv,fetchhist,var **]%
+%[** Parameters: **]%
+%[** - param1 = valuename **]%
+%[** Return: **]%
+%[** - prev_valuename **]%
+%[**  **]%
+%[*block,&fetchhist,^END]%
+%[*set,&hvalue,="0"]%
+%[**format,&x0,="SELECT hvalue FROM wtsrhist WHERE hreportid='$1' AND hparam='$2' ORDER BY hdatemin DESC LIMIT 1",nameanchor,param1]%
+%[*set,&x0,="SELECT hvalue FROM wtsrhist WHERE hreportid='",nameanchor,="' AND hparam='",param1,="' ORDER BY hdatemin DESC LIMIT 1"]%
+%[*sqlloop,&junk,="x",x0]%
+%[*set,&prev_%[param1]%,wtsrhist.hvalue]%
+END
+%[** ================================================================ **]%
+%[** Return a string that represents the change in a variable **]%
+%[**   callv,deltacomment,newval,oldval,redthresh,varname **]%
+%[** Parameters: **]%
+%[** - param1 = new value **]%
+%[** - param2 = old value (if this is 0 or null, return blank) **]%
+%[** - param3 = red color threshold **]%
+%[** - param4 = varname to set **]%
+%[** Return: **]%
+%[** - varname - a string like " (+5%)", in red if >param3 % **]%
+%[**  **]%
+%[** x1 is delta, x2 is abs value of delta, x3 is abs percent, x0 is result string **]%
+%[*block,&deltacomment,^END]%
+%[*set,&x1,param1]%
+%[*decrement,&x1,param2]%
+%[*set,&x2,x1]%
+%[*if,lt,x1,=0,*set,&x2,param2]%
+%[*if,lt,x1,=0,*decrement,&x2,param1]%
+%[*scale,&x3,x2,param2,=100]%
+%[*set,&fmt,=" ($1$2)"]%
+%[*if,gt,x3,param3,*if,gt,x1,=0,*set,&fmt,=" <span class=\"inred\">($1$2%)</a>"]%
+%[*if,gt,x3,param3,*if,lt,x1,=0,*set,&fmt,=" <span class=\"inblue\">($1$2%)</a>"]%
+%[*set,&sign,=""]%
+%[*if,gt,x1,=0,*set,&sign,="+"]%
+%[*if,lt,x1,=0,*set,&sign,="+"]%
+%[**format,&x0,fmt,sign,x3]%
+%[*set,&x0,=" "]%
+%[*if,gt,x3,param3,*if,gt,x1,=0,*concat,&x0,="<span class=\"inred\">"]%
+%[*if,gt,x3,param3,*if,lt,x1,=0,*concat,&x0,="<span class=\"inblue\">"]%
+%[*concat,&x0,="("]%
+%[*if,gt,x1,=0,*concat,&x0,="+"]%
+%[*if,lt,x1,=0,*concat,&x0,="-"]%
+%[*concat,&x0,x3,="%)"]%
+%[*if,gt,x3,param3,*concat,&x0,="</span>"]%
+%[*if,eq,param2,="",*set,&x0,=""]%
+%[*if,eq,param2,=0,*set,&x0,=""]%
+%[*set,&%[param4]%,x0]%
+END
+%[** ================================================================ **]%
+%[** Return a string that represents the number of days a variable has been the same **]%
+%[**   callv,deltandays,x,prevx,=ndays,=result **]%
+%[** Parameters: **]%
+%[** - param1 = new value **]%
+%[** - param2 = old value **]%
+%[** - param3 = varname holding ndays **]%
+%[** - param4 = varname for result string **]%
+%[** Return: **]%
+%[** - param3 content - set to 1 or incremented **]%
+%[** - param4 content - a string like " (2 days)" or blank if param1 is 0 or 1 **]%
+%[**  **]%
+%[*block,&deltandays,^END]%
+%[*if,eq,param1,param2,*increment,&%[param3]%,=1]%
+%[*if,ne,param1,param2,*set,&%[param3]%,=1]%
+%[*set,&%[param4]%,=""]%
+%[*if,gt,%[param3]%,=1,*concat,&%[param4]%,=" (",%[param3]%,=" days)"]%
+END
+%[** ================================================================ **]%
+%[** Debugging trace **]%
+%[**   callv,trace,a1,a2,a3,a4,a5 **]%
+%[** (do not try to pass "param1" etc, doesn't work) **]%
+%[** Parameters: **]%
+%[** - param1 = value **]%
+%[** - param2 = value **]%
+%[** - param3 = value **]%
+%[** - param4 = value **]%
+%[** - param5 = value **]%
+%[** Return: **]%
+%[** - nothing **]%
+%[**  **]%
+%[*block,&trace,^END]%
+%[*set,&traceoutput,="trace ",param1,=" ",param2,=" ",param3,=" ",param4,=" ",param5]%
+%[*fappend,=tracefile.txt,traceoutput]%
+END
+%[** ================================================================ **]%
+%[** Trim a domain name to a standard length **]%
+%[** .. 40 characters was not enough, trying 64 **]%
+%[**   callv,trimdomain,=varname **]%
+%[** Parameters: **]%
+%[** - param1 = varname whose value will be trimmed **]%
+%[** Return: **]%
+%[** - param1 content - value trimmed to standard length **]%
+%[**  **]%
+%[*block,&trimdomain,^END]%
+%[*subst,&%[param1]%,="^(................................................................).*$",="\\1"]%
+END

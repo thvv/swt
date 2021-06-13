@@ -1,0 +1,69 @@
+%[** Analysis **]%
+%[** Parameters **]%
+%[** - charttitle - title **]%
+%[**  **]%
+%[** Written 2006 by Tom Van Vleck **]%
+%[**  THVV 04/20/06 **]%
+%[**  THVV 07/12/06 add total and graphic lines to analysis **]%
+%[**  THVV 07/22/06 7 columns not 4 **]%
+%[**  THVV 11/29/06 add number of domains etc to table **]%
+%[**  THVV 12/29/07 add a row for authenticated visits **]%
+%[** ================================================================ **]%
+%[*include,=wtxmacros.htmi]%
+%[*if,ne,subtitle,="",*expandv,&s00,subtitle]%
+%[** --------- **]%
+%[*scale,&nlinkhitspct,nlinkhits,totalhits,=100]%
+%[*scale,&nlinkvisitspct,nlinkvisits,totalvisits,=100]%
+%[*quotient,&linkmb,linkbytes,bytes2mb]%
+%[*scale,&linkmbpct,linkbytes,totalbytes,=100]%
+%[** --------- **]%
+%[*scale,&searcheshitpct,nsearches,totalhits,=100]%
+%[*scale,&nsearchvisitspct,nsearchvisits,totalvisits,=100]%
+%[*quotient,&searchmb,searchbytes,bytes2mb]%
+%[*scale,&searchmbpct,searchbytes,totalbytes,=100]%
+%[** --------- **]%
+%[*scale,&hphitpct,hphits,totalhits,=100]%
+%[*quotient,&hpmb,hpbytes,bytes2mb]%
+%[*scale,&hpmbpct,hpbytes,totalbytes,=100]%
+%[** --------- **]%
+%[*quotient,&nohtmlmb,nohtmlbytes,bytes2mb]%
+%[*scale,&nohtmlmbpct,nohtmlbytes,totalbytes,=100]%
+%[*scale,&nohtmlhitpct,nohtmlvisitshits,totalhits,=100]%
+%[*scale,&nohtmlvisitpct,nohtmlvisits,totalvisits,=100]%
+%[** --------- **]%
+%[*quotient,&htmlmb,htmlbytes,bytes2mb]%
+%[*scale,&htmlmbpct,htmlbytes,totalbytes,=100]%
+%[*scale,&htmlhitpct,htmlhits,totalhits,=100]%
+%[*scale,&htmlvisitpct,htmlvisits,totalvisits,=100]%
+%[** --------- **]%
+%[*scale,&indexhitspct,indexhits,totalhits,=100]%
+%[*scale,&nindexvisitspct,nindexvisits,totalvisits,=100]%
+%[*quotient,&indexmb,indexbytes,bytes2mb]%
+%[*scale,&indexmbpct,indexbytes,totalbytes,=100]%
+%[** --------- **]%
+%[*scale,&graphichitpct,graphichits,totalhits,=100]%
+%[*quotient,&graphicmb,graphicbytes,bytes2mb]%
+%[*scale,&graphicmbpct,graphicbytes,totalbytes,=100]%
+%[** --------- **]%
+%[*quotient,&totalauthmb,totalauthkb,=1024]%
+%[*scale,&authhitspct,totalauthhits,totalhits,=100]%
+%[*scale,&authvisitspct,totalauthvisits,totalvisits,=100]%
+%[*scale,&authmbpct,totalauthkb,totalkb,=100]%
+%[** ================================================================ **]%
+<h2 id="%[nameanchor]%">%[charttitle]%</h2>
+%[*if,ne,s00,="",*expand,="<p class=\"subtitle\">%[s00]%</p>"]%
+<div class="analysis">
+  <table>
+    <tr><th></th><th colspan="2">Hits</th><th colspan="2">visits</th><th colspan="2">MB</th><th></th></tr>
+    <tr><td>Total</td><td class="numcol">%[totalhits]%</td><td class="numcol">(100%)</td><td class="numcol">%[totalvisits]%</td><td class="numcol">(100%)</td><td class="numcol">%[totalmb]%</td><td class="numcol">(100%)</td><td>%[ndomainstoday]% unique visitors, %[newdomainstoday]% new today</td></tr>
+    <tr><td>%[htmlfiles]% <a href="http://www.multicians.org/thvv/webtrax-help%[wtversion]%.html#page">HTML pages</a></td><td class="numcol">%[htmlhits]%</td><td class="numcol">(%[htmlhitpct]%%)</td><td class="numcol">%[htmlvisits]%</td><td class="numcol">(%[htmlvisitpct]%%)</td><td class="numcol">%[htmlmb]%</td><td class="numcol">(%[htmlmbpct]%%)</td><td>%[htmlfilesni]% visited by nonindexers</td></tr>
+    <tr><td>Graphics</td><td class="numcol">%[graphichits]%</td><td class="numcol">(%[graphichitpct]%%)</td><td></td><td></td><td class="numcol">%[graphicmb]%</td><td class="numcol">(%[graphicmbpct]%%)</td><td></td></tr>
+    <tr><td><a href="http://www.multicians.org/thvv/webtrax-help%[wtversion]%.html#indexer">Visits without any HTML</a></td><td class="numcol">%[nohtmlvisitshits]%</td><td class="numcol">(%[nohtmlhitpct]%%)</td><td class="numcol">%[nohtmlvisits]%</td><td class="numcol">(%[nohtmlvisitpct]%%)</td><td class="numcol">%[nohtmlmb]%</td><td class="numcol">(%[nohtmlmbpct]%%)</td><td></td></tr>
+<!-- breakdown by class and source -->
+    <tr><td>%[nheadp]% <a href="http://www.multicians.org/thvv/webtrax-help%[wtversion]%.html#head">Head pages</a></td><td class="numcol">%[hphits]%</td><td class="numcol">(%[hphitpct]%%)</td><td></td><td></td><td class="numcol">%[hpmb]%</td><td class="numcol">(%[hpmbpct]%%)</td><td></td></tr>
+    <tr><td><a href="http://www.multicians.org/thvv/webtrax-help%[wtversion]%.html#engine">Searches</a></td><td class="numcol">%[nsearches]%</td><td class="numcol">(%[searcheshitpct]%%)</td><td class="numcol">%[nsearchvisits]%</td><td class="numcol">(%[nsearchvisitspct]%%)</td><td class="numcol">%[searchmb]%</td><td class="numcol">(%[searchmbpct]%%)</td><td></td></tr>
+    <tr><td><a href="http://www.multicians.org/thvv/webtrax-help%[wtversion]%.html#link">Links</a></td><td class="numcol">%[nlinkhits]%</td><td class="numcol">(%[nlinkhitspct]%%)</td><td class="numcol">%[nlinkvisits]%</td><td class="numcol">(%[nlinkvisitspct]%%)</td><td class="numcol">%[linkmb]%</td><td class="numcol">(%[linkmbpct]%%)</td><td></td></tr>
+    <tr><td><a href="http://www.multicians.org/thvv/webtrax-help%[wtversion]%.html#indexer">Web indexers</a></td><td class="numcol">%[indexhits]%</td><td class="numcol">(%[indexhitspct]%%)</td><td class="numcol">%[nindexvisits]%</td><td class="numcol">(%[nindexvisitspct]%%)</td><td class="numcol">%[indexmb]%</td><td class="numcol">(%[indexmbpct]%%)</td><td></td></tr>
+    <tr><td><a href="http://www.multicians.org/thvv/webtrax-help%[wtversion]%.html#authid">Authenticated Visits</a></td><td class="numcol">%[totalauthhits]%</td><td class="numcol">(%[authhitspct]%%)</td><td class="numcol">%[totalauthsess]%</td><td class="numcol">(%[authvisitspct]%%)</td><td class="numcol">%[totalauthmb]%</td><td class="numcol">(%[authmbpct]%%)</td><td></td></tr>
+  </table>
+</div>

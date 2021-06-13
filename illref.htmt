@@ -1,0 +1,73 @@
+%[** Illegal referrer bar chart by file type **]%
+%[** Parameters **]%
+%[** - nameanchor - report name (used for getting query) **]%
+%[** - charttitle - graph title **]%
+%[** - subtitle - graph subtitle **]%
+%[** - %[nameanchor]%_hitcountvar - hit count in query1 **]%
+%[** - %[nameanchor]%_bytesvar - byte count in query1 **]%
+%[** - %[nameanchor]%_totalhitcountvar - total hits from query3 **]%
+%[** - %[nameanchor]%_totalbytesvar - total bytes from query3 **]%
+%[** - %[nameanchor]%_pathvar - path name in query1 **]%
+%[** - %[nameanchor]%_referrervar - referrer in query1 **]%
+%[** - %[nameanchor]%_totalfilesvar - total files from query4 **]%
+%[** - %[nameanchor]%_totaldomsvar - total domains from query2 **]%
+%[** - glb_bar_graph_width - from config, width of bar graphs in pixels **]%
+%[** - hitsnovisit - from globals, hits that were in no visit **]%
+%[** - domsnovisit - from globals, domains that tried to access **]%
+%[**  **]%
+%[** Written 2006 by Tom Van Vleck **]%
+%[**  THVV 04/20/06 **]%
+%[**  THVV 08/13/06 long and short report **]%
+%[**  THVV 08/18/06 - fetch query from sql **]%
+%[**  THVV 12/27/06 use path instead of filename **]%
+%[** ================================================================ **]%
+%[*include,=wtxmacros.htmi]%
+%[*if,ne,subtitle,="",*expandv,&s00,subtitle]%
+%[*callv,getquery,nameanchor,="queryillref2"]%
+%[*sqlloop,&chartout,="x",x0]%
+%[*set,&ndomains,%[%[nameanchor]%_totaldomsvar]%]%
+%[** ================ **]%
+%[*callv,getquery,nameanchor,="queryillref3"]%
+%[*sqlloop,&chartout,="x",x0]%
+%[*set,&totalillhits,%[%[nameanchor]%_totalhitcountvar]%]%
+%[*quotient,&totalillkb,%[%[nameanchor]%_totalbytesvar]%,=1024]%
+%[** ================ **]%
+%[*callv,getquery,nameanchor,="queryillref4"]%
+%[*sqlloop,&chartout,="x",x0]%
+%[*set,&totalillfiles,%[%[nameanchor]%_totalfilesvar]%]%
+%[** ================ **]%
+%[*set,&fullscale,=""]%
+%[*callv,getquery,nameanchor,="queryillref"]%
+%[*sqlloop,&chartout,chartiter,x0]%
+%[** ================================================================ **]%
+%[*block,&chartiter,^END$]%
+%[*if,eq,fullscale,="",*set,&fullscale,%[%[nameanchor]%_hitcountvar]%]%
+%[*scale,&x,%[%[nameanchor]%_hitcountvar]%,fullscale,glb_bar_graph_width]%
+%[*quotient,&kb,%[%[nameanchor]%_bytesvar]%,=1024]%
+%[** trim leading slash off path **]%
+%[*set,&path,%[%[nameanchor]%_pathvar]%]%
+%[*subst,&path,="^\\/",=""]%
+%[** make a pretty referrer for the table **]%
+%[*set,&rd,%[%[nameanchor]%_referrervar]%]%
+%[*set,&url,rd]%
+%[*subst,&rd,="^.*?:\\/\\/",=""]%
+%[*subst,&rd,="\\/.*$",=""]%
+%[*set,&chartiterdom,url]%
+%[** if the target is linkable, hotlink it to the real referrer (beware clicking) **]%
+%[*if,rexp,url,="^http",*set,&chartiterdom,="<a href="quote,url,quote,=" rel=\"nofollow\">",rd,="</a>"]%
+    <tr><td>%[chartiterdom]%</td><td>%[path]%</td><td class="numcol">%[kb]%</td><td class="numcol">%[%[%[nameanchor]%_hitcountvar]%]%</td><td><img src="redpix.gif" alt="" width=%[x]% height=%[glb_bar_graph_height]%></td></tr>
+END
+%[** ================================================================ **]%
+%[*include,=rptheader.htmi]%
+<div class="chart%[longhidden]%" id="%[nameanchor]%_a1">
+%[*if,ne,s00,="",*expand,="<p class=\"subtitle\">%[s00]%</p>"]%
+  <table>
+    <tr><th>%[ndomains]%</th><th>%[totalillfiles]%</th><th class="numcol">%[totalillkb]%</th><th class="numcol">%[totalillhits]%</th><th></th></tr>
+    <tr><th>Domains</th><th>Files</th><th class="numcol">KB</th><th class="numcol">Hits</th><th>%[_xf_nrows]% <a href="%[helpurl]%#illegal">illegal references</a></th></tr>
+%[chartout]%
+  </table>
+  <p class="fineprint">%[hitsnovisit]% non-visit failed access attempts from %[domsnovisit]% distinct domains</p>
+</div>
+<div class="short%[shorthidden]%" id="%[nameanchor]%_a2">
+     <p>%[ndomains]% domains, %[totalillfiles]% files, %[totalillkb]% KB, %[totalillhits]% hits.
+</div>

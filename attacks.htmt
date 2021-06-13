@@ -1,0 +1,254 @@
+%[** Hack Attacks table **]%
+%[**  **]%
+%[** Parameters **]%
+%[** - charttitle - char title **]%
+%[** - subtitle - chart subtitle **]%
+%[** - nameanchor - name **]%
+%[** - %[nameanchor]%_timevar - var for time = .tim **]%
+%[** - %[nameanchor]%_domainvar - var for domain name **]%
+%[** - %[nameanchor]%_pathvar - var for path = .hitp **]%
+%[** - %[nameanchor]%_retcodevar - var for return code **]%
+%[** - %[nameanchor]%_nhitsvar - var for total hits in query3 **]%
+%[** - %[nameanchor]%_watch - list of filenames to watch for used in query1 **]%
+%[** - %[nameanchor]%_watchuse - list of filenames to watch for used in query4 **]%
+%[** - %[nameanchor]%_watchuselimit - number that is too much used in query4 **]%
+%[**  **]%
+%[** Written 2006-2007 by Tom Van Vleck **]%
+%[**  THVV 08/29/06 **]%
+%[**  THVV 09/21/06 always do query2 **]%
+%[**  THVV 10/13/06 show dir **]%
+%[**  THVV 12/27/06 use path instead of dir and filename **]%
+%[**  THVV 12/29/06 add query3 to check filetype **]%
+%[**  THVV 04/10/07 bug fix: show query2 and query3 output **]%
+%[**  THVV 03/20/09 add query4 to check for hammering on cgis **]%
+%[**  THVV 03/23/09 add retcode to query4 **]%
+%[**  THVV 07/21/10 compress query3 on domain **]%
+%[**  THVV 09/29/14 new check for shellshock bug **]%
+%[**  THVV 08/05/16 make listings in gray if 404 **]%
+%[**  THVV 08/15/16 only make short report in red if files were non-404, add total **]%
+%[** ================================================================ **]%
+%[*include,=wtxmacros.htmi]%
+%[*if,ne,subtitle,="",*expandv,&s00,subtitle]%
+%[*set,&num1,=0]%
+%[*set,&num2,=0]%
+%[*set,&num3,=0]%
+%[*set,&num4,=0]%
+%[*set,&num5,=0]%
+%[*set,&non404_1,=0]%
+%[*set,&non404_2,=0]%
+%[*set,&non404_3,=0]%
+%[*set,&non404_4,=0]%
+%[*set,&non404_5,=0]%
+%[*set,&non404_t,=0]%
+%[** ---------------------------------------------------------------- **]%
+%[** ... if site attack targets list is non-null, look for hits on this target **]%
+%[*if,ne,%[nameanchor]%_watch,="",*expand,doquery1]%
+%[** ---------------------------------------------------------------- **]%
+%[** ... if pathname matches wthackfilenames.hackfileregexp **]%
+%[*set,&qname,="q2"]%
+%[*callv,getquery,nameanchor,="query2"]%
+%[*set,&_non404,=0]%
+%[*sqlloop,&tableout2a,tableiter,x0]%
+%[*set,&num2,_xf_nrows]%
+%[*set,&non404_2,_non404]%
+%[*increment,&non404_t,_non404]%
+%[** ---------------------------------------------------------------- **]%
+%[** ... if filetype matches wthackfiletypes.hackfiletype **]%
+%[*set,&qname,="q3"]%
+%[*callv,getquery,nameanchor,="query3"]%
+%[*set,&_non404,=0]%
+%[*sqlloop,&tableout2b,tableiter2,x0]%
+%[*set,&non404_3,_non404]%
+%[*increment,&non404_t,_non404]%
+%[** ---------------------------------------------------------------- **]%
+%[** ... watch excess use on site specific files **]%
+%[*if,ne,%[nameanchor]%_watchuse,="",*expand,doquery4]%
+%[** ---------------------------------------------------------------- **]%
+%[** ... get the shellshock attacks.. browser or referrer contains () **]%
+%[*set,&qname,="q5"]%
+%[*callv,getquery,nameanchor,="query5"]%
+%[*set,&_non404,=0]%
+%[*sqlloop,&tableout5,tableiter2,x0]%
+%[*set,&num5,_xf_nrows]%
+%[*set,&non404_5,_non404]%
+%[*increment,&non404_t,_non404]%
+%[** ================================================================ **]%
+%[** execute query1, specific site attack targets **]%
+%[*block,&doquery1,^END$]%
+%[*set,&qname,="q1"]%
+%[*callv,getquery,nameanchor,="query1"]%
+%[*set,&_non404,=0]%
+%[*sqlloop,&tableout1,tableiter,x0]%
+%[*set,&num1,_xf_nrows]%
+%[*set,&non404_1,_non404]%
+END
+%[** ================================================================ **]%
+%[** execute query4, watch excess use on specific files **]%
+%[*block,&doquery4,^END$]%
+%[*set,&qname,="q4"]%
+%[*callv,getquery,nameanchor,="query4"]%
+%[*set,&_non404,=0]%
+%[*sqlloop,&tableout3,tableiter3,x0]%
+%[*set,&non404_4,_non404]%
+%[*increment,&non404_t,_non404]%
+END
+%[** ================================================================ **]%
+%[** iterator used with query1 and query2, output in tableout2a and tableout1 **]%
+%[*block,&tableiter,^END$]%
+%[*set,&shorttime,%[%[nameanchor]%_timevar]%]%
+%[*subst,&shorttime,="^....-..-.. ",=""]%
+%[*set,&path,%[%[nameanchor]%_pathvar]%]%
+%[*if,eq,path,="",*set,&path,hits.hitp]%
+%[*subst,&path,="^\\/",=""]%
+%[*set,&rowclass,=""]%
+%[*if,eq,%[%[nameanchor]%_retcodevar]%,="404",*set,&rowclass,=" class=ingray"]%
+%[*if,eq,%[%[nameanchor]%_retcodevar]%,="403",*set,&rowclass,=" class=ingray"]%
+%[*if,eq,%[%[nameanchor]%_retcodevar]%,="500",*set,&rowclass,=" class=ingray"]%
+%[*if,eq,rowclass,="",*increment,&_non404,=1]%
+      <tr%[rowclass]%>
+        <td class="cpr2">%[shorttime]%</td>
+        <td class="cpr2">%[%[%[nameanchor]%_domainvar]%]%</td>
+        <td class="cpr2">%[path]%</td>
+        <td>%[%[%[nameanchor]%_retcodevar]%]%</td>
+      </tr>
+END
+%[** ================================================================ **]%
+%[** iterator used with query3 and query5, output in tableout2b and tableout5, collapse multiple hits **]%
+%[*block,&tableiter2,^END$]%
+%[*set,&shorttime,%[%[nameanchor]%_timevar]%]%
+%[*subst,&shorttime,="^....-..-.. ",=""]%
+%[*set,&nhits,%[%[nameanchor]%_nhitsvar]%]%
+%[*increment,&num2,nhits]%
+%[*set,&path,%[%[nameanchor]%_pathvar]%]%
+%[*if,eq,path,="",*set,&path,qname]%
+%[*subst,&path,="^\\/",=""]%
+%[*if,gt,nhits,=1,*concat,&path,=" (",nhits,=" hits)"]%
+%[*set,&rowclass,=""]%
+%[*if,eq,%[%[nameanchor]%_retcodevar]%,="404",*set,&rowclass,=" class=ingray"]%
+%[*if,eq,%[%[nameanchor]%_retcodevar]%,="403",*set,&rowclass,=" class=ingray"]%
+%[*if,eq,%[%[nameanchor]%_retcodevar]%,="500",*set,&rowclass,=" class=ingray"]%
+%[*if,eq,rowclass,="",*increment,&_non404,=1]%
+      <tr%[rowclass]%>
+        <td class="cpr2">%[shorttime]%</td>
+        <td class="cpr2">%[%[%[nameanchor]%_domainvar]%]%</td>
+        <td class="cpr2">%[path]%</td>
+        <td>%[%[%[nameanchor]%_retcodevar]%]%</td>
+      </tr>
+END
+%[** ================================================================ **]%
+%[** iterator used with query4, watch excess use on specific files **]%
+%[*block,&tableiter3,^END$]%
+%[*if,ge,.nhit,%[nameanchor]%_watchuselimit,*expand,tableiter3a]%
+END
+%[*block,&tableiter3a,^END]%
+%[*increment,&num3,=1]%
+%[*set,&path,%[%[nameanchor]%_filenamevar]%]%
+%[*if,eq,path,="",*set,&path,qname]%
+%[*set,&rowclass,=""]%
+%[*if,eq,%[%[nameanchor]%_retcodevar]%,="404",*set,&rowclass,=" class=ingray"]%
+%[*if,eq,%[%[nameanchor]%_retcodevar]%,="403",*set,&rowclass,=" class=ingray"]%
+%[*if,eq,%[%[nameanchor]%_retcodevar]%,="500",*set,&rowclass,=" class=ingray"]%
+%[*if,eq,rowclass,="",*increment,&_non404,=1]%
+      <tr%[rowclass]%>
+        <td class="cpr2">%[%[%[nameanchor]%_domainvar]%]%</td>
+        <td class="cpr2">%[path]%</td>
+        <td>%[%[%[nameanchor]%_retcodevar]%]%</td>
+        <td class="numcol">%[%[%[nameanchor]%_hitsvar]%]%</td>
+      </tr>
+END
+%[** ================================================================ **]%
+%[** ================================================================ **]%
+%[*block,&table1,^END$]%
+  <p class="fineprint">References to site-specific attack targets, with no graphics or other HTML in the visit.</p>
+  <table>
+    <tr>
+      <th>Time</th>
+      <th>Domain</th>
+      <th>Filename</th>
+      <th>Retcode</th>
+    </tr>
+%[*expand,tableout1]%
+  </table>
+END
+%[*block,&table2,^END$]%
+  <p class="fineprint">References to common attack targets.</p>
+  <table>
+    <tr>
+      <th>Time</th>
+      <th>Domain</th>
+      <th>Filename</th>
+      <th>Retcode</th>
+    </tr>
+%[*expand,tableout2a]%
+    <tr>
+      <td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td>
+    </tr>
+%[*expand,tableout2b]%
+  </table>
+END
+%[*block,&table5,^END$]%
+  <p class="fineprint">Attempts to exploit the shellshock bug.</p>
+  <table>
+    <tr>
+      <th>Time</th>
+      <th>Domain</th>
+      <th>Filename</th>
+      <th>Retcode</th>
+    </tr>
+%[*expand,tableout5]%
+  </table>
+END
+%[*block,&table3,^END$]%
+  <p class="fineprint">Excess use of site-specific attack targets.</p>
+  <table>
+    <tr>
+      <th>Domain</th>
+      <th>Filename</th>
+      <th>Retcode</th>
+      <th>Hits</th>
+    </tr>
+%[*expand,tableout3]%
+  </table>
+END
+%[** ================================================================ **]%
+%[*block,&nohits,^END$]%
+  <p class="details">No hits.</p>
+END
+%[** ================================================================ **]%
+%[** body **]%
+%[** ================================================================ **]%
+%[*include,=rptheader.htmi]%
+<div class="chart%[longhidden]%" id="%[nameanchor]%_a1">
+%[*if,ne,s00,="",*expand,="<p class=\"subtitle\">%[s00]%</p>"]%
+  <h3>%[num1]% CGI Attacks</h3>
+%[*if,eq,num1,=0,*expand,nohits]%
+%[*if,ne,num1,=0,*expand,table1]%
+  <h3>%[num2]% Hack Probes</h3>
+%[*if,eq,num2,=0,*expand,nohits]%
+%[*if,ne,num2,=0,*expand,table2]%
+  <h3>%[num5]% Shellshock Probes</h3>
+%[*if,eq,num5,=0,*expand,nohits]%
+%[*if,ne,num5,=0,*expand,table5]%
+  <h3>%[num3]% Excess Use</h3>
+%[*if,eq,num3,=0,*expand,nohits]%
+%[*if,ne,num3,=0,*expand,table3]%
+</div>
+%[*set,&fx1,="n"]%
+%[*set,&fx2,="n"]%
+%[*set,&fx3,="n"]%
+%[*set,&fx5,="n"]%
+%[*set,&fxt,="n"]%
+%[*if,ne,non404_1,=0,*set,&fx1,="inred"]%
+%[*if,ne,non404_2,=0,*set,&fx2,="inred"]%
+%[*if,ne,non404_3,=0,*set,&fx3,="inred"]%
+%[*if,ne,non404_5,=0,*set,&fx5,="inred"]%
+%[*if,ne,non404_t,=0,*set,&fxt,="inred"]%
+<div class="short%[shorthidden]%" id="%[nameanchor]%_a2">
+  <p>
+    <span class="%[fx1]%">%[num1]% CGI Attacks</span>,
+    <span class="%[fx2]%">%[num2]% Hack Probes</span>,
+    <span class="%[fx5]%">%[num5]% Shellshock Probes</span>,
+    <span class="%[fx3]%">%[num3]% Excess Use</span>,
+    <span class="%[fxt]%">%[non404_t]% pages served</span>
+  </p>
+</div>

@@ -1,0 +1,318 @@
+15 2021-02-18 fix installation for expandfile3
+
+14 2020-11-20 adapt to expandfile3
+removed vbar syntax, ! syntax,
+adapt to Perl 5.22
+replace expandfile by expandfile3, expandfile3.pm, redbinsql3.pm, readbindxml3.pm,thvvutil3.pm, new syntax, new builtin varnames
+move tools to /tools
+change refs to _nrows and _ssvitem and DB params to add _xf_
+check for use of vbar and comma suntax, remove it
+check all tpts to use ID= instead of HREF NAME=
+add CHECKSWTFILES, RUNTIMEDIR and, REPORTDIR, TOOLSDIR to swt.sql
+make all shebangs on perl tools reference /usr/local/bin/perl
+many templates: use expandfile3 *set instead of strings of *concat
+change to do only GeoLite2-City.mmdb, old way not updated
+update install-swt to use expandfile3
+update install-swt with better messages, organization, tighter checks
+improve checkswtfiles and call it from swtfunct.sh::initialsetup
+update help file with Maintenance rules
+
+13 2007-09-12
+many templates: update to W3C HTML standards.  remove summary= and type=, fix rows to have right number of cols, get rid of A NAME, etc
+printvisitdetail: change DL COMPACT to DL STYLE="display: compact" which is still flagged by W3C
+visitdata.pl: never generate a 'browsername' or 'vdomain' or 'tld' value that is > 255 chars: it will crash MySQL load
+visitdata.pl: change pageclass assignment to not loop on pathnames that do not contain /
+visitdata.pl: allow pathnames that do not begin with /
+logvisits.pl: case insensitive in transform
+printvisitdetail.pl: handle filenames without leading slash.
+geoloc.htmt: use *format correctly
+many: w3c changes
+geoloc: use *format
+many: fix bugs in refspam and queries
+printvisitdetail: handle showanyway with and without www.
+swt: modify queries so that MySQL 5.7.13 will not fail with ONLY_FULL_GROUP_BY.  Use MAX() rather than ANY_VALUE().
+attacks: show 404/403/500 in gray in attacks report
+swt: use new pie charts instead of old
+piecharts.htmt: new, does all pie charts
+swt.sql: defined many pie charts
+swt.sql: more crawlers, widened pie charts
+visitdata.pl: detect MSIE 9-10-11 and Edge
+ywords: do not count '(encoded)' as a query
+ywords.htmt: fixed short report for words used in queries to have the top word
+printvisitdetail.pl: blank out garbagy yandex and yahoo queries
+logvisits.pl: recognize more query introducers
+logvisits.pl: initialize 'me' and '_currentfilename'
+visitdata.pl: initialize 'me' and '_currentfilename'
+wordlist.pl: initialize 'me' and '_currentfilename'
+swtfunct.sh: check for existence of preamble.txt and postamble.txt
+printvisitdata.pl: set 'queriesinvisit' so criteria can access it
+printvisitdata.pl: show a repeat-count on sequential hits on the same file
+visitdata.pl: process refspam correctly
+swt.sql: make some SEM crawlers refspam
+attacks.htmt: shellshock attacks
+swt.sql: shellshock attacks
+logvisits.pl: avoid STRICT problems with MySQL change
+allow more than one swtconfig.htmi, so can do multiple sites, each needs own database
+swt.sql: fix bug in filetype reports that occasionally created bars longer than the total
+visitdata.pl: recognize Android
+swt.sql: fix ORDER BY clause to sort on path, not filename, to fix bar stacking in filename reports
+printvisitdetail.pl: if Google omits the query, don't print garbage
+monthsum.htmt: fix peekaboo titlebar
+visitdata.pl: hack to mark visits from .ua and .ru as refspam
+printvisitdetail.pl: if google omits the query, don't print garbage
+swt.sql: make some fields 1023 instead of 255, change default print criteria
+printvisitdetail.pl: add count of 404s per visit and good pages per visit.
+init_wtyquerywords.sql: new, init query words cumulative table
+swt, swtfunct.sh, swt.sql: add query words and query words cumulative reports
+ywords.htmt: new, query words and query words cumulative report
+wordlist.pl: new, generate list of query words
+logvisits.pl: handle google queries with # instead of ?, and cleanstring the query
+histo2n.htmt: fix bug in short report, totqueries was not being set
+swt: add new report on referring domain, make referrer reports NI
+swt.sql: fix bug in referrer report, add new report on referring domain
+*.htmt: Add ability to start any report open; improve the click-to-open
+rptheader.htmi: Add ability to start any report open; improve the click-to-open
+swtstyle.css: improve the click-to-open
+visitdata.pl: recognize iPad
+visitdata.pl: handle 2ld and 3ld with numeric IP
+logivisits.pl: normalize .. in paths, do not do this in swt-user
+visitdata.pl: handle IPV6 addrs in tld calculation
+piecanvas.js: pie charts in Javascript instead of Java
+swtfunct.sh: pie charts in Javascript instead of Java 
+longshort.htmt: pie charts in Javascript instead of Java 
+heading.htmt: pie charts in Javascript instead of Java 
+filetypepie.htmt: pie charts in Javascript instead of Java 
+swt.sql: pie charts in Javascript instead of Java 
+swtstyle.css: styles for javascript pie charts
+byyear.htmt: add new chart, visits/MB/hits per year striped by HTML/graphic/other
+swt: add new chart, visits/MB/hits per year striped by HTML/graphic/other
+swt.sql: add new chart, visits/MB/hits per year striped by HTML/graphic/other
+swt.sql: regexp match wthackfile against hits.path
+install: fix bug in installing on Ubuntu 8.04
+configure: fix bugs in installing on Ubuntu 8.04
+swtstyle.css: make the [*] control bigger
+swt.sql: add gTLDs
+swt.sql: group attacks report by domain
+attacks.htmt: group attacks report by domain
+swt.sql: remove indexer hits from 404 report
+filletype1.htmt: use full path name instead of just entryname
+swt.sql: remove hack files from 404 report
+printvisitdetail.pl: make alarm code less verbose
+swt.sql: various table changes to recognize robots
+geoloc.htmt: new chart, visits by city, striped bars
+repeat.htmt: new chart
+swt.sql: add queries and defs for geoloc and repeat charts
+swt: add geoloc and repeat reports
+swt.sql: correctly break browser chart on browser name and platform, get right count of browsers.
+histo3nn1.htmt: correctly break browser chart on browser name and platform.
+visitdata.pl: improve browser detection to handle new browsers and phones.
+attacks.htmt: add overuse report.
+printvisitdetail: fix bug in log merging entries after the last hit.
+swtfunct.sh: set correct wtsuffixclass column in args to printvisitdetail
+printvisitdetail: allow different suffixes visible on short and long report
+swt.sql: change declaration of wtsuffixclass
+thvve.pm, longshort.htmt, visitdetailhead.htmt: do not expand a sequence like percent-leftbracket whatever rightbracket-percen in the details report.
+printvisitdetail: (long|short)logcriteria to filter which log lines go in which report.
+swtfunct.sh: do not check for globalqueries.htmt in initialsetup() because it is generated
+install: added instructions on how to set up the cron job, including info on PATH settings.
+install: move swtcronjob.sh to programdir
+logvisits: compress multiple slashes into one
+divfilen: added
+swtfunct.sh: create runstep table and log steps, will detect down database
+printvisitdetail: show authenticated sessions in yellow and display username
+configure: create swt-user.sql CONFIGFILE = swtconfig.htmi instead of swtconfig.txt
+configure: fixed syntax error in swt-user.sql on short form of domain name
+configure: fixed wrong column count in swt-user.sql wtindexers
+configure: escaped the dots in the domain name
+configure: swt-user predomain transforms were not working with [] stuff, removed the $
+configure: added predomain transform for yahoo crawlers
+configure: checked wrong value in askeither when getting value for reversedns
+configure: used test operator "==" but that does not work inside a sh script
+install: used test operator "==" but that does not work inside a sh script
+logvisits.pl, visitdata.pl: notice the authid given by the user and include in the visit data
+domainlevel.htmt, swt.sql: new report for authorized visits, default disabled
+analysis.htmt: added line to analysis for authenticated visits
+logivisits.pl: fix bug if exactly sqlrowlimit hits
+swt, swtfunct: improve coupling and add init_wtsrhist
+swt.sql: Recognize popular webmail referrers, webmail. gmail, yahoo, hotmail, etc., remove query term
+swt.sql: monthly bandwidth and quota
+monthsum.htmt: show monthly bandwidth and quota
+wtxmacros.htmi, cumdom, duration, visitsbycount, domain1: trim domain names to 64 chars.
+configure: do not trim sitename to one word, improved comm between configure and install
+swt.sql: incorrect year_query and cumpage queries showing just one for each number of hits.
+swt.sql: fix bug in total number of queries, was counting blank, off by 1.
+
+12 2006-11-20 17:32
+many: use _nrows, _ssvitem; use oatimes not [+]
+analysis.htmt: add NI visitors
+attacks.htmt: use pathname not dir+filename, add query3 to check filetype, add fineprint
+cumdom.htmt: add DLSV and visits columns
+diskmon, diskmontpt.htmt: new
+domain1.htmt: fix short report to show right name, fix headings, add DSLV col
+domain1.htmt: make column be DSPV
+filelist.htmt: pathname not filename
+filetype1.htmt: read/write wtsrhist, use quotientrounded
+ggq.htmt: set blank items to 0
+google.htmt: new, new table wtcumgoog
+histo2n.htmt: read/write wtsrhist
+illref.htmt: use path not filename
+init_wtdomhist.sql: new
+logextractor: look up city 
+logvisits: handle city
+mysqldumpcum: new table wtdomhist, remove wtcumdom and wtdomainday
+pathsql.htmt: add param of what to trim off front
+printvisitdetail: use path; add showanyway table to show graphics if ref and filename match; use wtdomhist not wtcumdom
+queries.htmt: read/write wtsrhist
+referrer.htmt: read/write wtsrhist
+swt.sql: 3.0 change order of visitors and tld report
+swt.sql: 3.0 new table wtdomhist, remove wtcumdom and wtdomainday
+swt.sql: 3.1 Add DLSV and visits to year_domain, add DSPV to domain
+swt.sql: 3.2 Make paths report parametric in site name
+swt.sql: 3.3 Add wtcumgoog table and queries on it, google crawl report
+swt.sql: 3.4 Add query for cleaning up referrer spam
+swt.sql: 3.5 Fix bug, googlebot was not being recognized if it had [us] suffix
+swt.sql: 3.6 Use path instead of filename in many places
+swt.sql: 3.7 Add wthackfiletypes to catch more attacks
+swt.sql: 3.8 Use hitslices in visitdata
+swt.sql: 3.81 Declare wtpclasses with larger class list
+swt.sql: 3.9 Add pie chart on continent
+swt.sql: 3.91 Add subsubtitle for details report
+swt.sql: 3.92 Remove .um domain, obsolete
+swt.sql: 4.0 Change year referrer query to show just the domain
+swt.sql: 4.01 Add documentation of configurable tables
+swt.sql: 4.02 Add php3 to hackfiletypes
+swt.sql: 4.03 Update country codes
+swt.sql: 4.04 recognize Google hits even though location suffix has more data
+swt.sql: 4.1 add showanyway table to show graphics if referrer and filename match
+swt.sql: 4.11 add heritrix to indexers
+swt.sql: 4.12 add "bot" to indexers and remove redundant
+swt.sql: 4.2 Change wtindexers to hold multiple browser types
+swt: change order of visitors and tld report
+swt: new table wtdomhist, remove wtcumdom and wtdomainday
+swt: add visits by continent; add finalcleanup
+swtfunct.sh: Invoke Perl programs via perl command
+swtfunct.sh: check for existence of files before starting
+swtfunct.sh: add wtsrhist.sql handling
+swtfunct.sh: machinery for cleanup of temp tables and files
+swtfunct.sh: change config file from text to htmi
+swtfunct.sh: add configdisplay.html
+visitdata: if the UA and the browser are equal (and nonblank) mark as refspam
+visitdata: populate city column
+visitsbycount.htmt: Fix short report
+visitsbycount.htmt: fix short report if no name
+wtxmacros.htmi: add savehist, fetchhist, deltacomment, trace
+yreferrer.htmt: remove hotlinking code since domain is isolated
+
+11 2006-08-24 10:04
+mysize: new, uses dbsize and databasesize.pm
+accesstime.htmt: fix incorrect var usage, use setscale
+wtxmacros.htmi: fix setscale macro
+swt.sql: use consistent WHERE clause in accesstime queries
+printvisitdetail.pl: 1.4 count boring files
+swt.sql: 2.9 count boring files
+swt-user.sql: count boring files
+printvisitdetail.pl: better summary when no visits selected
+swtfunct.sh: fix so it doesn't try to load wtlog if it is not there
+visitdata: fix recognition of platform for some browsers
+attacks: show dirname, improve formatting
+sdt.sql: update wthackfiles and wtindexers
+info.htmt: new
+navlinks.htmt: add info.html
+swtfunct.sh: add info.html
+monthsum.htmt:  Improve heading and short report, show colors
+visitdata: Fix ref spammer detection
+ggq.htmt: new
+swt: Generate globalqueries.htmt from SQL
+swtfunct.sh: Generate globalqueries.htmt from SQL so I don't forget to register globals
+attacks.htmt: Hack file check was failiing because not invoked
+swt.sql: Hack file check was failing for hits not in a session
+wtcumpage.htmt: add only files that exist, not 404s, show watched files in color
+swtfunct.sh: Fix paths so that a cronjob can find the tools
+swt.sql: Suppress referrer spam from short details report
+visitdata: Detect referrer spam
+swt.sql: Suppress uninteresting 404s
+localquery.htmt:  improve short report if no hits
+monthsum.htmt:  show averages in short form
+filetype1.htmt: fix minor bug in heading column
+histo2n.htmt: fix minor bug in heading column
+swt.sql: Retcode report show good percent
+retcode.htmt: Retcode report show good percent
+yquery.htmt: fix col0 head
+attacks.htmt: new
+swt.sql: add attacks report
+swt: add attacks report
+yquery.htmt: new
+swt: add year report by query
+swt.sql: add year report by query
+swt: Move pvd, visitdata, and cum load queries to SQL and get them back.
+swt: Introduce swtfunct.sh and calls onto it.
+swt: split webtraxhead.htmt into globalqueries.htmt and heading.htmt
+*.htmt: eliminate wtglobals.htmi, everything is in wtglobals.sh
+
+10 2006-08-14 16:03
+histo3n1.htmt: fix bug
+swt: move queries and options to sql
+swt.sql: move queries and options to sql
+*.htmt:  move queries and options to sql
+swt.sql: add file size report
+swt: add file size report
+filesize.htmt: new
+retcodetable.htmt: bug fix
+verbtable.htmt: bug fix
+swt.sql: add options in sql to control which pie charts are in short report, and eventlog
+swt: use options in sql for pie charts and eventlog 
+monthsum.htmt: put totals in bold
+navlinks.htmt: move select into swt
+
+9 2006-08-13 16:58
+navlinks.htmt: new, generate nav links for enabled reports only
+swt: long and short reports
+swt.js: new
+webtraxhead.htmt: long and short reports
+many tpts: long and short reports
+printvisitdetail: 1.34 remove title and subtitle, do in visitdetailhead.htmt
+longshort.htmt: new, package long and short reports
+swtstyle.css: background color for h3, tighter selectors, smaller fonts and tighter tables, formatting for hide/show
+
+8 2006-08-11 14:00
+swt: add config switches 
+swt.sql: add config switches and global values, table of reports
+swt: eliminate swt-user.sh
+swt: add earliest date in wtdayhist to titles
+globalconfig.htmt: new
+swt: generate wtglobals.sh
+webtraxhead.htmt: generate wtglobals.sh
+swt: query for dayhistfirst
+webtraxhead.htmt: set dayhistfirst
+monthsum.htmt: use dayhistfirst
+swt: add important report
+importantwrapper.htmt: add important report
+swt: fix legend on browser listing
+visitdata: add 2d and 3d level domain vars
+swtstyle: remove invalid text-align: bottom
+swt: restrict year listing of hits by filename to HTML
+dslvhist.htmt: stripe first bar(s) with today's new domains
+swt: stripe DSLV with today's new domains, use lastdate in log rather than now
+swt: add 2level and 3level charts
+domainlevel: add 2level and 3level charts
+swt: put begin and end dates on important visits title, fix subtitle
+illref.htmt: don't hotlink unless things have http, always use nofollow
+report403.htmt: don't hotlink unless things have http, always use nofollow
+referrer.htmt: don't hotlink unless things have http, always use nofollow
+yreferrer.htmt: don't hotlink unless things have http, always use nofollow
+yreferrer.htmt: fix bug with showing new referrers, what was I thinking
+referrer.htmt: fix bug with showing new referrers
+analysis.htmt: fix heading
+configure: improve
+install: improve
+
+7 2006-07-22 10:11
+yreferrer.htmt: fix bug with showing new referrers in olive
+verbtable.htmt: add heading
+swt: improve titles and subtitles
+swt: fix finding of swt-user.sh
+referrer.htmt: fix coloring bug
+retcodetable.htmt: add heading
+printvisitdetail: add subtitle, clean up database on exit
+analysis.htmt: headings, more cols
+accesstime.htmt: show an hour even if no hits

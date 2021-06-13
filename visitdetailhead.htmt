@@ -1,0 +1,14 @@
+%[** Super Webtrax visit detail header **]%
+%[** Written 2006-2008 by Tom Van Vleck **]%
+%[** Parameters **]%
+%[** - charttitle - graph title **]%
+%[** - headlevel - level of charttitle **]%
+%[** - incfile - file to include **]%
+%[** THVV 08/01/06 **]%
+%[** THVV 08/13/08 use includeraw **]%
+%[** ================================================================ **]%
+%[*include,=wtxmacros.htmi]%
+<%[headlevel]%>%[charttitle]%</%[headlevel]%>
+<div class=\"details\">
+%[*includeraw,=%[incfile]%]%
+</div>

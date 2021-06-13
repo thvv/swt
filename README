@@ -1,0 +1,71 @@
+Super Webtrax version 13, 2007-09-12
+
+PREREQUISITES
+- Perl5
+- MSQL 4.1 or better
+- ability to use Unix commands
+
+INSTALLATION INSTRUCTIONS
+
+Ensure that MySQL is installed.  Set up database, username,
+and password. Create .my.cnf with that info.
+Download swt.tar.gz.
+  tar zxf swt.tar.gz  
+It creates directory install-swt.
+Install install-swt/expandfile in your $PATH.
+Install thvve.pm in your $PERL5LIB.
+
+Run the configure script by doing
+  cd install-swt
+  ./configure
+
+It will ask for the following:
+- where to install the code
+- where to write temporary data
+- name of the SQL database
+- SQL database server domain address
+- SQL database username
+- SQL database password
+- Report title
+- directory where the output files will be moved
+- directory where config file is kept
+- Your domain name
+- path to mysql
+- path to mysqldump
+- daily log file or running log file
+- do reverse DNS?
+- do GEOIP?
+- where ISP puts log file
+- where to put bad logfiles
+- where to put processed logfiles
+
+It will test that things are installed and that the database
+is working.  It will then build configuration files in
+swt-install.
+
+When configuration is done and satisfactory, do
+  ./install
+
+It will move swt, *.htmt, *.htmi, *.sql, *.sh to the program dir
+It will move swtconfig.htmi to the config file dir
+It will move mys, mysqlload and mysqldumpcum to the program dir
+It will move all the gifs (one pixel stuff) to the report dir
+It will move all the Java class files to the report dir
+It will copy swtstyle.css and swt.js to the report dir.
+
+If this is a new install it will ask whether to init the database.
+
+The installer generates a cron job to run Super Webtrax
+every night and to move the output files to your web
+statistics display directory. This job may require hand
+editing.  Because jobs started by cron do not execute your
+shell startup, you must take special steps to ensure that
+your $PATH, $PERL5LIB, and other shell variables are
+correctly set.
+
+If you are doing GeoIP processing, download GeoIPcity.dat
+from http://www.maxmind.com/ and install
+it in ~/lib, link as GeoIPCity.dat, link it into $DATADIR.
+Ensure that Geo::IP::PurePerl is installed on the Perl path.
+
+Tailor swt-user.sql as needed.

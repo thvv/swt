@@ -1,0 +1,67 @@
+%[** Horizontal bar graph of days since last visit and no of domains: two numeric columns, last with barchart **]%
+%[** Parameters **]%
+%[** - nameanchor - report name (used for getting query) **]%
+%[** - charttitle - graph title **]%
+%[** - subtitle - graph subtitle **]%
+%[** - %[nameanchor]%_col2tv - count for title for column 2 **]%
+%[** - %[nameanchor]%_col1v - varname for column 1 - dslv **]%
+%[** - %[nameanchor]%_col1t - title for column 1 **]%
+%[** - %[nameanchor]%_col2v - varname for column 2 total - ndom - this is bar graphed **]%
+%[** - %[nameanchor]%_col2t - title for column 2 **]%
+%[** - %[nameanchor]%_col2max - var holding max for column 2 **]%
+%[** - glb_bar_graph_width - global width in pixels for bar graph **]%
+%[** - glb_bar_graph_height - global height in pixels for bar graph **]%
+%[**  **]%
+%[** Written 2006 by Tom Van Vleck **]%
+%[**  THVV 07/16/06 **]%
+%[**  THVV 07/27/06 color the new domains with a blue bar **]%
+%[**  THVV 08/13/06 long and short **]%
+%[**  THVV 08/18/06 fetch query from sql **]%
+%[** ================================================================ **]%
+%[*include,=wtxmacros.htmi]%
+%[*set,&newdoms,newdomainstoday]%
+%[*set,&fullscale,=""]%
+%[*if,ne,subtitle,="",*expandv,&s00,subtitle]%
+%[*callv,getquery,nameanchor,="query1m"]%
+%[*sqlloop,&junk,="x",x0]%
+%[*callv,getquery,nameanchor,="query1"]%
+%[*sqlloop,&chartout,chartiter,x0]%
+%[** ================================================================ **]%
+%[*block,&chartiter,^END$]%
+%[*set,&dslv,%[%[nameanchor]%_col1v]%]%
+%[*set,&ndoms,%[%[nameanchor]%_col2v]%]%
+%[** three cases: all new, some of each, all old **]%
+%[*set,&firstbar,=0]%
+%[*set,&secondbar,ndoms]%
+%[*set,&flag,=0]%
+%[*if,gt,newdoms,ndoms,*set,&flag,=1]%
+%[*if,gt,newdoms,=0,*if,lt,newdoms,ndoms,*set,&flag,=2]%
+%[** if all new **]%
+%[*if,eq,flag,=1,*set,&firstbar,ndoms]%
+%[*if,eq,flag,=1,*set,&secondbar,=0]%
+%[*if,eq,flag,=1,*decrement,&newdoms,ndoms]%
+%[** if some of each **]%
+%[*if,eq,flag,=2,*set,&firstbar,newdoms]%
+%[*if,eq,flag,=2,*decrement,&secondbar,newdoms]%
+%[*if,eq,flag,=2,*set,&newdoms,=0]%
+%[*scale,&z1,secondbar,%[%[nameanchor]%_col2max]%,glb_bar_graph_width]%
+%[*scale,&z2,firstbar,%[%[nameanchor]%_col2max]%,glb_bar_graph_width]%
+    <tr><td class="numcol">%[dslv]%</td><td class="numcol">%[ndoms]%</td><td><img src="bluepix.gif" alt="" title="%[firstbar]% new" width=%[z2]% height=%[glb_bar_graph_height]%><img src="redpix.gif" alt="" title="%[secondbar]%" width=%[z1]% height=%[glb_bar_graph_height]%></td></tr>
+%[*if,eq,fn,="",*set,&fn,ndoms]%
+%[** problem with this, sometimes we have a few hits leaking over to the next day **]%
+END
+%[** ================================================================ **]%
+%[*include,=rptheader.htmi]%
+<div class="chart%[longhidden]%" id="%[nameanchor]%_a1">
+%[*if,ne,s00,="",*expand,="<p class=\"subtitle\">%[s00]%</p>"]%
+%[*if,ne,col0head,="",*expandv,&col0,col0head]%
+  <table>
+    <tr><th></th><th class="numcol">%[%[%[nameanchor]%_col2tv]%]%</th><th></th></tr>
+    <tr><th class="numcol">%[%[nameanchor]%_col1t]%</th><th class="numcol">%[%[nameanchor]%_col2t]%</th><th class="legendbar"><img src="bluepix.gif" alt="" width="%[glb_bar_graph_height]%" height="%[glb_bar_graph_height]%"> New today&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<img src="redpix.gif" alt="" width="%[glb_bar_graph_height]%" height="%[glb_bar_graph_height]%"> previously seen</th></tr>
+%[**  **]%
+%[chartout]%
+  </table>
+</div>
+<div class="short%[shorthidden]%" id="%[nameanchor]%_a2">
+  <p>today: %[ndomainstoday]% domains, %[newdomainstoday]% new</p>
+</div>

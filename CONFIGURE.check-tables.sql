@@ -1,0 +1,10 @@
+SELECT IF((SELECT COUNT(*) AS x FROM information_schema.tables WHERE table_schema = 'thvv_userlist' AND table_name = 'wtcumfile'),'wtcumfile ok','** wtcumfile not created');
+SELECT IF((SELECT COUNT(*) AS x FROM information_schema.tables WHERE table_schema = 'thvv_userlist' AND table_name = 'wtcumgoog'),'wtcumgoog ok','** wtcumgoog not created');
+SELECT IF((SELECT COUNT(*) AS x FROM information_schema.tables WHERE table_schema = 'thvv_userlist' AND table_name = 'wtcumpath'),'wtcumpath ok','** wtcumpath not created');
+SELECT IF((SELECT COUNT(*) AS x FROM information_schema.tables WHERE table_schema = 'thvv_userlist' AND table_name = 'wtcumquery'),'wtcumquery ok','** wtcumquery not created');
+SELECT IF((SELECT COUNT(*) AS x FROM information_schema.tables WHERE table_schema = 'thvv_userlist' AND table_name = 'wtcumref'),'wtcumref ok','** wtcumref not created');
+SELECT IF((SELECT COUNT(*) AS x FROM information_schema.tables WHERE table_schema = 'thvv_userlist' AND table_name = 'wtdayhist'),'wtdayhist ok','** wtdayhist not created');
+SELECT IF((SELECT COUNT(*) AS x FROM information_schema.tables WHERE table_schema = 'thvv_userlist' AND table_name = 'wtlog'),'wtlog ok','** wtlog not created');
+SELECT IF((SELECT COUNT(*) AS x FROM information_schema.tables WHERE table_schema = 'thvv_userlist' AND table_name = 'wtsrhist'),'wtsrhist ok','** wtsrhist not created');
+SELECT IF((SELECT COUNT(*) AS x FROM information_schema.tables WHERE table_schema = 'thvv_userlist' AND table_name = 'wtdomhist'),'wtdomhist ok','** wtdomhist not created');
+SELECT IF((SELECT COUNT(*) AS x FROM information_schema.tables WHERE table_schema = 'thvv_userlist' AND table_name = 'wtyquerywords'),'wtyquerywords ok','** wtyquerywords not created');

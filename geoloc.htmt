@@ -1,0 +1,110 @@
+%[** Visits by city **]%
+%[** Table of cc, continent, countryname, city and one numeric column, with horizontal barchart **]%
+%[** .. someday we may want to stripe the bars **]%
+%[** assumes that full scale of the bars is the first value in col1]%
+%[** Parameters **]%
+%[** - nameanchor - report name (used for getting query) **]%
+%[** - charttitle - graph title **]%
+%[** - subtitle - graph subtitle **]%
+%[** - %[nameanchor]%_a1head - title for label column 1, cc **]%
+%[** - %[nameanchor]%_a1var - varname for label table col1  **]%
+%[** - %[nameanchor]%_a2head - title for label column 2, continent **]%
+%[** - %[nameanchor]%_a2var - varname for label table col2 **]%
+%[** - %[nameanchor]%_a3head - title for label column 3, country **]%
+%[** - %[nameanchor]%_a3var - varname for label table col4 **]%
+%[** - %[nameanchor]%_a4head - title for label column 4, city **]%
+%[** - %[nameanchor]%_a4var - varname for label table col2 **]%
+%[** - %[nameanchor]%_col1v - varname for column 1 - this is total for the stripe - .nv **]%
+%[** - %[nameanchor]%_col1t - title for column 1 **]%
+%[** - %[nameanchor]%_col1tv - count for title for column 1 **]%
+%[** - %[nameanchor]%_stripecolor - varname that contains the stripe color - wtvclasses.vbarcolor **]%
+%[** - %[nameanchor]%_stripecount - varname that contains the stripe width - .hcvc **]%
+%[** - %[nameanchor]%_legendcolor - legend color var **]%
+%[** - %[nameanchor]%_legendname - legend name var **]%
+%[** - glb_bar_graph_width - global width in pixels for bar graph **]%
+%[** - glb_bar_graph_height - global height in pixels for bar graph **]%
+%[**  **]%
+%[** Written 2009 by Tom Van Vleck **]%
+%[**  THVV 03/29/09 **]%
+%[**  THVV 03/30/09 stripe the bars **]%
+%[**  THVV 04/05/17 use *format **]%
+%[**  THVV 07/12/17 use *format correctly **]%
+%[**  THVV 09/19/20 expandfile3 **]%
+%[** ================================================================ **]%
+%[*include,=wtxmacros.htmi]%
+%[*set,&totalnum,=0]%
+%[*set,&fullscale,=""]%
+%[*if,ne,subtitle,="",*expandv,&s00,subtitle]%
+%[*callv,getquery,nameanchor,="query1"]%
+%[*sqlloop,&junk,chartiter,x0]%
+%[*expandv,&junk,flush]%
+%[*callv,getquery,nameanchor,="legendquery"]%
+%[*sqlloop,&legend,legenditer,x0]%
+%[** ================================================================ **]%
+%[*block,&chartiter,^END$]%
+%[*if,eq,fullscale,="",*set,&fullscale,%[%[nameanchor]%_col1v]%]%
+%[** make ctl be cc+city **]%
+%[*set,&ctl,%[%[nameanchor]%_a1var]%,%[%[nameanchor]%_a4var]%]%
+%[*if,ne,ctl,oldctl,*expandv,&junk,switch]%
+%[** ---- generate an IMG tag with the right color and width **]%
+%[*set,&y,%[%[nameanchor]%_stripecount]%]%
+%[*scale,&z1,y,fullscale,glb_bar_graph_width]%
+%[*format,&_tmp,="<img src=\"$1\" alt=\"$2\" title=\"$2\" width=\"$3\" height=\"$4\">",%[%[nameanchor]%_stripecolor]%,%[%[nameanchor]%_stripecount]%,z1,glb_bar_graph_height]%
+%[*concat,&chartout,_tmp]%
+END
+%[** ---------------------------------------------------------------- **]%
+%[*block,&switch,^END$]%
+%[*if,ne,oldctl,="",*expandv,&junk,flush]%
+%[*set,&oldctl,ctl]%
+%[*increment,&totalnum,=1]%
+%[*set,&a1,%[%[nameanchor]%_a1var]%]%
+%[*set,&a2,%[%[nameanchor]%_a2var]%]%
+%[*set,&a3,%[%[nameanchor]%_a3var]%]%
+%[*set,&a4,%[%[nameanchor]%_a4var]%]%
+%[** ---- if city is 2 chars long, blank it out **]%
+%[*set,&a4x,a4]%
+%[*subst,&a4x,="^..",=""]%
+%[*if,eq,a4x,="",*set,&a4,=""]%
+%[** ---- set short report to first row content **]%
+%[*if,eq,fa1,="",*set,&f1,%[%[nameanchor]%_col1v]%]%
+%[*if,eq,fa1,="",*set,&fa4,a4]%
+%[*if,eq,fa1,="",*set,&fa3,a3]%
+%[*if,eq,fa1,="",*set,&fa2,a2]%
+%[*if,eq,fa1,="",*set,&fa1,a1]%
+%[** ---- generate first part of the row **]%
+%[*concat,&chartout,="    <tr><td>",a1,="</td><td>",a2,="</td><td>",a3,="</td><td>",a4,="</td><td class=\"numcol\"> ",%[%[nameanchor]%_col1v]%,="</td><td>"]%
+END
+%[** ---------------------------------------------------------------- **]%
+%[*block,&flush,^END$]%
+%[*concat,&chartout,="</td></tr>\\n"]%
+END
+%[** ---------------------------------------------------------------- **]%
+%[*block,&legenditer,^END]%
+%[*set,&lv,%[%[nameanchor]%_legendname]%]%
+%[*if,eq,lv,="",*set,&lv,="(none)"]%
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<img src=%[%[%[nameanchor]%_legendcolor]%]% alt="" width="%[glb_bar_graph_height]%" height="%[glb_bar_graph_height]%"> %[lv]%
+END
+%[** ================================================================ **]%
+%[*block,&shortrep,^END]%
+  <p>%[totalnum]% %[%[nameanchor]%_col1t]%; <b>%[fa1]% %[fa2]% %[fa3]% %[fa4]%, %[f1]% %[%[nameanchor]%_col1t]%</b></p>
+END
+%[*block,&nullrep,^END]%
+  <p>No locations.</p>
+END
+%[** ================================================================ **]%
+%[*include,=rptheader.htmi]%
+<div class="chart%[longhidden]%" id="%[nameanchor]%_a1">
+%[*if,ne,s00,="",*expand,="<p class=\"subtitle\">%[s00]%</p>"]%
+%[*if,ne,%[nameanchor]%_a1head,="",*expandv,&a1,%[nameanchor]%_a1head]%
+%[*if,ne,%[nameanchor]%_a2head,="",*expandv,&a2,%[nameanchor]%_a2head]%
+%[*if,ne,%[nameanchor]%_a3head,="",*expandv,&a3,%[nameanchor]%_a3head]%
+%[*if,ne,%[nameanchor]%_a4head,="",*expandv,&a4,%[nameanchor]%_a4head]%
+  <table>
+    <tr><th>%[a1]%</th><th>%[a2]%</th><th>%[a3]%</th><th>%[a4]%</th><th class="numcol">%[%[nameanchor]%_col1t]%</th><th class="legendbar">%[legend]%</th></tr>
+%[chartout]%
+  </table>
+</div>
+<div class="short%[shorthidden]%" id="%[nameanchor]%_a2">
+%[*if,ne,totalnum,=0,*expand,shortrep]%
+%[*if,eq,totalnum,=0,*expand,nullrep]%
+</div>

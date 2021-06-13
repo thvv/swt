@@ -1,0 +1,52 @@
+#!/bin/sh
+# Fetch the Geolite2-City.mmdb database from MaxMind into $HOME/lib.
+#
+# This data file is provided free from MaxMind.
+# The data file is updated by MaxMind on Tuesday afternoons. Try fetching on Wednesday morning.
+# The old data file is no longer updated as of March 2018.
+#
+# crontab line to run at 2:30am Wednesday (Sunday is 0):
+# 30 2 * * 3 geoip2.sh
+#
+# My Perl programs logextractor, ipcity, and thvvutil.pm use this data to add geolocation data to IP addresses.
+# Install CPAN modules GeoIP2::Database::Reader, MaxMind::DB::Reader::XS, and Try::Tiny in order to read the new format file.
+# On Ubuntu, do "sudo apt-get install libmaxminddb0 libmaxminddb-dev mmdb-bin" to install the binaries.
+#
+# THVV 12/24/18
+# THVV 01/01/20 maxmind changed rules, requires license key
+# THVV 04/01/20 maxmind key expired, needs update
+#
+MAXMINDURL="https://download.maxmind.com/app/geoip_download?edition_id=GeoLite2-City&license_key=%[MAXMIND_LICENSE_KEY]%&suffix=tar.gz"
+#
+# ... before
+#ls -l $HOME/lib
+# ... pull the file from MaxMind
+curl --output geoip2.tar.gz "$MAXMINDURL"
+if [ ! -f geoip2.tar.gz ] ; then
+    echo "*** error: failed to download $MAXMINDURL"
+    exit 1
+fi
+filesize=`du -k geoip2.tar.gz | cut -f 1`
+if [ $filesize -lt 300 ] ; then
+    echo "*** error: small file from maxmind"
+    ls -l geoip2.tar.gz
+    cat geoip2.tar.gz
+    exit 1
+fi
+# ... extract the tarfile and get the mmdb file
+tar xvf geoip2.tar.gz
+ls -l GeoLite2-City_*
+mv GeoLite2-City_*/GeoLite2-City.mmdb t.mmdb
+if [ ! -f t.mmdb ] ; then
+    echo "*** error: failed to find mmdb"
+    exit 1
+fi
+# ... copy the mmdb file into ~/lib
+mv t.mmdb $HOME/lib/GeoLite2-City.mmdb
+# ... after
+ls -l $HOME/lib
+# ... quick test, make sure libraries are working
+#ipcity 73.215.248.73
+# ... clean up unpacked file and tarfile
+rm -rf GeoLite2-City_*/
+rm geoip2.tar.gz

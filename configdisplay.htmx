@@ -1,0 +1,112 @@
+%[*set,&title,="Super Webtrax Configuration"]%
+%[*set,&stylesheet,="swtstyle.css"]%
+%[*set,&description,="Super Webtrax is a free Web log analyzer that works on Unix and OS X."]%
+%[** THVV 02/20/07  **]%
+%[** ---------------------------------------------------------------- **]%
+%[*block,&extrastyle,^END$]%
+<style type="text/css">
+<!--
+body {font-size: 90%;}
+td {font-size: 90%; border: 1px solid black;}
+th {font-size: 90%; border: 1px solid black;}
+.optionstable {border: 1px solid black; border-collapse: collapse;}
+.optionname {font-family: monospace;}
+-->
+</style>
+END
+%[** ================================================================ **]%
+%[** format report options **]%
+%[*block,&optiter,^END]%
+%[*set,&v,wtreportoptions.optvalue]%
+%[*subst,&v,="^(................................................................).*$",="\\1..."]%
+%[*set,&d,wtreportoptions.optdoc]%
+%[*subst,&d,="^(................................................................).*$",="\\1..."]%
+<tr><td class="optionname">%[wtreportoptions.optid]%</td><td class="optionname">%[wtreportoptions.optname]%</td><td class="optionname">%[v]%</td><td>%[d]%</td></tr>
+END
+%[** ---------------------------------------------------------------- **]%
+%[** iterator for list of options **]%
+%[*block,&iterglobopt,^END]%
+<tr><td class="optionname">%[wtglobalvalues.gloname]%</td><td class="optionname">%[wtglobalvalues.glovalue]%</td><td>%[wtglobalvalues.glocomm]%</td></tr>
+END
+%[** ---------------------------------------------------------------- **]%
+%[** iterator over list of config tables **]%
+%[*block,&configtableiter,^END]%
+%[** set up the heading]%
+%[*concat,&configtableout,="<h3>"]%
+%[*concat,&configtableout,wtconfigtabs.conftable]%
+%[*concat,&configtableout,="</h3>\\n"]%
+%[*concat,&configtableout,="</p>"]%
+%[*concat,&configtableout,wtconfigtabs.confdesc]%
+%[*concat,&configtableout,="</p>\\n"]%
+%[*concat,&configtableout,="<table class=\"optionstable\">\\n"]%
+%[*concat,&configtableout,="<tr>"]%
+%[** get a list of columns in target table from wtconfigcols.cconfcol **]%
+%[*set,&qcoltab,="SELECT * FROM wtconfigcols WHERE cconftable ='"]%
+%[*concat,&qcoltab,wtconfigtabs.conftable]%
+%[*concat,&qcoltab,="'"]%
+%[*set,&tabiter,="<tr>"]%
+%[** generate a TH row for the target table and an iterator over its values **]%
+%[*sqlloop,&junk,configcoliter,qcoltab]%
+%[*concat,&tabiter,="</tr>\\n"]%
+%[*concat,&configtableout,="</tr>\\n"]%
+%[**  construct a query against the target table **]%
+%[*set,&qtab,="SELECT * FROM "]%
+%[*concat,&qtab,wtconfigtabs.conftable]%
+%[*set,&tableout,=""]%
+%[** run the constructed query to get the values from the target **]%
+%[*sqlloop,&tableout,tabiter,qtab]%
+%[*concat,&configtableout,tableout]%
+%[** foot the table **]%
+%[*concat,&configtableout,="</table>\\n"]%
+END
+%[** ---------------------------------------------------------------- **]%
+%[** iterator over list of config cols **]%
+%[*block,&configcoliter,^END]%
+%[*concat,&tabiter,="<td>"]%
+%[*concat,&tabiter,pct]%
+%[*concat,&tabiter,="["]%
+%[*concat,&tabiter,wtconfigcols.cconftable]%
+%[*concat,&tabiter,="."]%
+%[*concat,&tabiter,wtconfigcols.cconfcol]%
+%[*concat,&tabiter,="]"]%
+%[*concat,&tabiter,pct]%
+%[*concat,&tabiter,="</td>"]%
+%[*concat,&configtableout,="<th>"]%
+%[*concat,&configtableout,wtconfigcols.cconfcol]%
+%[*concat,&configtableout,="</th>"]%
+END
+%[** ---------------------------------------------------------------- **]%
+%[** iterator over list of pie queries **]%
+  <tr><td>%[wtpiequeries.tablecode]%</td><td>%[wtpiequeries.shortweight]%</td><td>%[wtpiequeries.longweight]%</td><td>%[wtpiequeries.title]%</td></tr>
+END
+%[** ================================================================ **]%
+%[*block,&body,^ENDBODY$]%
+    <h1>Super Webtrax Configuration Data</h1>
+    <p>As of %[timestamp]%</p>
+
+<h2>Global Values</h2>
+<p>Configuration values affecting the whole report.</p>
+%[*set,&options,=""]%
+%[*set,&qgetdoc,="SELECT * FROM wtglobalvalues WHERE glocomm != '' ORDER BY gloname"]%
+%[*sqlloop,&options,iterglobopt,qgetdoc]%
+<table class="optionstable">
+<tr><th>Name</th><th>Value</th><th>Meaning</th>
+%[options]%
+</table>
+
+<h2>Config Tables</h2>
+%[*set,&configtableout,=""]%
+%[*set,&qgettabs,="SELECT * FROM wtconfigtabs WHERE confdoc=1 ORDER BY conftable"]%
+%[*sqlloop,&junk,configtableiter,qgettabs]%
+%[configtableout]%
+
+<h2>Report Options</h2>
+<p>Configuration values for individual reports.</p>
+%[*set,&qopt,="SELECT * FROM wtreportoptions WHERE optdoc != '' ORDER BY optid, optname"]%
+%[*sqlloop,&optout,optiter,qopt]%
+<table class="optionstable">
+  <tr><th>report</th><th>option</th><th>value</th><th>meaning</th></tr>
+%[optout]%
+</table>
+ENDBODY
+%[*include,=docwrapper.htmi]%

@@ -1,0 +1,103 @@
+%[** Horizontal bar graph of referrer name (in red if new) and two numeric columns, last with barchart **]%
+%[** .. derived from histo2n **]%
+%[** .. trim the name to 40 chars **]%
+%[** assumes that full scale of the bars is the first value in col2]%
+%[** Parameters **]%
+%[** - nameanchor - report name (used for getting query) **]%
+%[** - charttitle - graph title **]%
+%[** - %[nameanchor]%_col0h - title for label column **]%
+%[** - %[nameanchor]%_col0v - var for label column **]%
+%[** - %[nameanchor]%_labelvar - varname for label table **]%
+%[** - %[nameanchor]%_col1v - varname for column 1 **]%
+%[** - %[nameanchor]%_col1t - title for column 1 **]%
+%[** - %[nameanchor]%_col1s - scale for column 1 **]%
+%[** - %[nameanchor]%_col2v - varname for column 2 - this is bar graphed **]%
+%[** - %[nameanchor]%_col2t - title for column 2 **]%
+%[** - %[nameanchor]%_col2s - scale for column 2 **]%
+%[** - %[nameanchor]%_col1tv - count for title for column 1 **]%
+%[** - %[nameanchor]%_col2tv - count for title for column 2 **]%
+%[** - %[nameanchor]%_newrefvar - new reference if NULL **]%
+%[** - %[nameanchor]%_watchvar - color to show if NOT NULL **]%
+%[** - glb_bar_graph_width - global width in pixels for bar graph **]%
+%[** - glb_bar_graph_height - global height in pixels for bar graph **]%
+%[**  **]%
+%[** Variables read/written to wtsrhist **]%
+%[** totreferrers **]%
+%[** totkb **]%
+%[** tothits **]%
+%[** maxreferrer **]%
+%[** maxreferrerndays **]%
+%[**  **]%
+%[** Written 2006-2007 by Tom Van Vleck **]%
+%[**  THVV 04/20/06 **]%
+%[**  THVV 06/10/06 name in blue if new **]%
+%[**  THVV 06/16/06 hotlink the name **]%
+%[**  THVV 06/25/06 add second query for totals **]%
+%[**  THVV 07/19/06 show watched referrers in color if not new **]%
+%[**  THVV 08/13/06 long and short **]%
+%[**  THVV 08/18/06 fetch query from sql **]%
+%[**  THVV 02/09/07 save values for later and use notes from previous **]%
+%[**  THVV 10/15/20 expandfile3 **]%
+%[** ================================================================ **]%
+%[*include,=wtxmacros.htmi]%
+%[*set,&fullscale,=""]%
+%[*callv,fetchhist,="totreferrers"]%
+%[*callv,fetchhist,="totkb"]%
+%[*callv,fetchhist,="tothits"]%
+%[*callv,fetchhist,="maxreferrer"]%
+%[*callv,fetchhist,="maxreferrerndays"]%
+%[*if,ne,subtitle,="",*expandv,&s00,subtitle]%
+%[*callv,getquery,nameanchor,="query2"]%
+%[*sqlloop,&junk,=x,x0]%
+%[*if,ne,x0,="",*quotient,&%[%[nameanchor]%_col1tv]%,%[%[nameanchor]%_col1tv]%,%[nameanchor]%_col1s]%
+%[*callv,getquery,nameanchor,="query1"]%
+%[*sqlloop,&chartout,chartiter,x0]%
+%[** ================================================================ **]%
+%[*block,&chartiter,^END$]%
+%[*if,eq,fullscale,="",*set,&fullscale,%[%[nameanchor]%_col2v]%]%
+%[*quotient,&x,%[%[nameanchor]%_col1v]%,%[nameanchor]%_col1s]%
+%[*quotient,&y,%[%[nameanchor]%_col2v]%,%[nameanchor]%_col2s]%
+%[*scale,&z1,y,fullscale,glb_bar_graph_width]%
+%[*set,&targ,%[%[nameanchor]%_labelvar]%]%
+%[** 'name' drops http(s) and truncates target URL **]%
+%[*set,&name,%[%[nameanchor]%_labelvar]%]%
+%[*subst,&name,="^https?:\\/\\/",=""]%
+%[*subst,&name,="^(........................................).*$",="\\1"]%
+%[** if the %[nameanchor]%_newrefvar is set, do it in red **]%
+%[*if,eq,="",%[%[nameanchor]%_newrefvar]%,*set,&name,="<span class=\"newref\">",name,="</span>"]%
+%[** if the %[nameanchor]%_newrefvar is not set, see if this is a watched referrer **]%
+%[*if,ne,="",%[%[nameanchor]%_newrefvar]%,*if,ne,="",%[%[nameanchor]%_watchvar]%,*set,&name,="<span class=\"",%[%[nameanchor]%_watchvar]%,="\">",name,="</span>"]%
+%[** if the targ is linkable, hotlink it (beware clicking) **]%
+%[*set,&chartitertarg,name]%
+%[*if,rexp,targ,="^http",*set,&chartitertarg,="<a href=",quote,targ,quote,=" rel=\"nofollow\">",name,="</a>"]%
+%[*if,eq,maxreferrer,="",*set,&f2,y]%
+%[*if,eq,maxreferrer,="",*set,&f1,x]%
+%[*if,eq,maxreferrer,="",*set,&maxreferrer,chartitertarg]%
+    <tr><td>%[chartitertarg]%</td><td class="numcol">%[x]%</td><td class="numcol">%[y]%</td><td><img src="redpix.gif" alt="" width=%[z1]% height=%[glb_bar_graph_height]%></td></tr>
+END
+%[** ================================================================ **]%
+%[*set,&totreferrers,%[%[nameanchor]%_col0v]%]%
+%[*set,&totkb,%[%[nameanchor]%_col1tv]%]%
+%[** col1tv is already scaled to KB **]%
+%[*set,&tothits,%[%[nameanchor]%_col2tv]%]%
+%[*include,=rptheader.htmi]%
+<div class="chart%[longhidden]%" id="%[nameanchor]%_a1">
+%[*if,ne,s00,="",*expand,="<p class=\"subtitle\">%[s00]%</p>"]%
+  <table>
+    <tr><th></th><th class="numcol">%[totkb]%</th><th class="numcol">%[tothits]%</th><th></th></tr>
+    <tr><th>%[totreferrers]% %[%[nameanchor]%_col0h]%</th><th class="numcol">%[%[nameanchor]%_col1t]%</th><th class="numcol">%[%[nameanchor]%_col2t]%</th><th></th></tr>
+%[chartout]%
+  </table>
+</div>
+%[*callv,deltacomment,totreferrers,prev_totreferrers,%[nameanchor]%_deltaredthresh,=delta_totreferrers]%
+%[*callv,deltacomment,totkb,prev_totkb,%[nameanchor]%_deltaredthresh,=delta_totkb]%
+%[*callv,deltacomment,tothits,prev_tothits,%[nameanchor]%_deltaredthresh,=delta_tothits]%
+%[*callv,deltandays,maxreferrer,prev_maxreferrer,=prev_maxreferrerndays,=delta_ndays]%
+<div class="short%[shorthidden]%" id="%[nameanchor]%_a2">
+  <p>%[totreferrers]% %[%[nameanchor]%_col0h]%%[delta_totreferrers]%, %[totkb]% %[%[nameanchor]%_col1t]%%[delta_totkb]%, %[tothits]% %[%[nameanchor]%_col2t]%%[delta_tothits]%; <b>%[maxreferrer]%%[delta_ndays]%, %[f1]% %[%[nameanchor]%_col1t]%, %[f2]% %[%[nameanchor]%_col2t]%</b></p>
+</div>
+%[*callv,savehist,="totreferrers",totreferrers]%
+%[*callv,savehist,="totkb",totkb]%
+%[*callv,savehist,="tothits",tothits]%
+%[*callv,savehist,="maxreferrer",maxreferrer]%
+%[*callv,savehist,="maxreferrerndays",prev_maxreferrerndays]%

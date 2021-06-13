@@ -1,0 +1,53 @@
+%[** Cumulative query term frequency, day or cumulative **]%
+%[** Horizontal bar graph of a word and one numeric column with barchart **]%
+%[** .. full scale for graph is first value in numeric column (ie descending) **]%
+%[** .. trim the name to 40 chars **]%
+%[** Parameters **]%
+%[** - nameanchor - report name (used for getting query1 and query2, chart and totals) **]%
+%[** - charttitle - graph title **]%
+%[** - subtitle - graph subtitle **]%
+%[** - %[nameanchor]%_col0head - title for word column **]%
+%[** - %[nameanchor]%_labelvar - varname for word column **]%
+%[** - %[nameanchor]%_col1v - varname for column 1 **]%
+%[** - %[nameanchor]%_col1t - title for column 1 **]%
+%[** - %[nameanchor]%_col1s - scale for column 1 .. this is always 1 **]%
+%[** - %[nameanchor]%_col0tv - column name populated by query: .tw or .twc **]%
+%[** - glb_bar_graph_width - global width in pixels for bar graph **]%
+%[** - glb_bar_graph_height - global height in pixels for bar graph **]%
+%[**  **]%
+%[** Written 2011 by Tom Van Vleck **]%
+%[** ================================================================ **]%
+%[*include,=wtxmacros.htmi]%
+%[*set,&fullscale,=""]%
+%[*set,&biggestquery,=""]%
+%[*if,ne,subtitle,="",*expandv,&s00,subtitle]%
+%[** getquery sets x0 **]%
+%[*callv,getquery,nameanchor,="query2"]%
+%[*if,ne,x0,="",*sqlloop,&junk,=x,x0]%
+%[*if,ne,x0,="",*quotient,&%[%[nameanchor]%_col1tv]%,%[%[nameanchor]%_col1tv]%,%[nameanchor]%_col1s]%
+%[*callv,getquery,nameanchor,="query1"]%
+%[*sqlloop,&chartout,chartiter,x0]%
+%[** ================================================================ **]%
+%[*block,&chartiter,^END$]%
+%[*if,eq,fullscale,="",*set,&fullscale,%[%[nameanchor]%_col1v]%]%
+%[*quotient,&scaled,%[%[nameanchor]%_col1v]%,%[nameanchor]%_col1s]%
+%[*scale,&z1,scaled,fullscale,glb_bar_graph_width]%
+%[*set,&query,%[%[nameanchor]%_labelvar]%]%
+%[*subst,&query,="^(........................................).*$",="\\1"]%
+%[*if,eq,biggestquery,="",*set,&biggestquerycount,%[%[nameanchor]%_col1v]%]%
+%[*if,eq,biggestquery,="",*set,&biggestquery,query]%
+    <tr><td>%[query]%</td><td class="numcol">%[scaled]%</td><td><img src="redpix.gif" alt="" width=%[z1]% height=%[glb_bar_graph_height]%></td></tr>
+END
+%[** ================================================================ **]%
+%[*include,=rptheader.htmi]%
+<div class="chart%[longhidden]%" id="%[nameanchor]%_a1">
+%[*if,ne,s00,="",*expand,="<p class=\"subtitle\">%[s00]%</p>"]%
+%[*if,ne,%[nameanchor]%_col0head,="",*expandv,&col0,%[nameanchor]%_col0head]%
+  <table>
+    <tr><th>%[col0]%</th><th class="numcol">%[%[nameanchor]%_col1t]%</th><th></th></tr>
+%[chartout]%
+  </table>
+</div>
+<div class="short%[shorthidden]%" id="%[nameanchor]%_a2">
+  <p>%[%[%[nameanchor]%_col0tv]%]% %[col0]%, %[%[%[nameanchor]%_col1tv]%]% %[%[nameanchor]%_col1t]%, <b>%[biggestquerycount]% %[biggestquery]%</b></p>
+</div>

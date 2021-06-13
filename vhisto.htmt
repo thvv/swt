@@ -1,0 +1,69 @@
+%[** Vertical bar graph **]%
+%[** Parameters **]%
+%[** - nameanchor - report name (used for getting query) **]%
+%[** - charttitle - graph title **]%
+%[** - subtitle - graph subtitle **]%
+%[** - %[nameanchor]%_monthvar - var for month number from query1 **]%
+%[** - %[nameanchor]%_hitsvar - var for hit count from query1 **]%
+%[** - %[nameanchor]%_htmlhitsvar - var for HTML hits for query1 **]%
+%[** - %[nameanchor]%_graphichitsvar - var for HTML hits for query1 **]%
+%[** - %[nameanchor]%_bytesvar - var for bytes from query1 - not used **]%
+%[** - %[nameanchor]%_visitsvar - var for visits from query1 - not used **]%
+%[** - %[nameanchor]%_maxhitsvar - var for max hits in any hour from query2 **]%
+%[** - %[nameanchor]%_graph_height - height in pixels for bar graph **]%
+%[** - glb_bar_graph_height - global width in pixels for bar (despite name) **]%
+%[**  **]%
+%[** Written 2006 by Tom Van Vleck **]%
+%[**  THVV 06/04/06 **]%
+%[**  THVV 06/14/06 add graphic hits **]%
+%[**  THVV 08/18/06 fetch query from sql **]%
+%[**  THVV 02/13/17 fix Firefox bug in HTML5 mode that gave BR a 11px height **]%
+%[** ================================================================ **]%
+%[*include,=wtxmacros.htmi]%
+%[*if,ne,subtitle,="",*expandv,&s00,subtitle]%
+%[*set,&month1,="J"]%
+%[*set,&month2,="F"]%
+%[*set,&month3,="M"]%
+%[*set,&month4,="A"]%
+%[*set,&month5,="M"]%
+%[*set,&month6,="J"]%
+%[*set,&month7,="J"]%
+%[*set,&month8,="A"]%
+%[*set,&month9,="S"]%
+%[*set,&month10,="O"]%
+%[*set,&month11,="N"]%
+%[*set,&month12,="D"]%
+%[*callv,getquery,nameanchor,="query1m"]%
+%[*sqlloop,&junk,=x,x0]%
+%[*set,&maxhits,%[%[nameanchor]%_maxhitsvar]%]%
+%[*callv,getquery,nameanchor,="query1"]%
+%[*sqlloop,&chartout,chartiter,x0]%
+%[** ================================================================ **]%
+%[*block,&chartiter,^END$]%
+%[** make m0 be one of 'month1 ... month12' **]%
+%[*set,&m0,="month"]%
+%[*concat,&m0,%[%[nameanchor]%_monthvar]%]%
+%[*set,&htotal,%[%[nameanchor]%_hitsvar]%]%
+%[*set,&hh,%[%[nameanchor]%_htmlhitsvar]%]%
+%[*set,&hg,%[%[nameanchor]%_graphichitsvar]%]%
+%[*decrement,&htotal,hh]%
+%[*decrement,&htotal,hg]%
+%[*scale,&zh,htotal,maxhits,%[nameanchor]%_graph_height]%
+%[*scale,&zhh,hh,maxhits,%[nameanchor]%_graph_height]%
+%[*scale,&zhg,hg,maxhits,%[nameanchor]%_graph_height]%
+%[*set,&mth,%[m0]%]%
+%[*quotient,&kk,%[%[nameanchor]%_hitsvar]%,=1024]%
+      <td class="vbar">%[kk]%K<br><img src="redpix.gif" alt="" width=%[glb_bar_graph_height]% height=%[zh]% class="block"><img src="bluepix.gif" alt="" width=%[glb_bar_graph_height]% height=%[zhg]% class="block"><img src="greenpix.gif" alt="" width=%[glb_bar_graph_height]% height=%[zhh]% class="block"><br><br>%[mth]%</td>
+END
+%[** ================================================================ **]%
+<h2 class="h2title" id="%[nameanchor]%">%[charttitle]%</h2>
+%[*if,ne,s00,="",*expand,="<p class=\"subtitle\">%[s00]%</p>"]%
+<div class="vhisto">
+  <table>
+    <tr>
+%[chartout]%
+    </tr>
+  </table>
+  <p class="details"><img src="greenpix.gif" alt="" width=%[glb_bar_graph_height]% height=%[glb_bar_graph_height]%> HTML&nbsp;&nbsp;&nbsp;<img src="bluepix.gif" alt="" width=%[glb_bar_graph_height]% height=%[glb_bar_graph_height]%> Graphic&nbsp;&nbsp;&nbsp;<img src="redpix.gif" alt="" width=%[glb_bar_graph_height]% height=%[glb_bar_graph_height]%> Other</p>
+</div>
+

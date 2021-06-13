@@ -1,0 +1,19 @@
+%[** Dashboard CSV - writes a 2-line CSV file that will be loaded by dashtpt using *bindcsv **]%
+%[** Parameters **]%
+%[** .. swt.sql now defines rpt_dash template to be this file, dashcsv.htmt **]%
+%[** .. swt.sql now defines DASHFILE to be 'swtdash.csv' **]%
+%[** .. swt deletes old DASHFILE and does sectionrep "rpt_dash" "Dashboard input" "Dashboard" "" "$DASHFILE" **]%
+%[** .. cronjob moves swtdash.csv around **]%
+%[**  **]%
+%[** Written 2006-2021 by Tom Van Vleck **]%
+%[**  THVV 06/16/06 **]%
+%[**  THVV 01/08/10 change to output htmi **]%
+%[**  THVV 03/17/21 change to output CSV, replace dashboard.htmt with dashcsv.htmt, replace swtdash.htmi with swtdash.csv **]%
+%[** ================================================================ **]%
+%[*include,=wtxmacros.htmi]%
+%[** --------- **]%
+%[*quotient,&ytotalmb,ytotalbytes,bytes2mb]%
+%[** ================================================================ **]%
+%[** .. var names from  wtglobals.sh **]%
+siteid,dayhistfirst,domhistfirst,domsnovisit,firstdate,firstdatebin,googlecrawldate,graphicbytes,graphicbytesni,graphichits,graphichitsni,hitsnovisit,hpbytes,hphits,htmlbytes,htmlbytesni,htmlfiles,htmlfilesni,htmlhits,htmlhitsni,htmlkb,htmlkbni,htmlvisits,htmlvisitsni,indexbytes,indexhits,lastdate,lastdatebin,linkbytes,n404,nbrowser,ndomainstoday,nengine,newdomainstoday,ngoogletoday,nheadp,nindexvisits,nlinkhits,nlinkvisits,nnevergooglehtml,nohtmlbytes,nohtmlvisits,nohtmlvisitshits,nquery,nreferrer,nsearches,nsearchvisits,ntld,nvisitclass,searchbytes,totalauthhits,totalauthids,totalauthkb,totalauthsess,totalbytes,totalbytesni,totalhits,totalhitsni,totalkb,totalkbni,totalmb,totalmbni,totalreckb,totalrecs,totalvisits,totalvisitsni,ydomain,yfile,yhfile,yhtotalbytes,yhtotalhits,yhtotalkb,yreferrer,ytotalbytes,ytotalhits,ytotalkb
+"%[siteid]%","%[dayhistfirst]%","%[domhistfirst]%","%[domsnovisit]%","%[firstdate]%","%[firstdatebin]%","%[googlecrawldate]%","%[graphicbytes]%","%[graphicbytesni]%","%[graphichits]%","%[graphichitsni]%","%[hitsnovisit]%","%[hpbytes]%","%[hphits]%","%[htmlbytes]%","%[htmlbytesni]%","%[htmlfiles]%","%[htmlfilesni]%","%[htmlhits]%","%[htmlhitsni]%","%[htmlkb]%","%[htmlkbni]%","%[htmlvisits]%","%[htmlvisitsni]%","%[indexbytes]%","%[indexhits]%","%[lastdate]%","%[lastdatebin]%","%[linkbytes]%","%[n404]%","%[nbrowser]%","%[ndomainstoday]%","%[nengine]%","%[newdomainstoday]%","%[ngoogletoday]%","%[nheadp]%","%[nindexvisits]%","%[nlinkhits]%","%[nlinkvisits]%","%[nnevergooglehtml]%","%[nohtmlbytes]%","%[nohtmlvisits]%","%[nohtmlvisitshits]%","%[nquery]%","%[nreferrer]%","%[nsearches]%","%[nsearchvisits]%","%[ntld]%","%[nvisitclass]%","%[searchbytes]%","%[totalauthhits]%","%[totalauthids]%","%[totalauthkb]%","%[totalauthsess]%","%[totalbytes]%","%[totalbytesni]%","%[totalhits]%","%[totalhitsni]%","%[totalkb]%","%[totalkbni]%","%[totalmb]%","%[totalmbni]%","%[totalreckb]%","%[totalrecs]%","%[totalvisits]%","%[totalvisitsni]%","%[ydomain]%","%[yfile]%","%[yhfile]%","%[yhtotalbytes]%","%[yhtotalhits]%","%[yhtotalkb]%","%[yreferrer]%","%[ytotalbytes]%","%[ytotalhits]%","%[ytotalkb]%"

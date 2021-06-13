@@ -1,0 +1,27 @@
+#!/usr/local/bin/perl
+#
+# helper routne to split input file into N parts each 10K
+#
+$arg = "templog";		# default filename
+$arg = shift if $#ARGV >= 0;
+
+$sizelimit = 10000;
+
+open(INX, "$arg") || die "cant open $arg";
+$fileno = 1;
+$wrote = 0;
+open(OUT1, ">$arg.$fileno") || die "cant open-w $arg.$fileno";
+while (<INX>) {
+    if ($wrote == $sizelimit) {
+	close OUT1;
+	print "$arg.$fileno $wrote\n";
+	$wrote = 0;
+	$fileno++;
+	open(OUT1, ">$arg.$fileno") || die "cant open-w $arg.$fileno";
+    }
+    print OUT1 $_;
+    $wrote++;
+}
+close OUT1;
+print "$arg.$fileno $wrote\n";
+close INX;

@@ -1,0 +1,12 @@
+%[** list all the options for swt **]%
+%[*sqlloop,&out1,iter1,="select * from wtglobalvalues where glocomm !='' order by gloname"]%
+%[*block,&iter1,^END]%
+%[wtglobalvalues.gloname]% - %[wtglobalvalues.glocomm]%, default "%[wtglobalvalues.glovalue]%"
+END
+%[*sqlloop,&out2,iter2,="select * from wtreportoptions where optdoc !='' order by optid, optname"]%
+%[*block,&iter2,^END]%
+%[wtreportoptions.optid]%_%[wtreportoptions.optname]% - %[wtreportoptions.optdoc]%, default "%[wtreportoptions.optvalue]%"
+END
+%[out1]%
+
+%[out2]%

@@ -1,0 +1,23 @@
+%[** Template for disk summary to be included into SWT report **]%
+%[** .. expanded by diskmon **]%
+%[** Written 2006-2014 by Tom Van Vleck **]%
+%[** THVV 09/21/06 **]%
+%[** THVV 01/14/14 show quota in GB **]%
+%[** ================================================================ **]%
+    <h2>Disk Usage (KB)</h2>
+<div class="analysis">
+%[*product,&x,diskquota,=1024]%
+%[*shell,&x,=$HOME/bin/fmtnum %[x]% disk]%
+%[*scale,&diskpct,disktot,diskquota,=100]%
+    <table><tr valign="top"><td>
+      <table>
+	<tr><td colspan="2" class="numcolhead" width="115">%[diskdate]%</td><td class="numcol">quota %[x]%<br><span class="alert">%[diskpct]%% used</span></td></tr>
+	<tr><th>Dir</th><th class="numcol">Use</th><th class="numcol">Delta</th></tr>
+	<tr><td>/usr/home</td><td class="numcol">%[diskmain]%</td><td class="numcol">%[deldiskmain]%</td></tr>
+	<tr><td>public_html</td><td class="numcol">%[diskweb]%</td><td class="numcol">%[deldiskweb]%</td></tr>
+	<tr><td>public_ftp</td><td class="numcol">%[diskftp]%</td><td class="numcol">%[deldiskftp]%</td></tr>
+	<tr><td>/usr/boxes</td><td class="numcol">%[diskmail1]%</td><td class="numcol">%[deldiskmail1]%</td></tr>
+	<tr><td>/var/mail</td><td class="numcol">%[diskmail2]%</td><td class="numcol">%[deldiskmail2]%</td></tr>
+      </table>
+    </td></tr></table>
+</div>

@@ -1,0 +1,66 @@
+%[** Find paths through a site - generates sql load input **]%
+%[** THVV 04/30/06 **]%
+%[** **]%
+%[** called by swt **]%
+%[** **]%
+%[** Parameters**]%
+%[** - nameanchor - report name (used for getting query) **]%
+%[** - %[nameanchor]%_urlvar - query1 var with referrer URL **]%
+%[** - %[nameanchor]%_pathvar - query1 var with path name **]%
+%[** - %[nameanchor]%_bytesvar - query1 var with tx size in bytes **]%
+%[** - %[nameanchor]%_tablename - cum table name **]%
+%[** - %[nameanchor]%_tablecnt - cum table hit count column **]%
+%[** - %[nameanchor]%_tablebytes - cum table bytes column **]%
+%[** - %[nameanchor]%_dftfile - default filename if null or index.html **]%
+%[** - %[nameanchor]%_trimref - trim this prefix off referrer **]%
+%[** **]%
+%[** Written 2006 by Tom Van Vleck **]%
+%[**  THVV 06/13/06 **]%
+%[**  THVV 08/18/06 - fetch query from sql **]%
+%[**  THVV 11/28/06 - make "multics" be a parameter **]%
+%[**  THVV 12/27/06 use path instead of dir and filename **]%
+%[** ================================================================ **]%
+%[*include,=wtxmacros.htmi]%
+%[*set,&old,=""]%
+%[*set,&n,=0]%
+%[*set,&s,=0]%
+%[*callv,getquery,nameanchor,="query1"]%
+%[*sqlloop,&contents,iter,x0]%
+%[** ---------------------------------------------------------------- **]%
+%[*block,&iter,^END]%
+%[*set,&r,%[%[nameanchor]%_urlvar]%]%
+%[*set,&t,%[%[nameanchor]%_pathvar]%]%
+%[*subst,&t,="^\\/",=""]%
+%[** trim "http://www.example.com" off of the beginning of the referrer **]%
+%[*subst,&r,%[nameanchor]%_trimref,=""]%
+%[*subst,&r,="^\\/",=""]%
+%[*subst,&t,="^\\/",=""]%
+%[*if,eq,r,="",*set,&r,%[nameanchor]%_dftfile]%
+%[*if,eq,r,="index.html",*set,&r,%[nameanchor]%_dftfile]%
+%[*subst,&r,="[-.\\/#?]",="_"]%
+%[*subst,&t,="[-.\\/#?]",="_"]%
+%[*subst,&r,="^([0-9])",="_$1"]%
+%[*subst,&t,="^([0-9])",="_$1"]%
+%[*subst,&r,="_html$",=""]%
+%[*subst,&t,="_html$",=""]%
+%[*set,&x,r,="|",t]%
+%[*if,nelc,x,old,*expand,flush]%
+%[*increment,&n,=1]%
+%[*increment,&s,%[%[nameanchor]%_bytesvar]%]%
+END
+%[** ---------------------------------------------------------------- **]%
+%[*block,&flush,^END]%
+%[*if,gt,n,=0,*expand,flush2]%
+%[*set,&n,=0]%
+%[*set,&old,x]%
+END
+%[** ---------------------------------------------------------------- **]%
+%[*block,&flush2,^END]%
+%[** (cfrom, cto, ccnt, cbytes) **]%
+INSERT INTO %[%[nameanchor]%_tablename]% VALUES ('%[t]%', '%[r]%', %[n]%, %[s]%) ON DUPLICATE KEY UPDATE %[%[nameanchor]%_tablecnt]%=%[%[nameanchor]%_tablecnt]%+%[n]%, %[%[nameanchor]%_tablebytes]%=%[%[nameanchor]%_tablebytes]%+%[s]%;
+END
+%[** ================================================================ **]%
+%[contents]%
+%[** add code to allow the use of **]%
+%[** -- cfirst BIGINT, **]%
+%[** -- clast BIGINT, **]%

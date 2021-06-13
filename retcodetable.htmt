@@ -1,0 +1,60 @@
+%[** Retcode table chart **]%
+%[**  **]%
+%[** Parameters **]%
+%[** - charttitle - char title **]%
+%[** - subtitle - chart subtitle **]%
+%[** - nameanchor - name **]%
+%[** - %[nameanchor]%_hitcountvar - var for total hits **]%
+%[** - %[nameanchor]%_bytesvar - var for total bytes**]%
+%[** - %[nameanchor]%_retcodevar - var for return code **]%
+%[** - %[nameanchor]%_goodvar - var for good flag, 1=data was transferred **]%
+%[** - %[nameanchor]%_meaningvar - explanation of return code **]%
+%[** - %[nameanchor]%_goodthresh - show in red if thresh is too low **]%
+%[**  **]%
+%[** Written 2006 by Tom Van Vleck **]%
+%[**  THVV 04/20/06 **]%
+%[**  THVV 08/13/06 add short report **]%
+%[**  THVV 08/18/06 fetch query from sql **]%
+%[**  THVV 08/20/06 improve short report **]%
+%[**  THVV 09/01/06 compute good hits percent **]%
+%[** ================================================================ **]%
+%[*include,=wtxmacros.htmi]%
+%[*if,ne,subtitle,="",*expandv,&s00,subtitle]%
+%[*set,&goodhits,=0]%
+%[*callv,getquery,nameanchor,="query1"]%
+%[*sqlloop,&tableout,tableiter,x0]%
+%[** ================================================================ **]%
+%[*block,&tableiter,^END$]%
+%[*quotient,&kb,%[%[nameanchor]%_bytesvar]%,=1024]%
+%[*scale,&hpc,%[%[nameanchor]%_hitcountvar]%,totalrecs,=100]%
+%[*scale,&kpc,kb,totalreckb,=100]%
+%[*if,eq,%[%[nameanchor]%_goodvar]%,="1",*increment,&goodhits,%[%[nameanchor]%_hitcountvar]%]%
+%[*if,eq,fv,="",*set,&fp,hpc]%
+%[*if,eq,fv,="",*set,&fk,kb]%
+%[*if,eq,fv,="",*set,&fz,kpc]%
+%[*if,eq,fv,="",*set,&fh,%[%[nameanchor]%_hitcountvar]%]%
+%[*if,eq,fv,="",*set,&fr,%[%[nameanchor]%_retcodevar]%]%
+%[*if,eq,fv,="",*set,&fv,%[%[nameanchor]%_meaningvar]%]%
+      <tr><td class="numcol">%[%[%[nameanchor]%_hitcountvar]%]%&nbsp;(%[hpc]%%)</td><td class="numcol">%[kb]%&nbsp;(%[kpc]%%)</td><td class="numcol">%[%[%[nameanchor]%_retcodevar]%]%</td><td>%[%[%[nameanchor]%_meaningvar]%]%</td></tr>
+END
+%[** ================================================================ **]%
+%[** compute percent of good requests **]%
+%[*scale,&gpc,goodhits,totalrecs,=100]%
+%[*include,=rptheader.htmi]%
+<div class="chart%[longhidden]%" id="%[nameanchor]%_a1">
+%[*if,ne,s00,="",*expand,="<p class=\"subtitle\">%[s00]%</p>"]%
+  <table>
+    <tr><th class="numcol">%[totalrecs]%</th><th class="numcol">%[totalreckb]%</th><th></th><th></th></tr>
+    <tr><th class="numcol">Records</th><th class="numcol">KB</th><th>Code</th><th></th></tr>
+%[*expand,tableout]%
+  </table>
+</div>
+<div class="short%[shorthidden]%" id="%[nameanchor]%_a2">
+%[** display good percent in red if it is below thresh **]%
+%[*scale,&gpc,goodhits,totalrecs,=100]%
+%[*set,&zaz,=""]%
+%[*if,lt,gpc,%[nameanchor]%_goodthresh,*concat,&zaz,="<span class=\"inred\">"]%
+%[*concat,&zaz,="(",gpc,="% good)"]%
+%[*if,lt,gpc,%[nameanchor]%_goodthresh,*concat,&zaz,="</span>"]%
+  <p>%[totalrecs]% Recs %[zaz]%, %[totalreckb]% KB: <b>%[fv]% %[fr]% %[fh]% (%[fp]%%) %[fk]% KB (%[fz]%%)</b></p>
+</div>

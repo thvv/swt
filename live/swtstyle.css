@@ -1,0 +1,102 @@
+/* Styles for  superwebtrax report */
+
+BODY {background-color: #ffffff; color: #000000;}
+H1, H2, H3, H4 {font-family: sans-serif; font-weight: bold;}
+h1 {font-size: 125%;}
+h2 {font-size: 110%;}
+h3 {font-size: 100%;}
+h4 {font-size: 95%;}
+th {font-family: sans-serif;}
+.headrow {background-color: #ddddff;}
+h2 {background-color: #bbbbff;}
+h3 {background-color: #ccddff;}
+.brow {}
+.vc {}
+.indexer {font-style: italic;}
+.refdom {font-weight: bold;}
+.firstrefdom {font-weight: bold; color: blue;}
+.authsess {background-color: #ffffaa;}
+.newref {color: red;}
+.max {color: red;}
+.min {color: blue;}
+.query {color: green;}
+.details {font-size: 80%;}
+.details dt {float: left}
+.details dd {margin-left: 40px}
+.legendbar {font-size: 80%; font-weight: normal;}
+.navbar {font-size: 70%;}
+.chart {}
+.chart td {font-size: 90%; padding-top: 0; padding-bottom: 0; margin-top: 0;
+	   margin-bottom: 0; border-top-width: 0; border-bottom-width: 0;
+	   line-height: 90%;}
+.monthsum {}
+.monthsum td {font-size: 80%; padding-top: 0; padding-bottom: 0; margin-top: 0;
+	      margin-bottom: 0; border-top-width: 0; border-bottom-width: 0;
+	      line-height: 80%;}
+.analysis {font-size: 90%;}
+.analysis td {font-size: 90%;}
+.sessd {}
+.pie {}
+.fnf {color: gray;}
+.cac {color: pink;}
+.fbd {color: green;}
+.flg {color: purple;} /* flag for 'wtwtach' notes */
+.filetype {font-size: 80%;}
+.illegal {}
+.subtitle {font-size: 80%;}
+.fineprint {font-size: 80%;}
+.logtime {font-style: italic;}
+.logtext {font-style: italic;}
+
+.cpr2 {padding-right: 2em;} /* cell-pad-right */
+.cpl2 {padding-left: 2em;} /* cell-pad-right */
+.numcol {padding-left: 5px; text-align: right;} /* cell-pad-left-align-right */
+.mthsum {padding-right: 10px;}
+.alert {background-color: #ffffff; color: red;}
+
+.vhisto {padding: 0 10px 0 0}
+.vbar {padding: 0 2px 0 1px; margin: 0 0 0 0; vertical-align: bottom;
+       font-family: sans-serif; font-size: 8pt; }
+
+img.block {display: block;}
+a:link {color: #0000ff;}
+a:visited {background-color: #ffffff; color: #777777;}
+a:hover {background-color: #ffdddd; color: black;}
+a:active {background-color: #ffffff; color: #ff0000;}
+
+.ctl {font-size: 12pt; float: right;} /* for the [+] control */
+.h2title {text-decoration: none; color: black;}
+h2 a:link {color: black;}
+h2 a:visited {color: black;}
+h2 a:hover {background-color: #ffdddd; color: black;}
+h2 a:active {color: black;}
+
+.starthidden {display: none;}
+.short {font-size: 80%;}
+.datatable {margin: 10px; float: left;}
+.datatable td {padding-left: 5px;}
+.datacanvas{float: left;}
+
+.inred {color: red;}
+.inblue {color: blue;}
+.ingray {color: gray;}
+.ingreen {color: green;}
+.inorange {color: orange;}
+.inpink {color: pink;}
+.inpurple {color: purple;}
+.inyellow {color: yellow;}
+.inblack {color: black;}
+.incyan {color: cyan;}
+.indarkblue {color: darkblue;}
+.infuchsia {color: fuchsia;}
+.ingoldenrod {color: goldenrod;}
+.inindigo {color: indigo;}
+.inlightgreen {color: lightgreen;}
+.inlime {color: lime;}
+.inmaroon {color: maroon;}
+.innavy {color: navy;}
+.inolive {color: olive;}
+.insilver {color: silver;}
+.inteal {color: teal;}
+.inviolet {color: violet;}
+.inwhite {color: white;}

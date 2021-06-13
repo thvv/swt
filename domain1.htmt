@@ -1,0 +1,103 @@
+%[** Horizontal bar graph of a domain name (blue if new) and three numeric columns, last with barchart, striped by vc **]%
+%[** .. derived from histo3n **]%
+%[** Parameters **]%
+%[** - nameanchor - report name (used for getting query) **]%
+%[** - charttitle - graph title **]%
+%[** - subtitle - graph subtitle **]%
+%[** - %[nameanchor]%_col0head - title for label column - not used **]%
+%[** - %[nameanchor]%_col1tv - count for title for column 1 **]%
+%[** - %[nameanchor]%_col2tv - count for title for column 2 **]%
+%[** - %[nameanchor]%_col3tv - count for title for column 3 **]%
+%[** - %[nameanchor]%_labelvar - varname for label table **]%
+%[** - %[nameanchor]%_col1v - varname for column 1 (visits) **]%
+%[** - %[nameanchor]%_col1t - title for column 1 **]%
+%[** - %[nameanchor]%_col1s - scale for column 1 **]%
+%[** - %[nameanchor]%_col2v - varname for column 2 (bytes) **]%
+%[** - %[nameanchor]%_col2t - title for column 2 **]%
+%[** - %[nameanchor]%_col2s - scale for column 2 **]%
+%[** - %[nameanchor]%_col3v - varname for column 3 (hits) **]%
+%[** - %[nameanchor]%_col3t - title for column 3 **]%
+%[** - %[nameanchor]%_col3s - scale for column 3 **]%
+%[** - %[nameanchor]%_col4v - varname for column 4 (DSPV) **]%
+%[** - %[nameanchor]%_col4t - title for column 4 **]%
+%[** - %[nameanchor]%_col4s - scale for column 4 **]%
+%[** - %[nameanchor]%_col3maxv - variable holding max for column 3, set by query2 **]%
+%[** - %[nameanchor]%_newdomain - if null, domain is new **]%
+%[** - %[nameanchor]%_stripecount - count for each stripe **]%
+%[** - %[nameanchor]%_stripecolor - visitclass for each stripe **]%
+%[** - %[nameanchor]%_legendcolor - legend color var **]%
+%[** - %[nameanchor]%_legendname - legend name var **]%
+%[** - glb_bar_graph_width - global width in pixels for bar graph **]%
+%[**  **]%
+%[** Written 2006-2020 by Tom Van Vleck **]%
+%[**  THVV 04/20/06 **]%
+%[**  THVV 06/11/06 stripe by source **]%
+%[**  THVV 08/13/06 long and short **]%
+%[**  THVV 08/18/06 fetch query from sql **]%
+%[**  THVV 11/21/06 add DSPV column, fix short report to always show a name **]%
+%[**  THVV 09/13/07 call trimdomain **]%
+%[**  THVV 09/18/20 expandfile3 **]%
+%[** ================================================================ **]%
+%[*include,=wtxmacros.htmi]%
+%[*set,&fn,=""]%
+%[*set,&s00,=""]%
+%[*set,&oldctl,=""]%
+%[*if,ne,subtitle,="",*expandv,&s00,subtitle]%
+%[*callv,getquery,nameanchor,="query2"]%
+%[*sqlloop,&junk,=x,x0]%
+%[*set,&fullscale,%[%[nameanchor]%_col3maxv]%]%
+%[*callv,getquery,nameanchor,="query1"]%
+%[*sqlloop,&junk,chartiter,x0]%
+%[*expandv,&junk,flush]%
+%[*callv,getquery,nameanchor,="legendquery"]%
+%[*sqlloop,&legend,legenditer,x0]%
+%[** ================================================================ **]%
+%[*block,&chartiter,^END$]%
+%[*set,&ctl,%[%[nameanchor]%_labelvar]%]%
+%[*if,nelc,ctl,oldctl,*expandv,&junk,switch]%
+%[*scale,&xstripecount,%[%[nameanchor]%_stripecount]%,fullscale,glb_bar_graph_width]%
+%[*concat,&chartout,="<img src=",quote,%[%[nameanchor]%_stripecolor]%,quote,=" alt=",quote,%[%[nameanchor]%_stripecount]%,quote,=" title=",quote,%[%[nameanchor]%_stripecount]%,quote,=" width=",xstripecount,=" height=",glb_bar_graph_height,&chartout,=">"]%
+END
+%[** ---------------------------------------------------------------- **]%
+%[*block,&switch,^END$]%
+%[*if,ne,oldctl,="",*expandv,&junk,flush]%
+%[*set,&oldctl,ctl]%
+%[*quotient,&visits,%[%[nameanchor]%_col1v]%,=%[%[nameanchor]%_col1s]%]%
+%[*quotient,&bytes,%[%[nameanchor]%_col2v]%,=%[%[nameanchor]%_col2s]%]%
+%[*quotient,&hits,%[%[nameanchor]%_col3v]%,=%[%[nameanchor]%_col3s]%]%
+%[*quotient,&dspv,%[%[nameanchor]%_col4v]%,=%[%[nameanchor]%_col4s]%]%
+%[*set,&name,%[%[nameanchor]%_labelvar]%]%
+%[*callv,trimdomain,=name]%
+%[*set,&isnew,%[%[nameanchor]%_newdomain]%]%
+%[*if,eq,="",isnew,*set,&name,="<span class=\"firstrefdom\">",name,="</span>"]%
+%[*if,eq,fn,="",*set,&f4,dspv]%
+%[*if,eq,fn,="",*set,&f3,hits]%
+%[*if,eq,fn,="",*set,&f2,bytes]%
+%[*if,eq,fn,="",*set,&f1,visits]%
+%[*if,eq,fn,="",*set,&fn,name]%
+%[*if,eq,dspv,="0",*set,&dspv,=""]%
+%[*concat,&chartout,="    <tr><td>",name,="</td><td class=\"numcol\"> ",visits,="</td><td class=\"numcol\"> ",dspv,="</td><td class=\"numcol\"> ",bytes,="</td><td class=\"numcol\"> ",hits,="</td><td>"]%
+END
+%[** ---------------------------------------------------------------- **]%
+%[*block,&flush,^END$]%
+%[*concat,&chartout,="</td></tr>\\n"]%
+END
+%[** ---------------------------------------------------------------- **]%
+%[*block,&legenditer,^END]%
+%[*set,&lv,%[%[nameanchor]%_legendname]%]%
+%[*if,eq,lv,="",*set,&lv,="(none)"]%
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<img src=%[%[%[nameanchor]%_legendcolor]%]% alt="" width="%[glb_bar_graph_height]%" height="%[glb_bar_graph_height]%"> %[lv]%
+END
+%[** ================================================================ **]%
+%[*include,=rptheader.htmi]%
+<div class="chart%[longhidden]%" id="%[nameanchor]%_a1">
+%[*if,ne,s00,="",*expand,="<p class=\"subtitle\">%[s00]%</p>"]%
+  <table>
+    <tr><th></th><th class="numcol">%[%[%[nameanchor]%_col1tv]%]%</th><th class="numcol">%[%[%[nameanchor]%_col4tv]%]%</th><th class="numcol">%[%[%[nameanchor]%_col2tv]%]%</th><th class="numcol">%[%[%[nameanchor]%_col3tv]%]%</th><th></th></tr>
+    <tr><th>%[ndomainstoday]% domains, %[newdomainstoday]% new</th><th class="numcol" title="%[%[nameanchor]%_col1tx]%">%[%[nameanchor]%_col1t]%</th><th class="numcol" title="%[%[nameanchor]%_col4tx]%">%[%[nameanchor]%_col4t]%</th><th class="numcol" title="%[%[nameanchor]%_col2tx]%">%[%[nameanchor]%_col2t]%</th><th class="numcol" title="%[%[nameanchor]%_col3tx]%">%[%[nameanchor]%_col3t]%</th><th class="legendbar">%[legend]%</th></tr>
+%[chartout]%
+  </table>
+</div>
+<div class="short%[shorthidden]%" id="%[nameanchor]%_a2">
+  <p>%[ndomainstoday]% domains, %[newdomainstoday]% new, %[%[%[nameanchor]%_col1tv]%]% %[%[nameanchor]%_col1t]%, %[%[%[nameanchor]%_col2tv]%]% %[%[nameanchor]%_col2t]%, %[%[%[nameanchor]%_col3tv]%]% %[%[nameanchor]%_col3t]%; <b>%[fn]% %[f1]% %[%[nameanchor]%_col1t]%, %[f2]% %[%[nameanchor]%_col2t]%, %[f3]% %[%[nameanchor]%_col3t]%, %[f4]% %[%[nameanchor]%_col4t]%</b></p>
+</div>

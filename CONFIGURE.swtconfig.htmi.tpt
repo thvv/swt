@@ -1,0 +1,13 @@
+%[** Template for SWT file 'swt.config' expanded by 'configure' **]%
+%[** ================================================================ **]%
+%[pct]%%[lbkt]%** Super webtrax **%[rbkt]%%[pct]%
+%[pct]%%[lbkt]%** THVV 04/20/06 **%[rbkt]%%[pct]%
+%[pct]%%[lbkt]%** THVV 02/18/21 for expandfile3 **%[rbkt]%%[pct]%
+%[pct]%%[lbkt]%** ---------------- local configuration, user must set these **%[rbkt]%%[pct]%
+%[pct]%%[lbkt]%** database access on local machine **%[rbkt]%%[pct]%
+%[pct]%%[lbkt]%*set,&_xf_hostname,="%[SWTDBHOST]%"%[rbkt]%%[pct]%
+%[pct]%%[lbkt]%*set,&_xf_database,="%[SWTDB]%"%[rbkt]%%[pct]%
+%[pct]%%[lbkt]%*set,&_xf_username,="%[SWTDBUSER]%"%[rbkt]%%[pct]%
+%[pct]%%[lbkt]%*set,&_xf_password,="%[SWTDBPASS]%"%[rbkt]%%[pct]%
+%[pct]%%[lbkt]%*set,&_xf_debug,=""%[rbkt]%%[pct]%
+%[pct]%%[lbkt]%*set,&_xf_tracebind,=""%[rbkt]%%[pct]%

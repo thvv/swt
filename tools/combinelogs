@@ -1,0 +1,117 @@
+#!/usr/local/bin/perl
+#####################################################################
+# drive logmerge
+# .. looks in the current wdir, and finds all files xxxx.yyyymmdd or  xxxx.yyyymmdd.gz
+# .. looks at the config file to find out what to do with xxxx type files
+#
+# cd www_logs
+# combinelogs combinelogs.conf | sh
+# .. where
+#   each line of combinelogs.conf is like
+#     www -add /jvvphotography
+#     jvvphotography.com -add /jvvphotography
+#     redcurbszine.com -add /redcurbszine
+#     urbanweft.com -add /urbanweft
+#     skateredcurbs.com -add /skateredcurbs
+#   or
+#     www -drop /thvv
+#     lilli.com -add /lilli
+#     formyfriendswithmacs.com -add /formyfriendswithmacs
+#     multicians.org
+#
+# .. issues command for each date $x
+# logmerge -add /jvvphotography www.$x.gz -add /jvvphotography jvvphotography.com.$x.gz -add /redcurbszine redcurbszine.com.$x.gz -add /urbanweft urbanweft.com.$x.gz | gzip > comb.$x.gz
+#
+################################################################
+
+#  Permission is hereby granted, free of charge, to any person obtaining
+#  a copy of this software and associated documentation files (the
+#  "Software"), to deal in the Software without restriction, including
+#  without limitation the rights to use, copy, modify, merge, publish,
+#  distribute, sublicense, and/or sell copies of the Software, and to
+#  permit persons to whom the Software is furnished to do so, subject to
+#  the following conditions:
+ 
+#  The above copyright notice and this permission notice shall be included
+#  in all copies or substantial portions of the Software.
+ 
+#  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+#  EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+#  MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+#  IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+#  CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+#  TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+#  SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. 
+
+my $me = "combinelogs";
+my $config = shift;
+my %dirargs;
+if (open(TPT, "$config")) {
+    while (<TPT>) {
+	chomp;
+	if (/^#/) {
+	    # comment
+	} elsif (/^$/) {
+	    # ignore blank line
+	} elsif (/^(.*?) (.*)$/) { # www -add /jvvphotography
+	    $dirargs{$1} = $2;
+	    #print "# $1 $2\n"; # named logfile followed by -add and -drop pairs
+	} else {
+	    $dirargs{$_} = ""; # one named logfile to eat
+	    #print "# $_\n";
+	}
+    }
+    close(TPT);
+} else {
+    die "$me: cannot open $config $!";
+}
+
+my $wdir = `pwd`;
+chomp $wdir; # pwd returns it with trailing newline
+
+# get a list of all the files in the working directory.
+opendir(DH, "$wdir"); # read current wdir
+my(@allfiles) = sort grep !/^\./, readdir DH;
+closedir DH;
+# for the files in the wdir that have a date in the name, make a table
+my $f;
+my %datesfound;
+foreach $f (@allfiles) {
+    if ($f ne '') {
+	if ($f =~ /^(.*)\.(\d\d\d\d\d\d\d\d)(\.gz)?$/) {
+	    $datesfound{$2} = 1;
+	    #print "# file $f\n";
+	}
+    }
+} #foreach;
+
+# process the dates in order and write a line for each date, with args for the files to be combined
+my $ntodo = 0;
+my $datesuf;
+my $diradddrop;
+foreach $datesuf (sort keys %datesfound) {
+    print "\$HOME/bin/logmerge ";
+    foreach $f (@allfiles) {
+	if ($f ne '') {
+	    if ($f =~ /^(.*)\.(\d\d\d\d\d\d\d\d)(\.gz)?$/) {
+		if ($2 eq $datesuf) {
+		    if (defined($dirargs{$1})) {
+			$diradddrop = $dirargs{$1};
+			print " $diradddrop" if $diradddrop ne "";
+			print " $f";
+			$ntodo++;
+		    } # if the sitename is in the config file
+		} # if this file is for this date    
+	    } # if filename contains a date
+	} # if filename is not blank
+    } #foreach;
+    print " | gzip > comb.$datesuf.gz\n";
+} # foreach
+
+if ($ntodo == 0) {
+    die "$me: found no files to merge in $wdir, check $config\n";
+}
+
+exit(0);
+
+# end

@@ -1,0 +1,10 @@
+%[** Super Webtrax important files report **]%
+%[** Written 2006 by Tom Van Vleck **]%
+%[** Parameters **]%
+%[** - subtitle - graph subtitle **]%
+%[** THVV 08/01/06 **]%
+%[** ================================================================ **]%
+%[*include,=wtxmacros.htmi]%
+%[*if,ne,subtitle,="",*expandv,&s00,subtitle]%
+<h2>%[sitename]% Important Visits - last 7 days</h2>
+%[*if,ne,s00,="",*expand,="<p class=\"subtitle\">%[s00]%</p>"]%

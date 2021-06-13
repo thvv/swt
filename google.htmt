@@ -1,0 +1,54 @@
+%[** Google table chart **]%
+%[**  **]%
+%[** Parameters **]%
+%[** - charttitle - char title **]%
+%[** - subtitle - chart subtitle **]%
+%[** - nameanchor - name **]%
+%[** - %[nameanchor]%_pathvar -  var for pathname **]%
+%[** - %[nameanchor]%_datevar - var for date **]%
+%[**  **]%
+%[** Written 2006 by Tom Van Vleck **]%
+%[**  THVV 11/29/06 **]%
+%[**  THVV 12/27/06 use path instead of filename **]%
+%[** ================================================================ **]%
+%[*include,=wtxmacros.htmi]%
+%[*if,ne,subtitle,="",*expandv,&s00,subtitle]%
+%[*set,&goodhits,=0]%
+%[*callv,getquery,nameanchor,="query1"]%
+%[*sqlloop,&tableout,tableiter,x0]%
+%[*set,&num1,_xf_nrows]%
+%[** ================================================================ **]%
+%[*block,&tableiter,^END$]%
+%[*set,&fn,=""]%
+%[*concat,&fn,%[%[nameanchor]%_pathvar]%]%
+%[*subst,&fn,="^\\/",=""]%
+%[*set,&bytes,%[%[nameanchor]%_sizevar]%]%
+%[*quotient,&kb,bytes,=1024]%
+%[*set,&crawldate,%[%[nameanchor]%_datevar]%]%
+%[*if,eq,fv,="",*set,&fd,crawldate]%
+%[*if,eq,fv,="",*set,&fk,kb]%
+%[*if,eq,fv,="",*set,&fv,fn]%
+      <tr><td>%[fn]%</td><td class="numcol">%[kb]%</td><td class="cpl2">%[crawldate]%</td></tr>
+END
+%[** ================================================================ **]%
+%[*block,&table1,^END]%
+  <table>
+    <tr><th>File</th><th>KB</th><th>Date</th></tr>
+%[*expand,tableout]%
+  </table>
+%[*set,&shortrep,="  <p>",ngoogletoday,=" hits, most recent: <b>",fv,=", ",fk,="KB, ",fd,="</b></p>"]%
+END
+%[*block,&nohits,^END$]%
+  <p class="details">No Google activity today.  Most recent: %[googlecrawldate]%</p>
+%[*set,&shortrep,="  <p class=\"details\">No Google activity.</p>"]%
+END
+%[** ================================================================ **]%
+%[*include,=rptheader.htmi]%
+<div class="chart%[longhidden]%" id="%[nameanchor]%_a1">
+%[*if,ne,s00,="",*expand,="<p class=\"subtitle\">%[s00]%</p>"]%
+%[*if,eq,num1,=0,*expand,nohits]%
+%[*if,ne,num1,=0,*expand,table1]%
+</div>
+<div class="short%[shorthidden]%" id="%[nameanchor]%_a2">
+%[shortrep]%
+</div>

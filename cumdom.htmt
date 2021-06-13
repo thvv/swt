@@ -1,0 +1,90 @@
+%[** Horizontal bar graph of a name and two numeric columns, last with barchart striped **]%
+%[** assumes that full scale of the bars is the first value in col2]%
+%[** Parameters **]%
+%[** - nameanchor - report name (used for getting query) **]%
+%[** - charttitle - graph title **]%
+%[** - subtitle - graph subtitle **]%
+%[** - %[nameanchor]%_col0head - title for label column **]%
+%[** - %[nameanchor]%_labelvar - varname for label table **]%
+%[** - %[nameanchor]%_col1v - varname for column 1 **]%
+%[** - %[nameanchor]%_col1t - title for column 1 **]%
+%[** - %[nameanchor]%_col1s - scale for column 1 **]%
+%[** - %[nameanchor]%_col2v - varname for column 2 total - this is bar graphed **]%
+%[** - %[nameanchor]%_col2vh - varname for column 2 HTML - this is bar graphed **]%
+%[** - %[nameanchor]%_col2vg - varname for column 2 graphics - this is bar graphed **]%
+%[** - %[nameanchor]%_col2t - title for column 2 **]%
+%[** - %[nameanchor]%_col2s - scale for column 2 **]%
+%[** - %[nameanchor]%_col1tv - count for title for column 1 **]%
+%[** - %[nameanchor]%_col2tv - count for title for column 2 **]%
+%[** - %[nameanchor]%_col3s - scale for column 3 **]%
+%[** - %[nameanchor]%_col3t - title for column 3 (visits) **]%
+%[** - %[nameanchor]%_col3tv - var holding total value for column 3 **]%
+%[** - %[nameanchor]%_col3v - var holding value for column 3 **]%
+%[** - %[nameanchor]%_col4s - scale for column 4 **]%
+%[** - %[nameanchor]%_col4t - title for column 4 (DSLV) **]%
+%[** - %[nameanchor]%_col4tv - var holding total value for column 4 **]%
+%[** - %[nameanchor]%_col4v - var holding value for column 4 **]%
+%[** - glb_bar_graph_width - global width in pixels for bar graph **]%
+%[** - glb_bar_graph_height - global height in pixels for bar graph **]%
+%[**  **]%
+%[** Written 2006-2007 by Tom Van Vleck **]%
+%[**  THVV 06/14/06 **]%
+%[**  THVV 06/19/06 fixed bugs, what was I thinking **]%
+%[**  THVV 08/13/06 long and short **]%
+%[**  THVV 08/18/06 fetch query from sql **]%
+%[**  THVV 09/15/06 fix minor bug in short report **]%
+%[**  THVV 11/21/06 add visits and DSLV columns **]%
+%[**  THVV 09/13/07 call trimdomain **]%
+%[**  THVV 07/16/15 commas every 3 digits **]%
+%[** ================================================================ **]%
+%[*include,=wtxmacros.htmi]%
+%[*set,&fn,=""]%
+%[*set,&fullscale,=""]%
+%[*if,ne,subtitle,="",*expandv,&s00,subtitle]%
+%[*callv,getquery,nameanchor,="query1"]%
+%[*sqlloop,&chartout,chartiter,x0]%
+%[** ================================================================ **]%
+%[** .. for each bar in the display **]%
+%[*block,&chartiter,^END$]%
+%[*quotient,&mb,%[%[nameanchor]%_col1v]%,=%[%[nameanchor]%_col1s]%]%
+%[*set,&visits,%[%[nameanchor]%_col3v]%]%
+%[*set,&dslv,%[%[nameanchor]%_col4v]%]%
+%[*if,eq,fullscale,="",*set,&fullscale,%[%[nameanchor]%_col2v]%]%
+%[*quotient,&cdomcnt,%[%[nameanchor]%_col2v]%,=%[%[nameanchor]%_col2s]%]%
+%[*quotient,&chtmct,%[%[nameanchor]%_col2vh]%,=%[%[nameanchor]%_col2s]%]%
+%[*quotient,&cgrfct,%[%[nameanchor]%_col2vg]%,=%[%[nameanchor]%_col2s]%]%
+%[*shell,&cdomcntfmt,=fmtnum %[cdomcnt]% num]%
+%[*set,&other,cdomcnt]%
+%[*decrement,&other,chtmct]%
+%[*decrement,&other,cgrfct]%
+%[*scale,&z1o,other,fullscale,glb_bar_graph_width]%
+%[*scale,&z1h,chtmct,fullscale,glb_bar_graph_width]%
+%[*scale,&z1g,cgrfct,fullscale,glb_bar_graph_width]%
+%[*set,&name,%[%[nameanchor]%_labelvar]%]%
+%[*callv,trimdomain,=name]%
+%[*if,eq,fn,="",*set,&f4,dslv]%
+%[*if,eq,fn,="",*set,&f3,visits]%
+%[*if,eq,fn,="",*set,&f2,cdomcnt]%
+%[*if,eq,fn,="",*set,&f1,mb]%
+%[*if,eq,fn,="",*set,&fn,name]%
+    <tr><td>%[name]%</td><td class="numcol">%[dslv]%</td><td class="numcol">%[visits]%</td><td class="numcol">%[mb]%</td><td class="numcol">%[cdomcntfmt]%</td><td><img src="greenpix.gif" alt="" width=%[z1h]% height=%[glb_bar_graph_height]%><img src="bluepix.gif" alt="" width=%[z1g]% height=%[glb_bar_graph_height]%><img src="redpix.gif" alt="" width=%[z1o]% height=%[glb_bar_graph_height]%></td></tr>
+END
+%[** ================================================================ **]%
+%[*include,=rptheader.htmi]%
+%[*shell,&col1tvfmt,=fmtnum %[%[%[nameanchor]%_col1tv]%]% num]%
+%[*shell,&col2tvfmt,=fmtnum %[%[%[nameanchor]%_col2tv]%]% num]%
+%[*shell,&f2fmt,=fmtnum %[f2]% num]%
+%[** .. long **]%
+<div class="chart%[longhidden]%" id="%[nameanchor]%_a1">
+%[*if,ne,s00,="",*expand,="<p class=\"subtitle\">%[s00]%</p>"]%
+%[*if,ne,%[nameanchor]%_col0head,="",*expandv,&col0,%[nameanchor]%_col0head]%
+  <table>
+    <tr><th></th><th class="numcol">%[%[%[nameanchor]%_col4tv]%]%</th><th class="numcol">%[%[%[nameanchor]%_col3tv]%]%</th><th class="numcol">%[col1tvfmt]%</th><th class="numcol">%[col2tvfmt]%</th><th></th></tr>
+    <tr><th>%[col0]%</th><th class="numcol">%[%[nameanchor]%_col4t]%</th><th class="numcol">%[%[nameanchor]%_col3t]%</th><th class="numcol">%[%[nameanchor]%_col1t]%</th><th class="numcol">%[%[nameanchor]%_col2t]%</th><th class="legendbar"><img src="greenpix.gif" alt="" width=%[glb_bar_graph_height]% height=%[glb_bar_graph_height]%> HTML&nbsp;&nbsp;&nbsp;<img src="bluepix.gif" alt="" width=%[glb_bar_graph_height]% height=%[glb_bar_graph_height]%> Graphic&nbsp;&nbsp;&nbsp;<img src="redpix.gif" alt="" width=%[glb_bar_graph_height]% height=%[glb_bar_graph_height]%> Other</th></tr>
+%[chartout]%
+  </table>
+</div>
+%[** .. short **]%
+<div class="short%[shorthidden]%" id="%[nameanchor]%_a2">
+  <p>%[col0]%, %[col1tvfmt]% %[%[nameanchor]%_col1t]%, %[col2tvfmt]% %[%[nameanchor]%_col2t]%; <b>%[fn]%, %[f1]% %[%[nameanchor]%_col1t]%, %[f2fmt]% %[%[nameanchor]%_col2t]%, %[f3]% %[%[nameanchor]%_col3t]%, %[f4]% %[%[nameanchor]%_col4t]%</b></p>
+</div>

@@ -1,0 +1,68 @@
+%[** Table of file name, hits, bytes, and referrer for illegal references **]%
+%[** Parameters **]%
+%[** - nameanchor - report name (used for getting query) **]%
+%[** - charttitle - graph title **]%
+%[** - subtitle - graph subtitle **]%
+%[** - %[nameanchor]%_bytetotalvar - total bytes, set by query4032 **]%
+%[** - %[nameanchor]%_hittotalvar - total hits, set by query4032 **]%
+%[** - %[nameanchor]%_filetotalvar - total files, set by query4033 **]%
+%[** - %[nameanchor]%_bytevar - bytes in the tx **]%
+%[** - %[nameanchor]%_hitcountvar - hits in the tx **]%
+%[** - %[nameanchor]%_labelvar1 - varname for pathname **]%
+%[** - %[nameanchor]%_labelvar2 - varname for referrerurl **]%
+%[**  **]%
+%[** Written 2006 by Tom Van Vleck **]%
+%[**  THVV 07/08/06 **]%
+%[**  THVV 08/13/06 add short report **]%
+%[**  THVV 08/18/06 fetch query from sql **]%
+%[**  THVV 12/27/06 use path instead of filename **]%
+%[** ================================================================ **]%
+%[*include,=wtxmacros.htmi]%
+%[*if,ne,subtitle,="",*expandv,&s00,subtitle]%
+%[*callv,getquery,nameanchor,="query4032"]%
+%[*if,ne,x0,="",*sqlloop,&junk,=x,x0]%
+%[*if,ne,x0,="",*set,&thc,%[%[nameanchor]%_hittotalvar]%]%
+%[*if,ne,x0,="",*quotient,&tkb,%[%[nameanchor]%_bytetotalvar]%,=1024]%
+%[*callv,getquery,nameanchor,="query4033"]%
+%[*if,ne,x0,="",*sqlloop,&junk,=x,x0]%
+%[*if,ne,x0,="",*set,&tf,%[%[nameanchor]%_filetotalvar]%]%
+%[*callv,getquery,nameanchor,="query403"]%
+%[*sqlloop,&chartout,chartiter,x0]%
+%[** ================================================================ **]%
+%[*block,&chartiter,^END$]%
+%[*quotient,&y,%[%[nameanchor]%_bytevar]%,=1024]%
+%[*set,&x,%[%[nameanchor]%_labelvar1]%]%
+%[*subst,&x,="^\\/",=""]%
+%[** --- show name in red if not gif or jpg **]%
+%[*set,&s,x]%
+%[*subst,&s,="^.*\\.",=""]%
+%[*if,eqlc,s,="gif",*set,&s,="jpg"]%
+%[*if,nelc,s,="jpg",*set,&n,="<span class=\"inred\">",x,="</span>"]%
+%[*if,nelc,s,="jpg",*set,&x,n]%
+%[** --- hotlink the referrerurl column if it begins with http **]%
+%[*set,&url,%[%[nameanchor]%_labelvar2]%]%
+%[*if,rexp,url,="^http",*set,&n,="<a href=",quote,url,quote,=" rel=\"nofollow\">",url,="</a>"]%
+%[*if,rexp,url,="^http",*set,&url,n]%
+%[*if,eq,fu,="",*set,&ff,x]%
+%[*if,eq,fu,="",*set,&fk,y]%
+%[*if,eq,fu,="",*set,&fh,%[%[nameanchor]%_hitcountvar]%]%
+%[*if,eq,fu,="",*set,&fu,url]%
+    <tr><td>%[x]%</td><td class="numcol">%[y]%</td><td class="numcol">%[%[%[nameanchor]%_hitcountvar]%]%</td><td>%[url]%</td></tr>
+END
+%[** ================================================================ **]%
+%[*include,=rptheader.htmi]%
+<div class="chart%[longhidden]%" id="%[nameanchor]%_a1">
+%[*if,ne,s00,="",*expand,="<p class=\"subtitle\">%[s00]%</p>"]%
+%[*if,ne,col0head,="",*expandv,&col0,col0head]%
+  <table>
+    <tr><th>%[tf]%</th><th class="numcol">%[tkb]%</th><th class="numcol">%[thc]%</th><th></th></tr>
+    <tr><th>Files</th><th class="numcol">KB</th><th class="numcol">Hits</th><th>Referrer</th></tr>
+%[chartout]%
+  </table>
+</div>
+<div class="short%[shorthidden]%" id="%[nameanchor]%_a2">
+  <p>
+%[*if,eq,fu,="",*expand,="No 403 transactions."]%
+%[*if,ne,fu,="",*expand,="%[tf]% files, %[tkb]% KB, %[thc]% hits; <b>%[ff]% %[fk]% KB, %[fh]% hits via %[fu]%</b>"]%
+  </p>
+</div>

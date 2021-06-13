@@ -1,0 +1,207 @@
+-- create table that stores notes made by individual reports
+DROP TABLE IF EXISTS wtsrhist;
+CREATE TABLE wtsrhist(
+ hdatemin BIGINT, -- minimum timestamp for this day .. period begin
+ hdatemax BIGINT, -- maximum timestamp for this day .. period end
+ hreportid varchar(32), -- report name
+ hparam VARCHAR(32), -- parameter
+ hvalue VARCHAR(64), -- value
+ PRIMARY KEY(hdatemin, hreportid, hparam)
+);
+-- INSERT INTO wtsrhist VALUES
+-- --(0,0,'clean_hits','',''),
+-- --(0,0,'visitdata','',''),
+-- --(0,0,'update_wtdayhist','',''),
+-- --(0,0,'rpt_heading','',''),
+-- --(0,0,'rpt_summary','',''),
+-- --(0,0,'rpt_pie','',''),
+-- --(0,0,'rpt_piefile','',''),
+-- --(0,0,'rpt_piembtype','',''),
+-- --(0,0,'rpt_piehitstld','',''),
+-- --(0,0,'rpt_pievisitstld','',''),
+-- --(0,0,'rpt_piembtld','',''),
+-- --(0,0,'rpt_piesource','',''),
+-- --(0,0,'rpt_pieclass','',''),
+-- --(0,0,'rpt_piebrowser','',''),
+-- --(0,0,'rpt_pieplatform','',''),
+-- --(0,0,'rpt_piecontinent','',''),
+-- --(0,0,'rpt_analysis','',''),
+-- --(0,0,'rpt_dash','',''),
+-- (0,0,'rpt_html','totfiles',''), -- total HTML files today -- done
+-- (0,0,'rpt_html','totbytes',''), -- total HTML bytes today -- done
+-- (0,0,'rpt_html','tothits',''),  -- total HTML hits today -- done
+-- (0,0,'rpt_html','maxfile',''),  -- HTML file with most hits today -- done
+-- (0,0,'rpt_html','maxfilendays',''), -- number of days in a row this was the big file -- done
+-- (0,0,'rpt_graphics','totfiles',''), -- done
+-- (0,0,'rpt_graphics','totbytes',''), -- done
+-- (0,0,'rpt_graphics','tothits',''), -- done
+-- (0,0,'rpt_graphics','maxfile',''), -- done
+-- (0,0,'rpt_graphics','maxfilendays',''), -- done
+-- (0,0,'rpt_css','totfiles',''), -- done
+-- (0,0,'rpt_css','totbytes',''), -- done
+-- (0,0,'rpt_css','tothits',''), -- done
+-- (0,0,'rpt_css','maxfile',''), -- done
+-- (0,0,'rpt_css','maxfilendays',''), -- done
+-- (0,0,'rpt_flash','totfiles',''), -- done
+-- (0,0,'rpt_flash','totbytes',''), -- done
+-- (0,0,'rpt_flash','tothits',''), -- done
+-- (0,0,'rpt_flash','maxfile',''), -- done
+-- (0,0,'rpt_flash','maxfilendays',''), -- done
+-- (0,0,'rpt_dl','totfiles',''), -- done
+-- (0,0,'rpt_dl','totbytes',''), -- done
+-- (0,0,'rpt_dl','tothits',''), -- done
+-- (0,0,'rpt_dl','maxfile',''), -- done
+-- (0,0,'rpt_dl','maxfilendays',''), -- done
+-- (0,0,'rpt_snd','totfiles',''), -- done
+-- (0,0,'rpt_snd','totbytes',''), -- done
+-- (0,0,'rpt_snd','tothits',''), -- done
+-- (0,0,'rpt_snd','maxfile',''), -- done
+-- (0,0,'rpt_snd','maxbytes',''), -- done
+-- (0,0,'rpt_xml','totfiles',''), -- done
+-- (0,0,'rpt_xml','totbytes',''), -- done
+-- (0,0,'rpt_xml','tothits',''), -- done
+-- (0,0,'rpt_xml','maxfile',''), -- done
+-- (0,0,'rpt_xml','maxfilendays',''), -- done
+-- (0,0,'rpt_java','totfiles',''), -- done
+-- (0,0,'rpt_java','totbytes',''), -- done
+-- (0,0,'rpt_java','tothits',''), -- done
+-- (0,0,'rpt_java','maxfile',''), -- done
+-- (0,0,'rpt_java','maxfilendays',''), -- done
+-- (0,0,'rpt_src','totbytes',''), -- done
+-- (0,0,'rpt_src','tothits',''), -- done
+-- (0,0,'rpt_src','maxfile',''), -- done
+-- (0,0,'rpt_src','maxfilendays',''), -- done
+-- (0,0,'rpt_other','totfiles',''), -- done
+-- (0,0,'rpt_other','totbytes',''), -- done
+-- (0,0,'rpt_other','tothits',''), -- done
+-- (0,0,'rpt_other','maxfile',''), -- done
+-- (0,0,'rpt_other','maxfilendays',''), -- done
+-- (0,0,'rpt_fnf','totfiles',''), -- total 404 errors (excluding expected 404s)
+-- (0,0,'rpt_fnf','tothits',''), -- total hits
+-- (0,0,'rpt_fnf','maxfile',''), -- file with most 404s
+-- (0,0,'rpt_fnf','maxfilendays',''), -- number of days it is max
+-- (0,0,'rpt_403','totfiles',''),
+-- (0,0,'rpt_403','tothits',''),
+-- (0,0,'rpt_403','maxfile',''), -- filename most 403d
+-- (0,0,'rpt_403','maxfilendays',''), -- number of days it is max
+-- (0,0,'rpt_403','maxvia',''), -- referrer URL
+-- (0,0,'rpt_illref','totvisitors',''),
+-- (0,0,'rpt_illref','totfiles',''),
+-- (0,0,'rpt_illref','totbytes',''),
+-- (0,0,'rpt_illref','tothits',''),
+-- --(0,0,'rpt_accesstime','',''),
+-- (0,0,'rpt_duration','totvisitors',''), -- total visitors  xxx
+-- (0,0,'rpt_duration','tothits',''), -- total hits xxx
+-- (0,0,'rpt_duration','tothtmlhits',''), -- total html hits xxx
+-- (0,0,'rpt_duration','totbytes',''), -- total bytes xxx
+-- (0,0,'rpt_duration','maxvisitor',''), -- visitor with longest session
+-- (0,0,'rpt_duration','maxvisitorndays',''), -- number of days that visitor top
+-- (0,0,'rpt_duration','maxtime',''), -- time for last session
+-- (0,0,'rpt_nhits','totnivisits',''), -- xxx
+-- (0,0,'rpt_nhits','totbytes',''), -- xxx
+-- (0,0,'rpt_nhits','tothits',''), -- xxx
+-- (0,0,'rpt_nviews','totnivisits',''), -- xxx
+-- (0,0,'rpt_nviews','totbytes',''), -- xxx
+-- (0,0,'rpt_nviews','tothits',''), -- xxx
+-- (0,0,'rpt_domain','totvisitors',''), -- xxx
+-- (0,0,'rpt_domain','totnewvisitors',''), -- xxx
+-- (0,0,'rpt_domain','totvisits',''), -- xxx
+-- (0,0,'rpt_domain','totbytes',''), -- xxx
+-- (0,0,'rpt_domain','tothits',''), -- xxx
+-- (0,0,'rpt_domain','maxvisitor',''), -- visitor with most hits
+-- (0,0,'rpt_domain','maxvisitorndays',''), -- number of days top
+-- (0,0,'rpt_tld','tottlds',''),
+-- (0,0,'rpt_tld','totbytes',''), -- xxx
+-- (0,0,'rpt_tld','totvisits',''), -- xxx
+-- (0,0,'rpt_tld','tothits',''), -- xxx
+-- (0,0,'rpt_tld','maxtld',''),
+-- (0,0,'rpt_tld','maxtldndays',''),
+-- (0,0,'rpt_domain2','tot2lds',''),
+-- (0,0,'rpt_domain2','totbytes',''), -- xxx
+-- (0,0,'rpt_domain2','totvisits',''), -- xxx
+-- (0,0,'rpt_domain2','tothits',''), -- xxx
+-- (0,0,'rpt_domain3','tot3lds',''),
+-- (0,0,'rpt_domain3','totbytes',''), -- xxx
+-- (0,0,'rpt_domain3','totvisits',''), -- xxx
+-- (0,0,'rpt_domain3','tothits',''), -- xxx
+-- (0,0,'rpt_class','totclasses',''), -- number of classes, constant per config
+-- (0,0,'rpt_class','totbytes',''), -- xxx
+-- (0,0,'rpt_class','tothits',''), -- xxx
+-- (0,0,'rpt_class','totvisits',''), -- xxx
+-- (0,0,'rpt_browser','totbrowsers',''), -- number of different browsers
+-- (0,0,'rpt_browser','totbytes',''), -- xxx
+-- (0,0,'rpt_browser','tothits',''), -- xxx
+-- (0,0,'rpt_browser','totvisits',''), -- xxx
+-- (0,0,'rpt_browser','maxbrowser',''), -- most popular browser
+-- (0,0,'rpt_browser','maxbrowserndays',''), -- number of days on top
+-- (0,0,'rpt_query','totqueries',''), -- number of different queries
+-- (0,0,'rpt_query','totbytes',''), -- total bytes on hits with a query
+-- (0,0,'rpt_query','tothits',''), -- total hits with a query
+-- (0,0,'rpt_query','maxquery',''), -- most popular query
+-- (0,0,'rpt_query','maxqueryndays',''), -- number of days on top
+-- (0,0,'rpt_engine','totengines',''), -- number of different search engines
+-- (0,0,'rpt_engine','totbytes',''), -- total bytes on hits with a query xxx
+-- (0,0,'rpt_engine','tothits',''), -- total hits with a query xxx
+-- (0,0,'rpt_engine','maxengine',''), -- most popular engine
+-- (0,0,'rpt_engine','maxenginendays',''), -- number of days on top
+-- (0,0,'rpt_google','tothits',''), -- hits by google
+-- (0,0,'rpt_google','lastfile',''), -- xxx
+-- (0,0,'rpt_google','lastbytes',''), -- xxx
+-- (0,0,'rpt_google','lastdate',''), -- xxx
+-- (0,0,'rpt_referrer','totreferrers',''), -- total number of referrers
+-- (0,0,'rpt_referrer','totbytes',''), -- total bytes with referrers
+-- (0,0,'rpt_referrer','tothits',''), -- total hits with referrers
+-- (0,0,'rpt_referrer','maxreferrer',''), -- most popular referrer
+-- (0,0,'rpt_referrer','maxreferrerndays',''), -- number of days on top
+-- (0,0,'rpt_filesize','maxbucket',''), -- xxx
+-- (0,0,'rpt_filesize','maxbytes',''), -- xxx
+-- (0,0,'rpt_localquery','tothits',''), -- total hits with a local query
+-- (0,0,'rpt_localquery','maxfile',''), -- most popular file queried
+-- (0,0,'rpt_localquery','maxquery',''), -- most popular local query
+-- (0,0,'rpt_attacks','attacks',''), -- attack hits
+-- (0,0,'rpt_attacks','probes',''), -- probe hits
+-- (0,0,'rpt_retcode','totrecs',''), -- total transactions
+-- (0,0,'rpt_retcode','totbytes',''), -- total bytes
+-- (0,0,'rpt_retcode','maxretcode',''), -- most popular retcode
+-- (0,0,'rpt_retcode','maxrecs',''), -- number of trans with that retcode
+-- (0,0,'rpt_retcode','maxretcodendays',''), -- number of days on top xxx
+-- (0,0,'rpt_verb','totrecs',''), -- total transactions xxx
+-- (0,0,'rpt_verb','totbytes',''), -- total bytes xxx
+-- (0,0,'rpt_verb','maxverb',''), -- most popular verb
+-- (0,0,'rpt_verb','maxrecs',''), -- number of trans with that verb
+-- (0,0,'rpt_verb','maxverbndays',''), -- number of days on top xxx
+-- --(0,0,'rpt_day7','',''),
+-- (0,0,'rpt_details','totvisits',''), -- xxx
+-- (0,0,'rpt_details','totnewvisitors',''), -- xxx
+-- (0,0,'rpt_details','totnewreferrer',''), -- xxx
+-- (0,0,'rpt_details','totwatchedpages',''), -- xxx
+-- (0,0,'rpt_details','totboring',''), -- total visits marked boring
+-- --(0,0,'update_wtcumquery','',''),
+-- --(0,0,'update_wtcumref','',''),
+-- --(0,0,'update_wtdomhist','',''),
+-- --(0,0,'update_wtcumfile','',''),
+-- --(0,0,'update_wtfilehist','',''),
+-- --(0,0,'update_wtcumgoog','',''),
+-- --(0,0,'trim_wtdomhist','',''),
+-- (0,0,'rpt_year_referrer','totreferrers',''),
+-- (0,0,'rpt_year_referrer','totbytes',''),
+-- (0,0,'rpt_year_referrer','tothits',''),
+-- (0,0,'rpt_year_referrer','maxreferrer',''),
+-- (0,0,'rpt_year_referrer','maxbytes',''),
+-- (0,0,'rpt_year_query','totqueries',''),
+-- (0,0,'rpt_year_query','totbytes',''),
+-- (0,0,'rpt_year_query','tothits',''),
+-- (0,0,'rpt_year_query','maxquery',''),
+-- (0,0,'rpt_year_domain','totvisitors',''),
+-- (0,0,'rpt_year_domain','totbytes',''),
+-- (0,0,'rpt_year_domain','tothits',''),
+-- (0,0,'rpt_year_domain','maxvisitor',''),
+-- (0,0,'rpt_dslv_domain','totalvisitors',''),
+-- (0,0,'rpt_dslv_domain','totalnewvisitors',''),
+-- (0,0,'rpt_cumpage','totfiles',''),
+-- (0,0,'rpt_cumpage','totbytes',''),
+-- (0,0,'rpt_cumpage','tothits',''),
+-- (0,0,'rpt_cumpage','maxfile',''),
+-- (0,0,'rpt_cumpage','maxbytes','');
+-- --(0,0,'rpt_bymonth','','');
+-- --(0,0,'rpt_paths','','');

@@ -1,0 +1,348 @@
+%[** ================ Generated 2021-04-12 16:44 by ggq.htmt ================ **]%
+%[*include,=wtxmacros.htmi]%
+%[*set,&list,=""]%
+%[*callv,getquery,=rpt_heading,=q404]%
+%[*sqlloop,&junk,=x,x0]%
+%[*set,&n404,.n]%
+%[*concat,&list,=n404]%
+%[*concat,&list,=" "]%
+%[*callv,getquery,=rpt_heading,=qauthhits]%
+%[*sqlloop,&junk,=x,x0]%
+%[*set,&totalauthhits,.total]%
+%[*concat,&list,=totalauthhits]%
+%[*concat,&list,=" "]%
+%[*callv,getquery,=rpt_heading,=qauthids]%
+%[*sqlloop,&junk,=x,x0]%
+%[*set,&totalauthids,.total]%
+%[*concat,&list,=totalauthids]%
+%[*concat,&list,=" "]%
+%[*callv,getquery,=rpt_heading,=qauthkb]%
+%[*sqlloop,&junk,=x,x0]%
+%[*set,&totalauthkb,.total]%
+%[*concat,&list,=totalauthkb]%
+%[*concat,&list,=" "]%
+%[*quotient,&totalauthkb,totalauthkb,=1024]%
+%[*callv,getquery,=rpt_heading,=qauthsess]%
+%[*sqlloop,&junk,=x,x0]%
+%[*set,&totalauthsess,.total]%
+%[*concat,&list,=totalauthsess]%
+%[*concat,&list,=" "]%
+%[*callv,getquery,=rpt_heading,=qdayhistfirst]%
+%[*sqlloop,&junk,=x,x0]%
+%[*set,&dayhistfirst,.x]%
+%[*concat,&list,=dayhistfirst]%
+%[*concat,&list,=" "]%
+%[*callv,getquery,=rpt_heading,=qdomhistfirst]%
+%[*sqlloop,&junk,=x,x0]%
+%[*set,&domhistfirst,.x]%
+%[*concat,&list,=domhistfirst]%
+%[*concat,&list,=" "]%
+%[*callv,getquery,=rpt_heading,=qdomsnovisit]%
+%[*sqlloop,&junk,=x,x0]%
+%[*set,&domsnovisit,.n]%
+%[*concat,&list,=domsnovisit]%
+%[*concat,&list,=" "]%
+%[*callv,getquery,=rpt_heading,=qgooglecrawldate]%
+%[*sqlloop,&junk,=x,x0]%
+%[*set,&googlecrawldate,.x]%
+%[*concat,&list,=googlecrawldate]%
+%[*concat,&list,=" "]%
+%[*callv,getquery,=rpt_heading,=qgraphic]%
+%[*sqlloop,&junk,=x,x0]%
+%[*set,&graphicbytes,.bytes]%
+%[*concat,&list,=graphicbytes]%
+%[*concat,&list,=" "]%
+%[*set,&graphichits,.total]%
+%[*concat,&list,=graphichits]%
+%[*concat,&list,=" "]%
+%[*callv,getquery,=rpt_heading,=qgraphicni]%
+%[*sqlloop,&junk,=x,x0]%
+%[*set,&graphicbytesni,.bytes]%
+%[*concat,&list,=graphicbytesni]%
+%[*concat,&list,=" "]%
+%[*set,&graphichitsni,.total]%
+%[*concat,&list,=graphichitsni]%
+%[*concat,&list,=" "]%
+%[*callv,getquery,=rpt_heading,=qhitsnovisit]%
+%[*sqlloop,&junk,=x,x0]%
+%[*set,&hitsnovisit,.n]%
+%[*concat,&list,=hitsnovisit]%
+%[*concat,&list,=" "]%
+%[*callv,getquery,=rpt_heading,=qhp]%
+%[*sqlloop,&junk,=x,x0]%
+%[*set,&hpbytes,.hpbytes]%
+%[*concat,&list,=hpbytes]%
+%[*concat,&list,=" "]%
+%[*set,&hphits,.hphits]%
+%[*concat,&list,=hphits]%
+%[*concat,&list,=" "]%
+%[*callv,getquery,=rpt_heading,=qhtml]%
+%[*sqlloop,&junk,=x,x0]%
+%[*set,&htmlbytes,.bytes]%
+%[*concat,&list,=htmlbytes]%
+%[*concat,&list,=" "]%
+%[*set,&htmlhits,.total]%
+%[*concat,&list,=htmlhits]%
+%[*concat,&list,=" "]%
+%[*set,&htmlkb,.bytes]%
+%[*concat,&list,=htmlkb]%
+%[*concat,&list,=" "]%
+%[*quotient,&htmlkb,htmlkb,=1024]%
+%[*callv,getquery,=rpt_heading,=qhtmlfiles]%
+%[*sqlloop,&junk,=x,x0]%
+%[*set,&htmlfiles,.n]%
+%[*concat,&list,=htmlfiles]%
+%[*concat,&list,=" "]%
+%[*callv,getquery,=rpt_heading,=qhtmlfilesni]%
+%[*sqlloop,&junk,=x,x0]%
+%[*set,&htmlfilesni,.n]%
+%[*concat,&list,=htmlfilesni]%
+%[*concat,&list,=" "]%
+%[*callv,getquery,=rpt_heading,=qhtmlni]%
+%[*sqlloop,&junk,=x,x0]%
+%[*set,&htmlbytesni,.bytes]%
+%[*concat,&list,=htmlbytesni]%
+%[*concat,&list,=" "]%
+%[*set,&htmlhitsni,.total]%
+%[*concat,&list,=htmlhitsni]%
+%[*concat,&list,=" "]%
+%[*set,&htmlkbni,.bytes]%
+%[*concat,&list,=htmlkbni]%
+%[*concat,&list,=" "]%
+%[*quotient,&htmlkbni,htmlkbni,=1024]%
+%[*callv,getquery,=rpt_heading,=qindex]%
+%[*sqlloop,&junk,=x,x0]%
+%[*set,&indexbytes,.indexbytes]%
+%[*concat,&list,=indexbytes]%
+%[*concat,&list,=" "]%
+%[*set,&indexhits,.indexhits]%
+%[*concat,&list,=indexhits]%
+%[*concat,&list,=" "]%
+%[*set,&nindexvisits,.nindexvisits]%
+%[*concat,&list,=nindexvisits]%
+%[*concat,&list,=" "]%
+%[*callv,getquery,=rpt_heading,=qlink]%
+%[*sqlloop,&junk,=x,x0]%
+%[*set,&linkbytes,.linkbytes]%
+%[*concat,&list,=linkbytes]%
+%[*concat,&list,=" "]%
+%[*set,&nlinkvisits,.nlinkvisits]%
+%[*concat,&list,=nlinkvisits]%
+%[*concat,&list,=" "]%
+%[*set,&nlinkhits,.linkhits]%
+%[*concat,&list,=nlinkhits]%
+%[*concat,&list,=" "]%
+%[*callv,getquery,=rpt_heading,=qmaxta]%
+%[*sqlloop,&junk,=x,x0]%
+%[*set,&lastdate,.last]%
+%[*concat,&list,=lastdate]%
+%[*concat,&list,=" "]%
+%[*callv,getquery,=rpt_heading,=qmaxtb]%
+%[*sqlloop,&junk,=x,x0]%
+%[*set,&lastdatebin,.last]%
+%[*concat,&list,=lastdatebin]%
+%[*concat,&list,=" "]%
+%[*callv,getquery,=rpt_heading,=qminta]%
+%[*sqlloop,&junk,=x,x0]%
+%[*set,&firstdate,.first]%
+%[*concat,&list,=firstdate]%
+%[*concat,&list,=" "]%
+%[*callv,getquery,=rpt_heading,=qmintb]%
+%[*sqlloop,&junk,=x,x0]%
+%[*set,&firstdatebin,.first]%
+%[*concat,&list,=firstdatebin]%
+%[*concat,&list,=" "]%
+%[*callv,getquery,=rpt_heading,=qnbrow]%
+%[*sqlloop,&junk,=x,x0]%
+%[*set,&nbrowser,.n]%
+%[*concat,&list,=nbrowser]%
+%[*concat,&list,=" "]%
+%[*callv,getquery,=rpt_heading,=qnclasses]%
+%[*sqlloop,&junk,=x,x0]%
+%[*set,&nvisitclass,.n]%
+%[*concat,&list,=nvisitclass]%
+%[*concat,&list,=" "]%
+%[*callv,getquery,=rpt_heading,=qndomains]%
+%[*sqlloop,&junk,=x,x0]%
+%[*set,&ndomainstoday,.n]%
+%[*concat,&list,=ndomainstoday]%
+%[*concat,&list,=" "]%
+%[*callv,getquery,=rpt_heading,=qnengine]%
+%[*sqlloop,&junk,=x,x0]%
+%[*set,&nengine,.n]%
+%[*concat,&list,=nengine]%
+%[*concat,&list,=" "]%
+%[*callv,getquery,=rpt_heading,=qnewdomains]%
+%[*sqlloop,&junk,=x,x0]%
+%[*set,&newdomainstoday,.n]%
+%[*concat,&list,=newdomainstoday]%
+%[*concat,&list,=" "]%
+%[*callv,getquery,=rpt_heading,=qngoogletoday]%
+%[*sqlloop,&junk,=x,x0]%
+%[*set,&ngoogletoday,.totgoo]%
+%[*concat,&list,=ngoogletoday]%
+%[*concat,&list,=" "]%
+%[*callv,getquery,=rpt_heading,=qnhp]%
+%[*sqlloop,&junk,=x,x0]%
+%[*set,&nheadp,.nheadp]%
+%[*concat,&list,=nheadp]%
+%[*concat,&list,=" "]%
+%[*callv,getquery,=rpt_heading,=qnnevergooglehtml]%
+%[*sqlloop,&junk,=x,x0]%
+%[*set,&nnevergooglehtml,.x]%
+%[*concat,&list,=nnevergooglehtml]%
+%[*concat,&list,=" "]%
+%[*callv,getquery,=rpt_heading,=qnquery]%
+%[*sqlloop,&junk,=x,x0]%
+%[*set,&nquery,.n]%
+%[*concat,&list,=nquery]%
+%[*concat,&list,=" "]%
+%[*callv,getquery,=rpt_heading,=qnrefer]%
+%[*sqlloop,&junk,=x,x0]%
+%[*set,&nreferrer,.n]%
+%[*concat,&list,=nreferrer]%
+%[*concat,&list,=" "]%
+%[*callv,getquery,=rpt_heading,=qntld]%
+%[*sqlloop,&junk,=x,x0]%
+%[*set,&ntld,.n]%
+%[*concat,&list,=ntld]%
+%[*concat,&list,=" "]%
+%[*callv,getquery,=rpt_heading,=qnzhtml]%
+%[*sqlloop,&junk,=x,x0]%
+%[*set,&htmlvisits,.x]%
+%[*concat,&list,=htmlvisits]%
+%[*concat,&list,=" "]%
+%[*callv,getquery,=rpt_heading,=qnzhtmlni]%
+%[*sqlloop,&junk,=x,x0]%
+%[*set,&htmlvisitsni,.x]%
+%[*concat,&list,=htmlvisitsni]%
+%[*concat,&list,=" "]%
+%[*callv,getquery,=rpt_heading,=qsearch]%
+%[*sqlloop,&junk,=x,x0]%
+%[*set,&nsearches,.nsearches]%
+%[*concat,&list,=nsearches]%
+%[*concat,&list,=" "]%
+%[*callv,getquery,=rpt_heading,=qsearch2]%
+%[*sqlloop,&junk,=x,x0]%
+%[*set,&nsearchvisits,.nsearchvisits]%
+%[*concat,&list,=nsearchvisits]%
+%[*concat,&list,=" "]%
+%[*set,&searchbytes,.searchbytes]%
+%[*concat,&list,=searchbytes]%
+%[*concat,&list,=" "]%
+%[*callv,getquery,=rpt_heading,=qtb]%
+%[*sqlloop,&junk,=x,x0]%
+%[*set,&totalmb,.bytes]%
+%[*concat,&list,=totalmb]%
+%[*concat,&list,=" "]%
+%[*quotient,&totalmb,totalmb,=1048576]%
+%[*set,&totalkb,.bytes]%
+%[*concat,&list,=totalkb]%
+%[*concat,&list,=" "]%
+%[*quotient,&totalkb,totalkb,=1024]%
+%[*set,&totalhits,.total]%
+%[*concat,&list,=totalhits]%
+%[*concat,&list,=" "]%
+%[*set,&totalbytes,.bytes]%
+%[*concat,&list,=totalbytes]%
+%[*concat,&list,=" "]%
+%[*callv,getquery,=rpt_heading,=qtbni]%
+%[*sqlloop,&junk,=x,x0]%
+%[*set,&totalbytesni,.bytes]%
+%[*concat,&list,=totalbytesni]%
+%[*concat,&list,=" "]%
+%[*set,&totalhitsni,.total]%
+%[*concat,&list,=totalhitsni]%
+%[*concat,&list,=" "]%
+%[*set,&totalkbni,.bytes]%
+%[*concat,&list,=totalkbni]%
+%[*concat,&list,=" "]%
+%[*quotient,&totalkbni,totalkbni,=1024]%
+%[*set,&totalmbni,.bytes]%
+%[*concat,&list,=totalmbni]%
+%[*concat,&list,=" "]%
+%[*quotient,&totalmbni,totalmbni,=1048576]%
+%[*callv,getquery,=rpt_heading,=qtrec]%
+%[*sqlloop,&junk,=x,x0]%
+%[*set,&totalreckb,.bytes]%
+%[*concat,&list,=totalreckb]%
+%[*concat,&list,=" "]%
+%[*quotient,&totalreckb,totalreckb,=1024]%
+%[*set,&totalrecs,.total]%
+%[*concat,&list,=totalrecs]%
+%[*concat,&list,=" "]%
+%[*callv,getquery,=rpt_heading,=qtv]%
+%[*sqlloop,&junk,=x,x0]%
+%[*set,&totalvisits,.total]%
+%[*concat,&list,=totalvisits]%
+%[*concat,&list,=" "]%
+%[*callv,getquery,=rpt_heading,=qtvni]%
+%[*sqlloop,&junk,=x,x0]%
+%[*set,&totalvisitsni,.total]%
+%[*concat,&list,=totalvisitsni]%
+%[*concat,&list,=" "]%
+%[*callv,getquery,=rpt_heading,=qydomain]%
+%[*sqlloop,&junk,=x,x0]%
+%[*set,&ydomain,.n]%
+%[*concat,&list,=ydomain]%
+%[*concat,&list,=" "]%
+%[*callv,getquery,=rpt_heading,=qyfile]%
+%[*sqlloop,&junk,=x,x0]%
+%[*set,&yfile,.n]%
+%[*concat,&list,=yfile]%
+%[*concat,&list,=" "]%
+%[*callv,getquery,=rpt_heading,=qyhfile]%
+%[*sqlloop,&junk,=x,x0]%
+%[*set,&yhfile,.n]%
+%[*concat,&list,=yhfile]%
+%[*concat,&list,=" "]%
+%[*callv,getquery,=rpt_heading,=qyhtothits]%
+%[*sqlloop,&junk,=x,x0]%
+%[*set,&yhtotalbytes,.ytotbytes]%
+%[*concat,&list,=yhtotalbytes]%
+%[*concat,&list,=" "]%
+%[*set,&yhtotalhits,.ytothits]%
+%[*concat,&list,=yhtotalhits]%
+%[*concat,&list,=" "]%
+%[*set,&yhtotalkb,.ytotbytes]%
+%[*concat,&list,=yhtotalkb]%
+%[*concat,&list,=" "]%
+%[*quotient,&yhtotalkb,yhtotalkb,=1024]%
+%[*callv,getquery,=rpt_heading,=qyreferrer]%
+%[*sqlloop,&junk,=x,x0]%
+%[*set,&yreferrer,.n]%
+%[*concat,&list,=yreferrer]%
+%[*concat,&list,=" "]%
+%[*callv,getquery,=rpt_heading,=qytothits]%
+%[*sqlloop,&junk,=x,x0]%
+%[*set,&ytotalbytes,.ytotbytes]%
+%[*concat,&list,=ytotalbytes]%
+%[*concat,&list,=" "]%
+%[*set,&ytotalhits,.ytothits]%
+%[*concat,&list,=ytotalhits]%
+%[*concat,&list,=" "]%
+%[*set,&ytotalkb,.ytotbytes]%
+%[*concat,&list,=ytotalkb]%
+%[*concat,&list,=" "]%
+%[*quotient,&ytotalkb,ytotalkb,=1024]%
+%[*callv,getquery,=rpt_heading,=qzhtml]%
+%[*sqlloop,&junk,=x,x0]%
+%[*set,&nohtmlvisitshits,.y]%
+%[*concat,&list,=nohtmlvisitshits]%
+%[*concat,&list,=" "]%
+%[*set,&nohtmlvisits,.x]%
+%[*concat,&list,=nohtmlvisits]%
+%[*concat,&list,=" "]%
+%[*set,&nohtmlbytes,.z]%
+%[*concat,&list,=nohtmlbytes]%
+%[*concat,&list,=" "]%
+%[** ================================================================ **]%
+%[*ssvloop,&temp,globaltpt2,list]%
+%[*block,&globaltpt2,^XEND$]%
+%[*set,&x,%[_xf_ssvitem]%]%
+%[*if,eq,x,="",*set,&x,="0"]%
+export %[_xf_ssvitem]%="%[x]%"
+XEND
+#!/bin/sh
+# generated %[timestamp]% from globalqueries.htmt geneated by ggq.htmt
+%[temp]%

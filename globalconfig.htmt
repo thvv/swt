@@ -1,0 +1,25 @@
+%[** Fetch global values from SQL and make them available in shell. **]%
+%[**  Parameters **]%
+%[**  - qglobalconfig1 - query for global values **]%
+%[**  - qglobalconfig2 - query for report options **]%
+%[**  **]%
+%[** Written 2006 by Tom Van Vleck **]%
+%[** THVV 08/09/06 **]%
+%[** THVV 08/23/06 get query from shell environment **]%
+%[** ================================================================ **]%
+%[**warn,globalconfig.htmt %[qglobalconfig1]%]%
+%[*sqlloop,&cont1,iter1,qglobalconfig1]%
+%[*block,&iter1,^END]%
+%[**warn,%[wtglobalvalues.gloname]%="%[wtglobalvalues.glovalue]%"]%
+export %[wtglobalvalues.gloname]%="%[wtglobalvalues.glovalue]%"
+END
+%[*sqlloop,&cont2,iter2,qglobalconfig2]%
+%[*block,&iter2,^END]%
+%[**warn,%[wtreports.reportid]%_%[wtreportoptions.optname]%="%[wtreportoptions.optvalue]%"]%
+export %[wtreports.reportid]%_%[wtreportoptions.optname]%="%[wtreportoptions.optvalue]%"
+END
+%[** ---------------------------------------------------------------- **]%
+#!/bin/sh
+# generated from SQL %[timestamp]%
+%[cont1]%
+%[cont2]%

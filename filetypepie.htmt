@@ -1,0 +1,44 @@
+%[** Pie chart by file type **]%
+%[** Parameters **]%
+%[** - nameanchor - report name (used for getting query) **]%
+%[** - %[nameanchor]%_graphvar   - SQL query result value **]%
+%[** - %[nameanchor]%_graphlabel - SQL query label for value **]%
+%[** - %[nameanchor]%_factor     - divide result by this number **]%
+%[** - %[nameanchor]%_wholepie   - name of var holding full total **]%
+%[** - charttitle - chart title displayed by Javascript **]%
+%[** - longtitle - applet title displayed by browser **]%
+%[**  **]%
+%[** Generates a tabular representation if Javascript is turned off **]%
+%[**  **]%
+%[** Written 2006-2010 by Tom Van Vleck **]%
+%[**  THVV 04/20/06 **]%
+%[**  THVV 08/18/06 - fetch query from sql **]%
+%[**  THVV 12/12/10 - use Javascript instead of java **]%
+%[** ================================================================ **]%
+%[** read in and increment a file with the pie chart number, to give the canvases unique IDs **]%
+%[*include,=wtxmacros.htmi]%
+%[*fread2,&pienumber,=pienumberfile]%
+%[*increment,&pienumber,=1]%
+%[*fwrite,=pienumberfile,pienumber]%
+%[*set,&total,%[%[nameanchor]%_wholepie]%]%
+%[*if,ne,%[nameanchor]%_factor,=1,*quotient,&total,total,%[nameanchor]%_factor]%
+%[*set,&n,=0]%
+%[*set,&piestring,=""]%
+%[*callv,getquery,nameanchor,="querypie"]% 
+%[*sqlloop,&pieout,iter,x0]%
+%[** ================================================================ **]%
+%[*block,&iter,^END$]%
+%[*set,&val,%[%[nameanchor]%_graphvar]%]%
+%[*if,ne,%[nameanchor]%_factor,=1,*quotient,&val,val,%[nameanchor]%_factor]%
+%[*scale,&p,val,total,=100]%
+ <tr><td>%[p]%%[pct]% %[%[%[nameanchor]%_graphlabel]%]% (%[val]%)</td><td>%[val]%</td></tr>
+%[*increment,&n,=1]%
+END
+%[** ================================================================ **]%
+<canvas id="canvas%[pienumber]%" width="%[pieappletwidth]%" height="%[pieappletheight]%" class="datacanvas" title="%[longtitle]%">
+<table id="mydata%[pienumber]%" class="datatable">
+  <caption>%[total]% %[charttitle]%</caption>
+%[*expand,pieout]%
+</table>
+</canvas>
+<script>piechartcanvas('mydata%[pienumber]%','canvas%[pienumber]%','white');</script>

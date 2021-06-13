@@ -1,0 +1,8 @@
+-- Table Cleanup for Super webtrax
+-- THVV 02/05/07
+-- ================================
+-- DROP TABLE IF EXISTS hits;
+-- DROP TABLE IF EXISTS visits;
+-- DROP TABLE IF EXISTS hitslices;
+-- DROP TABLE IF EXISTS visitslices;
+-- end
