@@ -604,7 +604,7 @@ if test $GEOIP != "no"
 then
     rm -f CONFIGURE.zero.length2
     if [ -f $GEOIPDATADIR/GeoLite2-City.mmdb ] ; then
-	logextractor2 -geoipcity $GEOIPDATADIR/GeoIPCity.datGeoLite2-City.mmdb -day all CONFIGURE.zero.length > CONFIGURE.zero.length2
+	logextractor2 -geoipcity $GEOIPDATADIR/GeoLite2-City.mmdb -day all CONFIGURE.zero.length > CONFIGURE.zero.length2
     else
 	echo "$0: ***** WARNING: No GeoLite2-City.mmdb in $GEOIPDATADIR, tested logextractor2 without geoip"
 	logextractor2 -day all CONFIGURE.zero.length > CONFIGURE.zero.length2
