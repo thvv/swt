@@ -48,7 +48,7 @@ initialsetup ()
     export COMMANDPREFIX="nice"
     # .. these paths are relative to PROGRAMDIR
     # .. name of template expander, should be on your PATH, as should thvve.pm, readapacheline.pm (could check)
-    export EXPAND="./tools/expandfile3"
+    export EXPAND="./tools/expandfile"
     # .. script to load a file into MySQL, should be in tools, mode 500
     export MYSQLLOAD="./tools/mysqlload"
     # .. script to run a command in MySQL, should be in tools, mode 500

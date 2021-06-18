@@ -1287,7 +1287,7 @@ INSERT INTO wtglobalvalues (gloname, glovalue, glocomm) VALUES
 ('pieappletextra','',''), -- two backslashes before quotes, e.g. 'codebase=\\"https://www.x.y.x/\\"'  -- is this obsolete
 -- Unix command coupling
 -- .. expandfile has to be on the PATH even for a cron job .. expandfile.pm, thvvutil.pm, readapacheline.pm must be on the Perl lib path
-('EXPAND','./tools/expandfile3','Template expander command'),
+('EXPAND','./tools/expandfile','Template expander command'),
 -- used in loadusage()
 ('LOGVISITS','perl ./tools/logvisits3.pl','perl prog'),
 ('VISITDATA','perl ./tools/visitdata3.pl','perl prog'),
