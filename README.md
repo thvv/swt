@@ -13,9 +13,9 @@ INSTALLATION INSTRUCTIONS
 
 Ensure that MySQL is installed.  Set up a database, username,
 and password. Create $HOME/.my.cnf with that info.
-Download swt.tar.gz
-  tar zxf swt.tar.gz  
-It creates directory install-swt.
+
+Switch to the "master" branch and click "Code" to clone the repo to 
+a directory install-swt.
 Install install-swt/expandfile in your $PATH.
 Install expandfile.pm, readbinsql.pm, readbinxml.pm in your $PERL5LIB.
 
