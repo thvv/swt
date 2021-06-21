@@ -56,7 +56,7 @@ filepresent()
     local thing=""
     thing="$1"
     thing=`echo $thing | sed -E -e 's:/+:/:g'`
-    echo "..checking $thing"
+    #echo "..checking $thing"
     nfiles=`echo "$nfiles + 1" | bc`
     test -e "$thing" || test -L "$thing" || export BAD="$BAD $thing" # allow files or links
 }
@@ -140,16 +140,21 @@ onsearchpath()
     export fp=`which $thing`
     if test -z "$fp"
     then
-       export BAD="$BAD $thing"
+       export MISSING="$MISSING $thing"
     fi
 }
 
 #.. check search path
-export BAD=""
+export MISSING=""
 for i in $binfiles
 do
     onsearchpath $i
 done
+if test ! -z "$MISSING"
+then
+    { echo "$0: not on search path: $MISSING" >&2
+      { (exit 2); exit 2; }; }
+fi
 
 # ----------------------------------------------------------------
 # check that Perl modules needed for expandfile are somewhere in PERL5LIB
@@ -159,6 +164,11 @@ done
 # these checks are warning only
 # ----------------------------------------------------------------
 
+# expandfile     needs  expandfile.pm
+# exandfile.pm   needs  readbindsql.pm readbindxml.pm LWP::Simple Term::ANSIColor
+# readbindsql.pm needs  DBI DBD::mysql
+# readbindxml.pm needs  XML::LibXML XML::Simple
+# logextractor2  needs  readapacheline.pm
 cpan_mods="LWP::Simple Term::ANSIColor DBI DBD::mysql XML::LibXML XML::Simple expandfile.pm readbindsql.pm readbindxml.pm readapacheline.pm"
 
 BADMOD=""

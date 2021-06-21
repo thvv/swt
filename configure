@@ -29,6 +29,7 @@
 # THVV 02/18/21 adapt fo expandfile and accumulated changes
 # THVV 02/18/21 move all file checking to checkswtfiles
 # THVV 03/20/21 fix up the XDOMAINS stuff
+# THVV 06/20/21 Eric Swenson pointed out many weaknesses.  Added checks to check for correct installation, especially of Perl.
 
 # bugs
 # ... should write out as soon as all questions are answered so if anything is not set, we don't have to do it all again
@@ -44,9 +45,9 @@ message()
     echo "$0: $msg"
     echo "## `date` $0 $msg" >> CONFIGURE.status
 } # message
-# ----------------------------------------------------------------
-# ----------------------------------------------------------------
-# 1) you unpacked the tarfile. it created a directory install-swt containing this file. cd install-swt
+
+# ================================================================
+# 1) you cloned the github source into a directory install-swt containing this file. cd install-swt
 # 2) install expandfile into your search path
 # 3) install expandfile.pm, readbindxml.pm, readbindsql.pm into your PERL5LIB
 # 4) do "cd install-swt; ./configure"
@@ -66,6 +67,41 @@ test -f vnfile || exit 1
 
 export VERSION="`cat vnfile`"
 echo "SWT version $VERSION"
+# ----------------------------------------------------------------
+# cannot run any Perl code if /usr/local/bin/perl does not exist
+perl -v > perlversion
+errorwas=$?
+if [ "$errorwas" != "0" ] ; then
+    echo 1>&2 "$0: ***** failed: perl not fond on search path"
+    rm perlversion
+    exit 127
+fi
+# perl must be available in /usr/local/bin, because shebang lines point there.
+# .. on pre-Big Sur macs, the system perl was very ancient
+whereisperl=`which /usr/local/bin/perl`
+if [ "$whereisperl" = "" ] ; then
+    echo 1>&2 "$0: ***** failed: /usr/local/bin/perl not found. Shebang lines in tools will fail."
+    exit 127
+fi
+# PERL5LIB must be defined
+if [ "$PERL5LIB" = "" ] ; then
+    echo 1>&2 "$0: ***** failed: environment variable PERL5LIB is not set. Should be like \"$HOME/bin:$whereisperl\""
+    exit 127
+fi
+echo "Perl version must match PERL5LIB.."
+cat perlversion | head -2
+echo "PERL5LIB = $PERL5LIB"
+rm perlversion
+
+echo "VERSIONER_PERL_PREFER_32_BIT = $VERSIONER_PERL_PREFER_32_BIT"
+echo "ARCHFLAGS = $ARCHFLAGS"
+echo "PERL_LOCAL_LIB_ROOT = $PERL_LOCAL_LIB_ROOT"
+echo "PERL_MB_OPT = $PERL_MB_OPT"
+echo "PERL_MM_OPT = $PERL_MM_OPT"
+
+# ----------------------------------------------------------------
+# expandfile must be installed on the search path.  tools/checkswtfiles will check.
+# checkswtfiles will also check that the contents of install-swt/tools are present.
 # ----------------------------------------------------------------
 export CHECKSWTFILES="./tools/checkswtfiles"
 if [ ! -d tools ] ; then
@@ -432,11 +468,11 @@ then
     askfordir "GEOIPDATADIR" "$HOME/lib" "$GEOIPDATADIR"
     zz=`perldoc -lm Try::Tiny | sed 's/^No module.*$//'`
     if [ "$zz" = "" ] ; then
-	echo "$0: ***** WARNING: Perl module Try::Tiny not installed, needed for GeoIP. Use CPAN."
+	echo "$0: ***** WARNING: Perl module Try::Tiny not installed, needed for GeoIP. Use sudo -H cpan."
     fi
     zz=`perldoc -lm GeoIP2::Database::Reader | sed 's/^No module.*$//'`
     if [ "$zz" = "" ] ; then
-	echo "$0: ***** WARNING: Perl module GeoIP2::Database::Reader not installed, needed for GeoIP. use CPAN."
+	echo "$0: ***** WARNING: Perl module GeoIP2::Database::Reader not installed, needed for GeoIP. use sudo -H cpan."
     fi
     zz=`perldoc -lm MaxMind::DB::Reader::XS | sed 's/^No module.*$//'`
     if [ "$zz" = "" ] ; then

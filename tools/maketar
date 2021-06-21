@@ -1,4 +1,0 @@
-#!/bin/sh
-# make a new tarfile
-tar cf swt.tar --disable-copyfile install-swt/
-gzip swt.tar
