@@ -39,8 +39,10 @@
 %[**  THVV 08/13/06 - long and short **]%
 %[**  THVV 08/18/06 - fetch query from sql **]%
 %[**  THVV 03/27/09 - add labelvar2 **]%
+%[**  THVV 06/28/21 - does not work well if 'nameanchor' is blank or very long, prevent **]%
 %[** ================================================================ **]%
 %[*include,=wtxmacros.htmi]%
+%[*set,&oldctl,=""]%
 %[*if,ne,subtitle,="",*expandv,&s00,subtitle]%
 %[*callv,getquery,nameanchor,="query2"]%
 %[*sqlloop,&junk,=x,x0]%
@@ -53,6 +55,8 @@
 %[** ================================================================ **]%
 %[*block,&chartiter,^END$]%
 %[*set,&ctl,%[%[nameanchor]%_labelvar]%]%
+%[*if,eq,ctl,="",*set,&ctl,="(blank)"]%
+%[*subst,&ctl,="^(........................................).*$",="\\1"]%
 %[*if,ne,%[nameanchor]%_labelvar2,="",*concat,&ctl,%[%[nameanchor]%_labelvar2]%]%
 %[*if,nelc,ctl,oldctl,*expandv,&junk,switch]%
 %[*scale,&x,%[%[nameanchor]%_stripecount]%,fullscale,glb_bar_graph_width]%
