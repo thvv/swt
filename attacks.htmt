@@ -26,6 +26,7 @@
 %[**  THVV 09/29/14 new check for shellshock bug **]%
 %[**  THVV 08/05/16 make listings in gray if 404 **]%
 %[**  THVV 08/15/16 only make short report in red if files were non-404, add total **]%
+%[**  THVV 12/22/21 report on log4j attacks **]%
 %[** ================================================================ **]%
 %[*include,=wtxmacros.htmi]%
 %[*if,ne,subtitle,="",*expandv,&s00,subtitle]%
@@ -34,11 +35,13 @@
 %[*set,&num3,=0]%
 %[*set,&num4,=0]%
 %[*set,&num5,=0]%
+%[*set,&num6,=0]%
 %[*set,&non404_1,=0]%
 %[*set,&non404_2,=0]%
 %[*set,&non404_3,=0]%
 %[*set,&non404_4,=0]%
 %[*set,&non404_5,=0]%
+%[*set,&non404_6,=0]%
 %[*set,&non404_t,=0]%
 %[** ---------------------------------------------------------------- **]%
 %[** ... if site attack targets list is non-null, look for hits on this target **]%
@@ -71,6 +74,15 @@
 %[*sqlloop,&tableout5,tableiter2,x0]%
 %[*set,&num5,_xf_nrows]%
 %[*set,&non404_5,_non404]%
+%[*increment,&non404_t,_non404]%
+%[** ---------------------------------------------------------------- **]%
+%[** ... get the log4j attacks.. browser or referrer contains ${lower:jndi... or ${jndi:ldap... or ?q=%24%7Bjndi%3Aldap or :1389/Binary} or :1389/Exploit} **]%
+%[*set,&qname,="q6"]%
+%[*callv,getquery,nameanchor,="query6"]%
+%[*set,&_non404,=0]%
+%[*sqlloop,&tableout6,tableiter2,x0]%
+%[*set,&num6,_xf_nrows]%
+%[*set,&non404_6,_non404]%
 %[*increment,&non404_t,_non404]%
 %[** ================================================================ **]%
 %[** execute query1, specific site attack targets **]%
@@ -113,7 +125,7 @@ END
       </tr>
 END
 %[** ================================================================ **]%
-%[** iterator used with query3 and query5, output in tableout2b and tableout5, collapse multiple hits **]%
+%[** iterator used with query3, query5, and query6, output in tableout2b, tableout5, and tableout6, collapse multiple hits **]%
 %[*block,&tableiter2,^END$]%
 %[*set,&shorttime,%[%[nameanchor]%_timevar]%]%
 %[*subst,&shorttime,="^....-..-.. ",=""]%
@@ -198,6 +210,18 @@ END
 %[*expand,tableout5]%
   </table>
 END
+%[*block,&table6,^END$]%
+  <p class="fineprint">Attempts to exploit the log4j bug.</p>
+  <table>
+    <tr>
+      <th>Time</th>
+      <th>Domain</th>
+      <th>Filename</th>
+      <th>Retcode</th>
+    </tr>
+%[*expand,tableout6]%
+  </table>
+END
 %[*block,&table3,^END$]%
   <p class="fineprint">Excess use of site-specific attack targets.</p>
   <table>
@@ -229,6 +253,9 @@ END
   <h3>%[num5]% Shellshock Probes</h3>
 %[*if,eq,num5,=0,*expand,nohits]%
 %[*if,ne,num5,=0,*expand,table5]%
+  <h3>%[num6]% log4j Probes</h3>
+%[*if,eq,num6,=0,*expand,nohits]%
+%[*if,ne,num6,=0,*expand,table6]%
   <h3>%[num3]% Excess Use</h3>
 %[*if,eq,num3,=0,*expand,nohits]%
 %[*if,ne,num3,=0,*expand,table3]%
@@ -242,12 +269,14 @@ END
 %[*if,ne,non404_2,=0,*set,&fx2,="inred"]%
 %[*if,ne,non404_3,=0,*set,&fx3,="inred"]%
 %[*if,ne,non404_5,=0,*set,&fx5,="inred"]%
+%[*if,ne,non404_6,=0,*set,&fx6,="inred"]%
 %[*if,ne,non404_t,=0,*set,&fxt,="inred"]%
 <div class="short%[shorthidden]%" id="%[nameanchor]%_a2">
   <p>
     <span class="%[fx1]%">%[num1]% CGI Attacks</span>,
     <span class="%[fx2]%">%[num2]% Hack Probes</span>,
     <span class="%[fx5]%">%[num5]% Shellshock Probes</span>,
+    <span class="%[fx5]%">%[num6]% log4j Probes</span>,
     <span class="%[fx3]%">%[num3]% Excess Use</span>,
     <span class="%[fxt]%">%[non404_t]% pages served</span>
   </p>
