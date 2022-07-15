@@ -3,6 +3,7 @@
 %[** THVV 08/11/06 **]%
 %[** THVV 03/06/21 use REPORTDIR **]%
 %[** THVV 03/29/21 **]%
+%[** THVV 06/14/22 set DATABASE to SWTDB **]%
 %[** ================================================================ **]%
 #!/bin/sh
 # Shell script run by cron every day to create website usage report using Super Webtrax.
@@ -22,6 +23,8 @@ export DONELOGS=%[DONELOGS]%
 export BIN=$HOME/bin
 # .. where data is kept
 export DATADIR=%[DATADIR]%
+# .. the SQL database name
+export DATABASE=%[SWTDB]%
 # .. where the output goes
 export REPORTDIR=%[REPORTDIR]%
 # .. prefix for the log files

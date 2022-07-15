@@ -14,7 +14,9 @@
 # THVV 03/18/21 add tarfile-manifest.e to install-needs
 # THVV 03/26/21 adjust list of templates to match swt.sql
 # THVV 04/08/21 remove filetypepie.htmt and pienumberfile, obsolete
-# THVV 06/11/21 expandfile3 => expandfile
+# THVV 06/11/21 expandfile3 renamed expandfile
+# THVV 06/13/22 do not require globalqueries.htmt
+# THVV 07/14/22 check mys, mysqlrun, mysqldumpcum, mysqlload in prerun
 # ----------------------------------------------------------------
 # checks dirs
 #  SWTDIR          htmx files and sql files
@@ -37,8 +39,10 @@ elif [ "$FUNCTION" = "-preconfig" ] ; then
     CONFIGDIR=$SWTDIR
     RUNTIMEDIR="live/"
 elif [ "$FUNCTION" = "-preinstall" ] ; then
+    CONFIGDIR=$SWTDIR
     RUNTIMEDIR="live/"
 elif [ "$FUNCTION" = "-prerun" ] ; then
+    CONFIGDIR=$SWTDIR
     RUNTIMEDIR=$1
     RUNTIMEDIR="$RUNTIMEDIR"/		# ensure one trailing slash
     RUNTIMEDIR=`echo $RUNTIMEDIR | sed -e 's://$:/:'`
@@ -50,6 +54,7 @@ else
     echo "USAGE: sh checkswtfiles -preconfig|-preinstall|-prerun RUNTIMEDIR"
     exit 1  
 fi
+echo "$0: $FUNCTION check in `pwd`"
 
 filepresent()
 {
@@ -64,24 +69,34 @@ checkalist()
 {
     local a_pfx=""
     a_pfx="$1/"
+    if [ "$a_pfx" = "/" ] ; then
+	echo "$0: oops, error, a_pfx is empty"
+	exit 12
+    fi
     local a_list=""
     a_list="$2"
+    if [ "$a_list" = "" ] ; then
+	echo "$0: oops, error, a_list is empty"
+	exit 12
+    fi
     for i in $a_list
     do
 	filepresent $a_pfx$i
     done
 }
 
-templates=" accesstime.htmt analysis.htmt attacks.htmt byyear.htmt config.htmt cumdom.htmt cumpage.htmt dashcsv.htmt diskmontpt.htmt domain1.htmt domainlevel.htmt dslvhist.htmt duration.htmt filelist.htmt filesize.htmt filetype1.htmt geoloc.htmt ggq.htmt globalconfig.htmt globalqueries.htmt google.htmt heading.htmt histo2n.htmt histo3n1.htmt histo3nn1.htmt illref.htmt important7dayhead.htmt importanthead.htmt importanttail.htmt importantwrapper.htmt info.htmt localquery.htmt longshort.htmt monthsum.htmt navlinks.htmt optdoc.htmt paths1.htmt pathsql.htmt piecharts.htmt queries.htmt referrer.htmt repeat.htmt report403.htmt retcodetable.htmt tail.htmt todayline.htmt verbtable.htmt vhisto.htmt visitdetailhead.htmt visitsbycount.htmt wtxmacros.htmi yquery.htmt yreferrer.htmt ywords.htmt"
+templates=" accesstime.htmt analysis.htmt attacks.htmt byyear.htmt config.htmt cumdom.htmt cumpage.htmt dashcsv.htmt diskmontpt.htmt domain1.htmt domainlevel.htmt dslvhist.htmt duration.htmt filelist.htmt filesize.htmt filetype1.htmt geoloc.htmt ggq.htmt globalconfig.htmt google.htmt heading.htmt histo2n.htmt histo3n1.htmt histo3nn1.htmt illref.htmt important7dayhead.htmt importanthead.htmt importanttail.htmt importantwrapper.htmt info.htmt localquery.htmt longshort.htmt monthsum.htmt navlinks.htmt optdoc.htmt paths1.htmt pathsql.htmt piecharts.htmt queries.htmt referrer.htmt repeat.htmt report403.htmt retcodetable.htmt tail.htmt todayline.htmt verbtable.htmt vhisto.htmt visitdetailhead.htmt visitsbycount.htmt wtxmacros.htmi yquery.htmt yreferrer.htmt ywords.htmt"
 
 parts=" configdisplay.htmx swt swt.sql swtfunct.sh wtxmacros.htmi"
 
-toolsfiles="expandfile expandfile.pm readbindsql.pm readbindxml.pm checkswtfiles combinelogs expandfile_config logmerge logvisits3.pl mys mysqlrun mysqlload mysqldumpcum printvisitdetail3.pl readapacheline.pm thvvutil3.pm visitdata3.pl wordlist3.pl"
+toolsfiles="checkswtfiles combinelogs expandfile_config logmerge logvisits3.pl printvisitdetail3.pl readapacheline.pm thvvutil3.pm visitdata3.pl wordlist3.pl"
 
 config_templates=" combinelogs.conf configure CONFIGURE.swtconfig.htmi.tpt CONFIGURE.sqlcnf.tpt CONFIGURE.oldmys.tpt CONFIGURE.oldmysqldumpcum.tpt CONFIGURE.oldmysqlload.tpt CONFIGURE.oldmysqlrun.tpt CONFIGURE.mys.tpt CONFIGURE.mysqldumpcum.tpt CONFIGURE.mysqlload.tpt CONFIGURE.swt-user-sql.tpt CONFIGURE.check-tables.tpt CONFIGURE.mysqlrun.tpt CONFIGURE.cronjob.tpt CONFIGURE.combining-cronjob.tpt CONFIGURE.combinelogs-conf.tpt filecleanupsh.tpt install tablecleanupsql.tpt"
 
-config_results="swt-user.sql mys mysqlrun mysqlload mysqldumpcum sql.cnf sqlx.cnf"
+# retults of configure, s/b in $CONFIGDIR => $SWTDIR
+config_results="swt-user.sql mys mysqlrun mysqlload mysqldumpcum sql.cnf"
 
+# intialization in $CONFIGDIR
 install_needs="init_wtcumfile.sql init_wtcumgoog.sql init_wtcumpath.sql init_wtcumquery.sql init_wtcumref.sql init_wtdayhist.sql init_wtdomhist.sql init_wtlog.sql init_wtsrhist.sql tarfile-manifest.e"
 
 runtimefiles="blackpix.gif bluepix.gif cyanpix.gif darkbluepix.gif fuchsiapix.gif goldenrodpix.gif graypix.gif greenpix.gif indigopix.gif lightgreenpix.gif limepix.gif maroonpix.gif navypix.gif olivepix.gif orangepix.gif pinkpix.gif purplepix.gif redpix.gif silverpix.gif tealpix.gif violetpix.gif whitepix.gif yellowpix.gif swt.js piecanvas.js excanvas.js swtstyle.css"
@@ -112,12 +127,18 @@ if [ "$CONFIGDIR" != "" ] ; then
     checkalist "$CONFIGDIR" "$config_templates"
 fi
 
-# .. for -preinstall, check configure results and intialization .sql files
+# .. for -preinstall, check configure results and intialization .sql files are in install-swt
 if [ "$FUNCTION" = "-preinstall" ] ; then
     #.. check that configure worked
     checkalist "$CONFIGDIR" "$config_results"
     #.. check install machinery
     checkalist "$CONFIGDIR" "$install_needs"
+fi
+
+# .. for -prerun, check the myxxx tools are actually installed
+if [ "$FUNCTION" = "-prerun" ] ; then
+    #.. check that configure worked for myxxx tools
+    checkalist "$SWTDIR" "$config_results"
 fi
 
 # .. check runtime gifs etc
@@ -194,7 +215,7 @@ fi
 # ----------------------------------------------------------------
 # complain if anything was missing and return nonzero errcode
 # ----------------------------------------------------------------
-echo "$0: checked $nfiles files."
+echo "$0: $FUNCTION checked $nfiles files in `pwd`."
 if test ! -z "$BAD"
 then
     { echo "$0: missing files: $BAD" >&2

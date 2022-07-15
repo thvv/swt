@@ -1,5 +1,5 @@
 Super Webtrax  - Web log analysis report
-version 14, 2021-02-18
+version 15, 2022-06-14
 
 See https://multicians.org/thvv/swt.html
 
@@ -16,8 +16,8 @@ and password. Create $HOME/.my.cnf with that info.
 In GitHub, switch to the "master" branch, click "code" and clone the repository 
 into a directory "install-swt".
 
-Install install-swt/expandfile in your $PATH.
-Install expandfile.pm, readbinsql.pm, readbinxml.pm in your $PERL5LIB.
+Install install-swt/expandfile in your $PATH. (see https://multicians.org/thvv/htmx/expandfile.html)
+Install expandfile.pm, readbinsql.pm, readbinxml.pm in your $PERL5LIB... I use $HOME/bin.
 Install CPAN modules LWP::Simple, Term::ANSIColor, DBI, DBD::mysql, XML::LibXML, XML::Simple in your $PERL5LIB
 
 Run the configure script by doing
@@ -58,18 +58,23 @@ It will move all the gifs (one pixel stuff) to the report dir
 It will move all the Java class files to the report dir
 It will copy swtstyle.css and swt.js to the report dir.
 
-If this is a new install it will ask whether to init the database.
+If this is a new install, it will ask whether to init the database.
+
+Test the script from the command line to see if it correctly processes
+a web log, and that wxtreport looks correct.
 
 The installer generates a cron job to run Super Webtrax every night
 and to move the output files to your web statistics display
 directory.  This job may require hand editing.  Because jobs started by
-cron do not execute your shell startup, you must take special steps to
-ensure that your $PATH, $PERL5LIB, and other shell variables are
-correctly set.
+cron do not execute your shell startup, ensure that your $PATH, $PERL5LIB,
+and other shell variables are correctly set in your crontab header.
 
-If you are doing GeoIP processing, download GeoLite2-City.mmdb from
-http://www.maxmind.com/ (need a free license) and install it in ~/lib,
+If you use logextractor2 and MaxMind GeoIP processing, you also need
 Ensure that GeoIP2::Database::Reader is installed on the Perl path.
+- a free MaxMind account from http://www.maxmind.com/
+- a weekly cron job to copy GeoLite2-City.mmdb into $HOME/lib, using the MaxMind account ID.
+- Perl module MaxMind::DB::Reader::XS installed in CPAN
+- Library module libmaxminddb installed in /user/local/lib
 
 Tailor swt-user.sql as needed.
 

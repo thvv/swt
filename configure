@@ -30,10 +30,12 @@
 # THVV 02/18/21 move all file checking to checkswtfiles
 # THVV 03/20/21 fix up the XDOMAINS stuff
 # THVV 06/20/21 Eric Swenson pointed out many weaknesses.  Added checks to check for correct installation, especially of Perl.
+# THVV 06/14/22 Moving pl362 to Ubuntu found some bugs. Fix setting DATABASE in cronjob.
+# THVV 07/15/22 fixes so that one web server can have different instances of swt that use different databases.
 
 # bugs
 # ... should write out as soon as all questions are answered so if anything is not set, we don't have to do it all again
-# ... need not have expandfile readapacheline.pm thvve.pm in the execution directory if they are on the path ??? 
+# ... cannot have different SWT installations use different versions of expandfile
 # ... -geoip different from -geoipcity in logextractor2, make sure doing this right, check the geoipfilename .. oops, doesnt work that way
 
 # ----------------------------------------------------------------
@@ -80,7 +82,7 @@ fi
 # .. on pre-Big Sur macs, the system perl was very ancient
 whereisperl=`which /usr/local/bin/perl`
 if [ "$whereisperl" = "" ] ; then
-    echo 1>&2 "$0: ***** failed: /usr/local/bin/perl not found. Shebang lines in tools will fail."
+    echo 1>&2 "$0: ***** failed: /usr/local/bin/perl not found. Shebang lines in /tools will fail."
     exit 127
 fi
 # PERL5LIB must be defined
@@ -159,7 +161,7 @@ else
 fi
 
 # ----------------------------------------------------------------
-# ask a lot of questions
+# functions to ask a lot of questions
 # .. if user enters a blank line, set it to the default
 # .. if default is "", ask again until nonblank is entered
 # .. if result is -blank- then we meant ""
@@ -340,6 +342,22 @@ askforexistingdir()
     cd $curdir
     export ${thing}=$newdir
 } # askforexistingdir
+
+# ================================================================
+# functions to check tools vs installed $HOME/bin files .. prints warnings if different
+checkvsbin()
+{
+    local thing=""
+    thing="$1"
+    echo "$0: checking that tools/$thing and $HOME/bin/$thing match..."
+    diff -b $HOME/bin/$thing tools/$thing
+    if [ $? != 0 ] ; then
+	echo "$0: **** warning: diff $HOME/bin/$thing tools/$thing; resolve ****"
+	echo "## `date` $HOME/bin/$thing differs from install-swt/tools/$thing" >> CONFIGURE.status
+    else
+	echo "## `date` configure $HOME/bin/$thing ok" >> CONFIGURE.status
+    fi
+} # checkvsbin
 
 # ================================================================
 # constants
@@ -581,6 +599,19 @@ fi
 rm CONFIGURE.temp.sql
 #
 echo "================================================================"
+# ensure that the right stuff is installed in $HOME/bin .. tools should match .. differences are warnings not fatal
+checkvsbin expandfile
+checkvsbin expandfile.pm
+checkvsbin readbindsql.pm
+checkvsbin readbindxml.pm
+checkvsbin databasesize.pm
+checkvsbin readapacheline.pm
+checkvsbin dbsize
+checkvsbin fmtnum
+checkvsbin padstring
+checkvsbin logextractor2
+
+echo "================================================================"
 echo "$0: testing that expandfile can expand a template..."
 rm -f swtconfig.htmi
 expandfile CONFIGURE.swtconfig.htmi.tpt > swtconfig.htmi
@@ -675,22 +706,23 @@ rm -f sql.cnf mysqlload mysqlrun mys mysqldumpcum
 expandfile swtconfig.htmi CONFIGURE.sqlcnf.tpt > sql.cnf
 chmod 400 sql.cnf
 
-echo "$0: .. generating mysqlload mys msqlrun mysqldumpcum in tools/"
+# these files cannot live in /tools, since they are tailored to the database and a site may have several SWTs
+echo "$0: .. generating mysqlload mys msqlrun mysqldumpcum"
 if [ "$OLDMYSQL" = "yes" ] ; then
     echo "$0: old style SQL OLDMYSQL=$OLDMYSQL"
-    expandfile swtconfig.htmi CONFIGURE.oldmysqlload.tpt > tools/mysqlload
-    expandfile swtconfig.htmi CONFIGURE.oldmysqlrun.tpt > tools/mysqlrun
-    expandfile swtconfig.htmi CONFIGURE.oldmys.tpt > tools/mys
-    expandfile swtconfig.htmi CONFIGURE.oldmysqldumpcum.tpt > tools/mysqldumpcum
+    expandfile swtconfig.htmi CONFIGURE.oldmysqlload.tpt > mysqlload
+    expandfile swtconfig.htmi CONFIGURE.oldmysqlrun.tpt > mysqlrun
+    expandfile swtconfig.htmi CONFIGURE.oldmys.tpt > mys
+    expandfile swtconfig.htmi CONFIGURE.oldmysqldumpcum.tpt > mysqldumpcum
 else
     echo "$0: new style SQL OLDMYSQL=$OLDMYSQL"
-    expandfile swtconfig.htmi CONFIGURE.mysqlload.tpt > tools/mysqlload
-    expandfile swtconfig.htmi CONFIGURE.mysqlrun.tpt > tools/mysqlrun
-    expandfile swtconfig.htmi CONFIGURE.mys.tpt > tools/mys
-    expandfile swtconfig.htmi CONFIGURE.mysqldumpcum.tpt > tools/mysqldumpcum
+    expandfile swtconfig.htmi CONFIGURE.mysqlload.tpt > mysqlload
+    expandfile swtconfig.htmi CONFIGURE.mysqlrun.tpt > mysqlrun
+    expandfile swtconfig.htmi CONFIGURE.mys.tpt > mys
+    expandfile swtconfig.htmi CONFIGURE.mysqldumpcum.tpt > mysqldumpcum
 fi
 # need x permission, may contain passwords, secure correctly
-chmod 500 tools/mysqlload tools/mysqldumpcum tools/mysqlrun tools/mys
+chmod 500 mysqlload mysqldumpcum mysqlrun mys
 
 # uses $MYDOMAIN, $SITENAME, $SITEID, $CONFIGFILEDIR, $PROGRAMDIR, $DATADIR, $XDOMAINS
 echo "$0: .. generating swt-user.sql"
@@ -725,14 +757,14 @@ expandfile swtconfig.htmi CONFIGURE.check-tables.tpt > CONFIGURE.check-tables.sq
 # generate geoip2.sh.  Uses MAXMIND_LICENSE_KEY
 if test $GEOIP = "yes"
 then
-    message "generating tools/geoip2.sh"
+    message "generating geoip2.sh"
     # if the license key is not set in shell config, set it
     test -z "$MAXMIND_LICENSE_KEY" && export MAXMIND_LICENSE_KEY="MAXMIND_LICENSE_KEY"
-    expandfile swtconfig.htmi CONFIGURE.geoip2.sh.tpt > tools/geoip2.sh
-    chmod +x tools/geoip2.sh
+    expandfile swtconfig.htmi CONFIGURE.geoip2.sh.tpt > geoip2.sh
+    chmod +x geoip2.sh
     # if the license key is the default, remind user to get a real one
     if [ "$MAXMIND_LICENSE_KEY" = "MAXMIND_LICENSE_KEY" ] ; then
-	echo "***** edit tools/geoip2.sh to replace MAXMIND_LICENSE_KEY, see https://dev.maxmind.com/geoip/geoip2/geolite2/"
+	echo "***** edit geoip2.sh to replace MAXMIND_LICENSE_KEY, see https://dev.maxmind.com/geoip/geoip2/geolite2/"
     fi
 fi
 

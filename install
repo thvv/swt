@@ -10,6 +10,8 @@
 # THVV 01/14/16 check for missing files
 # THVV 11/27/16 create a default postamble.txt
 # THVV 02/18/21 adapt for expandfile3 and accumulated changes
+# THVV 06/13/21 expandfile3 => expandfile
+# THVV 07/15/22 handle installing more than one SWT on a server
 
 # bugs ... logextractor2 should use zcat or gzcat depending on which is installed
 
@@ -110,11 +112,12 @@ read -p "$0: install into $NEWSWTDIR ??? " readvar
 if [ "$readvar" = "yes" ] ; then
     message "Installing Super Webtrax `cat vnfile` from `pwd` into $NEWSWTDIR"
 else
+    message "aborted: answer was not 'yes'"
     exit 1
 fi
 
 # wipe out old database if it exists?
-read -p "$0: ****** reset database??? " readvar
+read -p "$0: ****** reset database $SWTDB??? " readvar
 if [ "$readvar" = "yes" ] ; then
     message "Fresh installation of Super Webtrax `cat vnfile`"
     export FRESH=yes
@@ -124,14 +127,14 @@ else
 fi
 
 # ----------------------------------------------------------------
-echo ".. checking if files are present"
+message "checking if files are present -preinstall"
 $CHECKSWTFILES -preinstall $LIVEDIR
 errorwas=$?
 if [ "$errorwas" != "0" ] ; then
     echo 1>&2 "$0: ***** failed: $CHECKSWTFILES -preinstall $LIVEDIR"
     exit 127
 fi
-echo "## `date` install $CHECKSWTFILES -preinstall OK" >> CONFIGURE.status
+message "$CHECKSWTFILES -preinstall OK"
 
 # ----------------------------------------------------------------
 # copy things to where they go
@@ -172,7 +175,7 @@ copyfile()
 	echo ".. copying $file to $targetdir"
 	echo "## `date` install $0 copying $file to $targetdir" >> CONFIGURE.status
 	if [ ! -e $targetdir/$file ] ; then
-	    cp  $file $targetdir-f
+	    cp  $file $targetdir
 	    if [ $? != 0 ] ; then
 		echo "$0: **** ERROR: failed to cp install-swt/$file $targetdir "
 	    fi
@@ -188,20 +191,17 @@ copyfile()
 
 export FILESDIFF=""
 
-# copy files that were created by configure
+echo "$0: installing Super Webtrax execution files into $PROGRAMDIR"
+
+# copy files that were created by configure in install-swt to the execution dir.
 # these contain passwords so secure them against strangers reading them.
 copyfile swtconfig.htmi $CONFIGFILEDIR 400
 
-# (put them in PROGRAMDIR and also in TOOLSDIR .. (should hardlink them))
-copyfile tools/mys $PROGRAMDIR 500
-copyfile tools/mysqldumpcum $PROGRAMDIR 500
-copyfile tools/mysqlload $PROGRAMDIR 500
-copyfile tools/mysqlrun $PROGRAMDIR 500
-
-copyfile tools/mys $TOOLSDIR 500
-copyfile tools/mysqldumpcum $TOOLSDIR 500
-copyfile tools/mysqlload $TOOLSDIR 500
-copyfile tools/mysqlrun $TOOLSDIR 500
+# (put them in PROGRAMDIR .. (should hardlink them))
+copyfile mys $PROGRAMDIR 500
+copyfile mysqldumpcum $PROGRAMDIR 500
+copyfile mysqlload $PROGRAMDIR 500
+copyfile mysqlrun $PROGRAMDIR 500
 
 # if this is "new mysql"
 copyfile sql.cnf $PROGRAMDIR 400
@@ -240,7 +240,7 @@ test -d $PROGRAMDIR/tools || mkdir $PROGRAMDIR/tools # create if not present
 echo "## `date` install copying tools to $PROGRAMDIR/tools" >> CONFIGURE.status
 cp -f ./tools/* $PROGRAMDIR/tools
 
-## copy tools programs to $HOME/bin -- if not already there -- should I hardlink??
+## copy tools programs to $HOME/bin -- if not already there -- should I hardlink??  these get errors like chmod: cannot access '/usr/home/ttxretra/bin/tools/logextractor2': No such file or directory
 echo "$0: copy tools into $HOME/bin"
 echo "## `date` $0 copy tools to $HOME/bin" >> CONFIGURE.status
 copyfile tools/logextractor2 $HOME/bin 755
@@ -248,16 +248,11 @@ copyfile tools/combinelogs $HOME/bin 755
 copyfile tools/logmerge $HOME/bin 755
 copyfile tools/fmtnum $HOME/bin 755
 
-# symlink logextractor2 and expandfile in $PROGRAMDIR .. do we need this
-ln -s $HOME/bin/logextractor2
-ln -s $HOME/bin/expandfile
+# $PERL5LIB is now set in the cronjob, don't need this
 
-# $PERL5LIB is now set in the cronjob probably don't need this
-#ln -s $HOME/bin/readapacheline.pm $RAWLOGS/readapacheline.pm
-
-# ----------------------------------------------------------------
+# ---------------------------------------------------------------- seems like FILESDIFF is empty
 if [ "$FILESDIFF" != "" ] ; then
-    echo "$0: ================ Files not copies, resolve diffs ================"
+    echo "$0: ================ Files differ, resolve diffs ================"
     echo "$FILESIDFF"
     echo "================================================================"
     echo "## `date` $0: files different, need resolving: $FILESIDFF" >> CONFIGURE.status
@@ -280,7 +275,7 @@ This product includes GeoLite data created by MaxMind, available from https://ww
 w
 q
 EOF
-	export MYSQLLOAD="./mysqlload"
+	#export MYSQLLOAD="./mysqlload"    # .. this file was generated from a tpt and contains the database creds
 	#$MYSQLLOAD init_wtcumdom.sql     # obsolete, see wtdomhist
 	#$MYSQLLOAD init_wtdomainday.sql  # obsolete?
 	#$MYSQLLOAD init_wtfilehist.sql   # obsolete?
@@ -304,7 +299,7 @@ cd $INSTALLDIR
 echo ".. checking that needed tables exist"
 if [ -f CONFIGURE.check-tables.sql ] ; then
     rm -f INSTALL.tableprobs.txt
-    mysql --skip-column-names < CONFIGURE.check-tables.sql | grep -v "ok$" > INSTALL.tableprobs.txt
+    ./mysqlrun 'source CONFIGURE.check-tables.sql' | grep -v "ok$" > INSTALL.tableprobs.txt # this assumes sql.cnf
     if [ -s INSTALL.tableprobs.txt ] ; then
 	echo "$0: *** ERROR, table problems follow ***"
 	cat INSTALL.tableprobs.txt
