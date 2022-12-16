@@ -194,7 +194,13 @@ sub process_one_file {
     my $s;
 
     if ($the_log_file =~ /\.gz$|\.z$/i) {
-	open(LOG, "gzcat $the_log_file |") or die "$me: $the_log_file missing. $!";
+	my $catter = "";
+	my $zcok = `which zcat`;
+	my $gzcok = `which gzcat`;
+	$catter = "zcat" if $zcok ne "";
+	$catter = "gzcat" if $gzcok ne "";
+	die "error: neither zcat or gzcat found, cannot open $filename[$i]" if $catter eq "";
+	open(LOG, "$catter $the_log_file |") or die "$me: $the_log_file missing. $!";
     } else {
 	open(LOG, "$the_log_file") or die "$me: $the_log_file missing. $!";
     }

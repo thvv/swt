@@ -17,6 +17,7 @@
 # THVV 06/11/21 expandfile3 renamed expandfile
 # THVV 06/13/22 do not require globalqueries.htmt
 # THVV 07/14/22 check mys, mysqlrun, mysqldumpcum, mysqlload in prerun
+# THVV 12/16/22 fix prerun dirs
 # ----------------------------------------------------------------
 # checks dirs
 #  SWTDIR          htmx files and sql files
@@ -42,7 +43,7 @@ elif [ "$FUNCTION" = "-preinstall" ] ; then
     CONFIGDIR=$SWTDIR
     RUNTIMEDIR="live/"
 elif [ "$FUNCTION" = "-prerun" ] ; then
-    CONFIGDIR=$SWTDIR
+    CONFIGDIR=$SWTDIR/install-swt
     RUNTIMEDIR=$1
     RUNTIMEDIR="$RUNTIMEDIR"/		# ensure one trailing slash
     RUNTIMEDIR=`echo $RUNTIMEDIR | sed -e 's://$:/:'`
@@ -56,6 +57,7 @@ else
 fi
 echo "$0: $FUNCTION check in `pwd`"
 
+# -- filepresent filename ,,checks one file
 filepresent()
 {
     local thing=""
@@ -65,8 +67,10 @@ filepresent()
     nfiles=`echo "$nfiles + 1" | bc`
     test -e "$thing" || test -L "$thing" || export BAD="$BAD $thing" # allow files or links
 }
+# -- checkalist dir filelist title
 checkalist()
 {
+    #echo "***checkalist $3"
     local a_pfx=""
     a_pfx="$1/"
     if [ "$a_pfx" = "/" ] ; then
@@ -93,8 +97,8 @@ toolsfiles="checkswtfiles combinelogs expandfile_config logmerge logvisits3.pl p
 
 config_templates=" combinelogs.conf configure CONFIGURE.swtconfig.htmi.tpt CONFIGURE.sqlcnf.tpt CONFIGURE.oldmys.tpt CONFIGURE.oldmysqldumpcum.tpt CONFIGURE.oldmysqlload.tpt CONFIGURE.oldmysqlrun.tpt CONFIGURE.mys.tpt CONFIGURE.mysqldumpcum.tpt CONFIGURE.mysqlload.tpt CONFIGURE.swt-user-sql.tpt CONFIGURE.check-tables.tpt CONFIGURE.mysqlrun.tpt CONFIGURE.cronjob.tpt CONFIGURE.combining-cronjob.tpt CONFIGURE.combinelogs-conf.tpt filecleanupsh.tpt install tablecleanupsql.tpt"
 
-# retults of configure, s/b in $CONFIGDIR => $SWTDIR
-config_results="swt-user.sql mys mysqlrun mysqlload mysqldumpcum sql.cnf"
+# retults of configure, s/b in $CONFIGDIR => $SWTDIR/tools and $SWTDIR
+config_results="swt-user.sql tools/mys tools/mysqlrun tools/mysqlload tools/mysqldumpcum sqlx.cnf"
 
 # intialization in $CONFIGDIR
 install_needs="init_wtcumfile.sql init_wtcumgoog.sql init_wtcumpath.sql init_wtcumquery.sql init_wtcumref.sql init_wtdayhist.sql init_wtdomhist.sql init_wtlog.sql init_wtsrhist.sql tarfile-manifest.e"
@@ -113,39 +117,39 @@ runtimefiles="blackpix.gif bluepix.gif cyanpix.gif darkbluepix.gif fuchsiapix.gi
 export BAD=""
 
 #.. check report template files in SWTDIR always .. list from swt.sql reportoptions
-checkalist "$SWTDIR" "$templates"
+checkalist "$SWTDIR" "$templates" "templates"
 
 #.. check parts files in SWTDIR always
-checkalist "$SWTDIR" "$parts"
+checkalist "$SWTDIR" "$parts" "parts"
 
 #.. check /tools files always
-checkalist "$SWTDIR/tools/" "$toolsfiles"
+checkalist "$SWTDIR/tools/" "$toolsfiles" "toolsfiles"
 
 # .. for -preconfig, check config tpts before expanding
 if [ "$CONFIGDIR" != "" ] ; then
     #.. check configure machinery
-    checkalist "$CONFIGDIR" "$config_templates"
+    checkalist "$CONFIGDIR" "$config_templates" "templates"
 fi
 
 # .. for -preinstall, check configure results and intialization .sql files are in install-swt
 if [ "$FUNCTION" = "-preinstall" ] ; then
     #.. check that configure worked
-    checkalist "$CONFIGDIR" "$config_results"
+    checkalist "$CONFIGDIR" "$config_results" "config_results"
     #.. check install machinery
-    checkalist "$CONFIGDIR" "$install_needs"
+    checkalist "$CONFIGDIR" "$install_needs" "install_needs"
 fi
 
 # .. for -prerun, check the myxxx tools are actually installed
 if [ "$FUNCTION" = "-prerun" ] ; then
     #.. check that configure worked for myxxx tools
-    checkalist "$SWTDIR" "$config_results"
+    checkalist "$SWTDIR" "$config_results" "results"
 fi
 
 # .. check runtime gifs etc
 if [ "$RUNTIMEDIR" != "" ] ; then
     #.. check /runtimedir files .. if run by swtfunct, this is the path for the live dir
     echo "checking $RUNTIMEDIR"
-    checkalist "$RUNTIMEDIR/" "$runtimefiles"
+    checkalist "$RUNTIMEDIR/" "$runtimefiles" "runtimefiles"
 fi
 
 # ----------------------------------------------------------------
@@ -195,7 +199,7 @@ cpan_mods="LWP::Simple Term::ANSIColor DBI DBD::mysql XML::LibXML XML::Simple ex
 BADMOD=""
 for j in $cpan_mods
 do
-    # echo "..checking $j"
+    # echo "..checking cpan $j"
     zz=`perldoc -lm $j | sed 's/^No module.*$//'`
     if [ "$zz" = "" ] ; then
 	export BADMOD="$BADMOD $j"

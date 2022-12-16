@@ -136,6 +136,7 @@
 -- THVV 2020-05-23 5.354 transform 52.162.211. to !Microsoft
 -- THVV 2021-03-15 6.0 add CHECKSWTFILES, RUNTIMEDIR and, REPORTDIR, TOOLSDIR to swt.sql
 -- THVV 2021-04-04 5.355 add Markingdon and Toyon
+-- THVV 2022-08-10 5.356 add HTTRACK to indexers, removed Toyon
 
 -- ================================================================
 -- Documentation of configurable items
@@ -400,7 +401,7 @@ INSERT INTO wtindexers (indexer, indexertype, indexerwhy) VALUES
 ('liferea','rss','rss reader'),  -- 2007-07-29
 ('libcurl','bulk',''),  -- 2007-07-27
 ('link-checker','bulk',''),  -- 2007-07-27
-('httrack','bulk',''),  -- 2013-01-21 website copier
+('httrack','indexer',''),  -- 2013-01-21 website copier, indexer 2022-08-10
 ('wget','bulk',''),  -- 2007-07-27
 ('008','indexer',''),  -- 2011-06-15 .. see http://www.80legs.com/webcrawler.html
 ('libcrawl','indexer',''),  -- 2013-01-21 Chinese sites
@@ -552,7 +553,6 @@ INSERT INTO wtpredomain (predomain, pwhy) VALUES
 ('s~23\\.102\\.~!Microsoft 23.102.~i','Bing maybe'),
 ('s~23\\.103\\.~!Microsoft 23.1003.~i','Bing maybe'),
 ('c-98-35-69-208\\.hsd1\\.ca\\.comcast\\.net.us.San Jose CA.~!MKG c-98-35-69-208.hsd1.ca.comcast.net[us/San Jose CA]~i','MaxMind'), -- 2021-04-04 -- XXX move to swt-user
-('c-73-158-125-124\\.hsd1\\.ca\\.comcast\\.net.us.San Jose CA.~!TOYON c-73-158-125-124.hsd1.ca.comcast.net[us/San Jose CA]~i','MaxMind'), -- 2021-04-04 -- XXX move to swt-user
 ('s~c-73-215-248-73\\.hsd1\\.nj\\.comcast\\.net.us.Ocean City NJ.~!THVV c-73-215-248-73.hsd1.nj.comcast.net[US/Ocean City NJ]~i','MaxMind'), -- XXX move to swt-user
 ('s~c-73-215-248-73\\.hsd1\\.nj\\.comcast\\.net.us.Ocean View NJ.~!THVV c-73-215-248-73.hsd1.nj.comcast.net[US/Ocean City NJ]~i','01/15/18, MaxMind fail'), -- XXX move to swt-user
 ('s~c-73-215-248-73\\.hsd1\\.nj\\.comcast\\.net.us.Marmora NJ.~!THVV c-73-215-248-73.hsd1.nj.comcast.net[US/Ocean City NJ]~i','04/10/18, MaxMind fail'); -- XXX move to swt-user

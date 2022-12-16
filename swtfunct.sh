@@ -155,7 +155,7 @@ initialsetup ()
     $COMMANDPREFIX $CHECKSWTFILES -prerun $REPORTDIR
     errorwas=$?
     if [ "$errorwas" != "0" ] ; then
-       echo 1>&2 "$0: ***** failed: tools/checkswtfiles -prerun $RUNTIMEDIR"
+       echo 1>&2 "$0: ***** failed: tools/checkswtfiles -prerun $REPORTDIR"
        exit 127
     fi
     # prints one line saying how many files were checked, lists missing files if failed.    

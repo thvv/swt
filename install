@@ -106,7 +106,7 @@ then
     exit 127
 fi
 
-# do you really mean to install?
+# do you really mean to install?  get parent dir of install-swt
 export NEWSWTDIR=$(dirname `pwd`)
 read -p "$0: install into $NEWSWTDIR ??? " readvar
 if [ "$readvar" = "yes" ] ; then
@@ -126,7 +126,7 @@ else
     message "Updating previous installation (`cat $PROGRAMDIR/vnfile`) of Super Webtrax to `cat vnfile` in $NEWSWTDIR"
 fi
 
-# ----------------------------------------------------------------
+# ---------------------------------------------------------------- (wdir=install-swt)
 message "checking if files are present -preinstall"
 $CHECKSWTFILES -preinstall $LIVEDIR
 errorwas=$?
@@ -139,6 +139,7 @@ message "$CHECKSWTFILES -preinstall OK"
 # ----------------------------------------------------------------
 # copy things to where they go
 # if something is there already, fuss
+#    copyfile filename targetdir mode
 copyfile()
 {
     local file=""
@@ -147,7 +148,6 @@ copyfile()
     targetdir="$2"
     local mode=""
     mode="$3"
-    local readval
 
     if test ! -f $file
     then
@@ -182,7 +182,7 @@ copyfile()
 	fi
 	chmod $mode $targetdir/$file
 	if [ $? != 0 ] ; then
-	    echo "$0: **** ERROR: failed to chmod $mode $targetdir/$file "
+	    echo "$0: **** ERROR: failed to chmod $mode $targetdir/$file $?"
 	fi
     fi
 } # copyfile
@@ -191,7 +191,7 @@ copyfile()
 
 export FILESDIFF=""
 
-echo "$0: installing Super Webtrax execution files into $PROGRAMDIR"
+echo "$0: installing Super Webtrax execution files from `pwd` into $PROGRAMDIR"
 
 # copy files that were created by configure in install-swt to the execution dir.
 # these contain passwords so secure them against strangers reading them.
@@ -241,12 +241,14 @@ echo "## `date` install copying tools to $PROGRAMDIR/tools" >> CONFIGURE.status
 cp -f ./tools/* $PROGRAMDIR/tools
 
 ## copy tools programs to $HOME/bin -- if not already there -- should I hardlink??  these get errors like chmod: cannot access '/usr/home/ttxretra/bin/tools/logextractor2': No such file or directory
-echo "$0: copy tools into $HOME/bin"
-echo "## `date` $0 copy tools to $HOME/bin" >> CONFIGURE.status
+echo "$0: copy `pwd`/tools into $HOME/bin"
+echo "## `date` $0 copy `pwd`/tools to $HOME/bin" >> CONFIGURE.status
+cd tools
 copyfile tools/logextractor2 $HOME/bin 755
 copyfile tools/combinelogs $HOME/bin 755
 copyfile tools/logmerge $HOME/bin 755
 copyfile tools/fmtnum $HOME/bin 755
+cd ..
 
 # $PERL5LIB is now set in the cronjob, don't need this
 
