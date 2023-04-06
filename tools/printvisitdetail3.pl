@@ -40,6 +40,7 @@
 # 07/22/19 THVV 2.11 change DL COMPACT to DL STYLE="display: compact" which is still flagged by W3C
 # 11/13/20 THVV 2.2 expandfile3
 # 06/11/21 THVV 2.21 expandfile3 => expandfile
+# 03/27/23 THVV 2.3 add additional vars from visits table for use in print criteria: ninvisit, htmlinvisit, graphicsinvisit, duration
 #
 # Reads the SQL database and writes HTML
 # Originally written in HTMX but was very slow, 2:20 instead of 7 seconds
@@ -640,6 +641,11 @@ sub flush_eventlog {
 # Sets global: $visitblock %seenthisdomain $lastreferrer $filehits
 sub open_visit {
     $v{'browser'} = $v{'visits.browsername'}; # get the pretty name from the visit
+   $v{'ninvisit'} = $v{'visits.ninvisit'};
+   $v{'htmlinvisit'} = $v{'visits.htmlinvisit'};
+   $v{'graphicsinvisit'} = $v{'visits.graphicsinvisit'};
+   $v{'bytesinvisit'} = $v{'visits.bytesinvisit'};
+   $v{'duration'} = $v{'visits.duration'};
     $v{'vclass'} = $v{'visits.visitclass'};
     $v{'source'} = $v{'visits.source'};
     $v{'authid'} = $v{'visits.authid'};

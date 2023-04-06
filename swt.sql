@@ -137,7 +137,7 @@
 -- THVV 2021-03-15 6.0 add CHECKSWTFILES, RUNTIMEDIR and, REPORTDIR, TOOLSDIR to swt.sql
 -- THVV 2021-04-04 5.355 add Markingdon and Toyon
 -- THVV 2022-08-10 5.356 add HTTRACK to indexers, removed Toyon
-
+-- THVV 2023-01-28 5.357 add crawl.amazonbot.amazon
 -- ================================================================
 -- Documentation of configurable items
 -- .. this info will go into the help file
@@ -364,6 +364,7 @@ INSERT INTO wtrobotdomains (dom, domwhy) VALUES
 ('188\\.92\\.76\\.167','LV'), -- 2013-03-19 bothering Birch and Beebe with fufeguba.z-26.us and vonemac.hostweb4u.info hits
 ('^crawl',''),
 ('^robot','2009-03-27'),
+('crawl\\.amazonbot','2023-01-28'), -- 52-70-240-171.crawl.amazonbot.amazon[us/Ashburn VA]
 ('^.*crawl.*looksmart\\.com',''),
 ('^.*crawl\\.baidu\\.com',''), -- 2015-03-12
 ('semalt\\.com',''), -- 2015-03-12
@@ -420,6 +421,7 @@ INSERT INTO wtindexers (indexer, indexertype, indexerwhy) VALUES
 ('acadiauniversitywebcensusclient','indexer',''),
 ('ostc-link-checkerlibwww-perl','indexer',''),
 ('bot','indexer',''), -- 2007-07-26, generic
+('turnitin','indexer',''), -- 2023-01-20, generic
 ('sleuth','indexer',''), -- 2013-01-22
 ('answerbus','indexer',''),
 ('appie','indexer',''),
