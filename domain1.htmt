@@ -29,7 +29,7 @@
 %[** - %[nameanchor]%_legendname - legend name var **]%
 %[** - glb_bar_graph_width - global width in pixels for bar graph **]%
 %[**  **]%
-%[** Written 2006-2020 by Tom Van Vleck **]%
+%[** Written 2006-2023 by Tom Van Vleck **]%
 %[**  THVV 04/20/06 **]%
 %[**  THVV 06/11/06 stripe by source **]%
 %[**  THVV 08/13/06 long and short **]%
@@ -37,21 +37,31 @@
 %[**  THVV 11/21/06 add DSPV column, fix short report to always show a name **]%
 %[**  THVV 09/13/07 call trimdomain **]%
 %[**  THVV 09/18/20 expandfile3 **]%
+%[**  THVV 07/27/23 use query domain1a for short query.. suppresses indexer visits **]%
 %[** ================================================================ **]%
 %[*include,=wtxmacros.htmi]%
 %[*set,&fn,=""]%
 %[*set,&s00,=""]%
 %[*set,&oldctl,=""]%
 %[*if,ne,subtitle,="",*expandv,&s00,subtitle]%
+%[** --- get query2 and run it with no iterator and discarding output. it sets 'fullscale' from 'col3maxv' --- **]%
 %[*callv,getquery,nameanchor,="query2"]%
 %[*sqlloop,&junk,=x,x0]%
 %[*set,&fullscale,%[%[nameanchor]%_col3maxv]%]%
+%[** --- get query1 and run it using 'chartiter' which creates in 'chartout' --- **]%
 %[*callv,getquery,nameanchor,="query1"]%
 %[*sqlloop,&junk,chartiter,x0]%
 %[*expandv,&junk,flush]%
+%[** --- get query1a and run it using 'chartitera' which creates in 'chartouta' --- **]%
+%[*callv,getquery,nameanchor,="query1a"]%
+%[*sqlloop,&junk,chartitera,x0]%
+%[*expandv,&junk,flusha]%
+%[** ---------------------------------------------------------------- **]%
+%[** --- get legendquery and run it using 'legenditer' which outputs a legend --- **]%
 %[*callv,getquery,nameanchor,="legendquery"]%
 %[*sqlloop,&legend,legenditer,x0]%
 %[** ================================================================ **]%
+%[** --- long iterator expanded once for each row from query1, adds an IMG tag 'stripecount' pixels wide to the last TD for each bar .. output in 'chartout' --- **]%
 %[*block,&chartiter,^END$]%
 %[*set,&ctl,%[%[nameanchor]%_labelvar]%]%
 %[*if,nelc,ctl,oldctl,*expandv,&junk,switch]%
@@ -59,6 +69,7 @@
 %[*concat,&chartout,="<img src=",quote,%[%[nameanchor]%_stripecolor]%,quote,=" alt=",quote,%[%[nameanchor]%_stripecount]%,quote,=" title=",quote,%[%[nameanchor]%_stripecount]%,quote,=" width=",xstripecount,=" height=",glb_bar_graph_height,&chartout,=">"]%
 END
 %[** ---------------------------------------------------------------- **]%
+%[** --- expanded when labelvar changes in query1 output, adds a TR for the chart to 'chartout' beginning with number cols --- **]%
 %[*block,&switch,^END$]%
 %[*if,ne,oldctl,="",*expandv,&junk,flush]%
 %[*set,&oldctl,ctl]%
@@ -76,20 +87,61 @@ END
 %[*if,eq,fn,="",*set,&f1,visits]%
 %[*if,eq,fn,="",*set,&fn,name]%
 %[*if,eq,dspv,="0",*set,&dspv,=""]%
+%[** --- start a chart row --- **]%
 %[*concat,&chartout,="    <tr><td>",name,="</td><td class=\"numcol\"> ",visits,="</td><td class=\"numcol\"> ",dspv,="</td><td class=\"numcol\"> ",bytes,="</td><td class=\"numcol\"> ",hits,="</td><td>"]%
 END
 %[** ---------------------------------------------------------------- **]%
 %[*block,&flush,^END$]%
+%[** --- expanded to finish a chart row for query1 --- **]%
 %[*concat,&chartout,="</td></tr>\\n"]%
 END
+%[** ================================================================ **]%
+%[** --- short iterator expanded once for each row from query1a, adds an IMG tag 'stripecount' pixels wide to the last TD for each bar .. output in 'chartouta' --- **]%
+%[** --- .. same as chartiter except that it uses a different query --- **]%
+%[*block,&chartitera,^END$]%
+%[*set,&ctl,%[%[nameanchor]%_labelvar]%]%
+%[*if,nelc,ctl,oldctl,*expandv,&junk,switcha]%
+%[*scale,&xstripecount,%[%[nameanchor]%_stripecount]%,fullscale,glb_bar_graph_width]%
+%[*concat,&chartouta,="<img src=",quote,%[%[nameanchor]%_stripecolor]%,quote,=" alt=",quote,%[%[nameanchor]%_stripecount]%,quote,=" title=",quote,%[%[nameanchor]%_stripecount]%,quote,=" width=",xstripecount,=" height=",glb_bar_graph_height,&chartouta,=">"]%
+END
 %[** ---------------------------------------------------------------- **]%
+%[** --- expanded when labelvar changes in query1a output, adds a TR for the chart to 'chartouta' beginning with number cols --- **]%
+%[*block,&switcha,^END$]%
+%[*if,ne,oldctl,="",*expandv,&junk,flusha]%
+%[*set,&oldctl,ctl]%
+%[*quotient,&visits,%[%[nameanchor]%_col1v]%,=%[%[nameanchor]%_col1s]%]%
+%[*quotient,&bytes,%[%[nameanchor]%_col2v]%,=%[%[nameanchor]%_col2s]%]%
+%[*quotient,&hits,%[%[nameanchor]%_col3v]%,=%[%[nameanchor]%_col3s]%]%
+%[*quotient,&dspv,%[%[nameanchor]%_col4v]%,=%[%[nameanchor]%_col4s]%]%
+%[*set,&name,%[%[nameanchor]%_labelvar]%]%
+%[*callv,trimdomain,=name]%
+%[*set,&isnew,%[%[nameanchor]%_newdomain]%]%
+%[*if,eq,="",isnew,*set,&name,="<span class=\"firstrefdom\">",name,="</span>"]%
+%[*if,eq,fn,="",*set,&f4,dspv]%
+%[*if,eq,fn,="",*set,&f3,hits]%
+%[*if,eq,fn,="",*set,&f2,bytes]%
+%[*if,eq,fn,="",*set,&f1,visits]%
+%[*if,eq,fn,="",*set,&fn,name]%
+%[*if,eq,dspv,="0",*set,&dspv,=""]%
+%[** --- start a chart row --- **]%
+%[*concat,&chartouta,="    <tr><td>",name,="</td><td class=\"numcol\"> ",visits,="</td><td class=\"numcol\"> ",dspv,="</td><td class=\"numcol\"> ",bytes,="</td><td class=\"numcol\"> ",hits,="</td><td>"]%
+END
+%[** ---------------------------------------------------------------- **]%
+%[*block,&flusha,^END$]%
+%[** --- expanded to finish a chart row for query1a --- **]%
+%[*concat,&chartouta,="</td></tr>\\n"]%
+END
+%[** ================================================================ **]%
 %[*block,&legenditer,^END]%
 %[*set,&lv,%[%[nameanchor]%_legendname]%]%
 %[*if,eq,lv,="",*set,&lv,="(none)"]%
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<img src=%[%[%[nameanchor]%_legendcolor]%]% alt="" width="%[glb_bar_graph_height]%" height="%[glb_bar_graph_height]%"> %[lv]%
 END
 %[** ================================================================ **]%
+%[** report output -- two DIVs, one shown with class chart[longhidden] and one with chart[shorthidden] **]%
+%[** ---------------------------------------------------------------- **]%
 %[*include,=rptheader.htmi]%
+%[** --- long report, uses query1 --- **]%
 <div class="chart%[longhidden]%" id="%[nameanchor]%_a1">
 %[*if,ne,s00,="",*expand,="<p class=\"subtitle\">%[s00]%</p>"]%
   <table>
@@ -98,6 +150,15 @@ END
 %[chartout]%
   </table>
 </div>
-<div class="short%[shorthidden]%" id="%[nameanchor]%_a2">
-  <p>%[ndomainstoday]% domains, %[newdomainstoday]% new, %[%[%[nameanchor]%_col1tv]%]% %[%[nameanchor]%_col1t]%, %[%[%[nameanchor]%_col2tv]%]% %[%[nameanchor]%_col2t]%, %[%[%[nameanchor]%_col3tv]%]% %[%[nameanchor]%_col3t]%; <b>%[fn]% %[f1]% %[%[nameanchor]%_col1t]%, %[f2]% %[%[nameanchor]%_col2t]%, %[f3]% %[%[nameanchor]%_col3t]%, %[f4]% %[%[nameanchor]%_col4t]%</b></p>
+%[** ---------------------------------------------------------------- **]%
+%[** --- short report .. same as long but with query1a (totals are the same as long... short query ignores indexer visits) --- **]%
+<div class="chart%[shorthidden]%" id="%[nameanchor]%_a2">
+%[*if,ne,s00,="",*expand,="<p class=\"subtitle\">%[s00]%</p>"]%
+  <p>(non-indexer visits)</p>
+  <table>
+    <tr><th></th><th class="numcol">%[%[%[nameanchor]%_col1tv]%]%</th><th class="numcol">%[%[%[nameanchor]%_col4tv]%]%</th><th class="numcol">%[%[%[nameanchor]%_col2tv]%]%</th><th class="numcol">%[%[%[nameanchor]%_col3tv]%]%</th><th></th></tr>
+    <tr><th>%[ndomainstoday]% domains, %[newdomainstoday]% new</th><th class="numcol" title="%[%[nameanchor]%_col1tx]%">%[%[nameanchor]%_col1t]%</th><th class="numcol" title="%[%[nameanchor]%_col4tx]%">%[%[nameanchor]%_col4t]%</th><th class="numcol" title="%[%[nameanchor]%_col2tx]%">%[%[nameanchor]%_col2t]%</th><th class="numcol" title="%[%[nameanchor]%_col3tx]%">%[%[nameanchor]%_col3t]%</th><th class="legendbar">%[legend]%</th></tr>
+%[chartouta]%
+  </table>
 </div>
+%[** ---------------------------------------------------------------- **]%
