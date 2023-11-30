@@ -138,6 +138,9 @@
 -- THVV 2021-04-04 5.355 add Markingdon and Toyon
 -- THVV 2022-08-10 5.356 add HTTRACK to indexers, removed Toyon
 -- THVV 2023-01-28 5.357 add crawl.amazonbot.amazon
+-- THVV 2023-09-24 5.358 new THVV IP addr
+-- THVV 2023-11-21 5.359 new THVV IP addr
+
 -- ================================================================
 -- Documentation of configurable items
 -- .. this info will go into the help file
@@ -543,8 +546,6 @@ CREATE TABLE wtpredomain(
  pwhy VARCHAR(1023) -- documentation
 );
 INSERT INTO wtpredomain (predomain, pwhy) VALUES
--- ('s~(99-72-225-37\\.lightspeed\\.sntcca\\.sbcglobal\\.net)~!REDCURBS $1~i','2015-04-08'), -- XXX move to swt-user
--- ('s~^(73\\.215\\.248\\.73)~!THVV $1~i','2015-01-01'); -- rare, rdns fail -- XXX move to swt-user
 ('s~52\\.162\\.211\\.~!Microsoft 52.162.211.~i','Bing maybe'),
 ('s~23\\.96\\.~!Microsoft 23.96.~i','Bing maybe'),
 ('s~23\\.97\\.~!Microsoft 23.97.~i','Bing maybe'),
@@ -554,14 +555,8 @@ INSERT INTO wtpredomain (predomain, pwhy) VALUES
 ('s~23\\.101\\.~!Microsoft 23.101.~i','Bing maybe'),
 ('s~23\\.102\\.~!Microsoft 23.102.~i','Bing maybe'),
 ('s~23\\.103\\.~!Microsoft 23.1003.~i','Bing maybe'),
-('c-98-35-69-208\\.hsd1\\.ca\\.comcast\\.net.us.San Jose CA.~!MKG c-98-35-69-208.hsd1.ca.comcast.net[us/San Jose CA]~i','MaxMind'), -- 2021-04-04 -- XXX move to swt-user
-('s~c-73-215-248-73\\.hsd1\\.nj\\.comcast\\.net.us.Ocean City NJ.~!THVV c-73-215-248-73.hsd1.nj.comcast.net[US/Ocean City NJ]~i','MaxMind'), -- XXX move to swt-user
-('s~c-73-215-248-73\\.hsd1\\.nj\\.comcast\\.net.us.Ocean View NJ.~!THVV c-73-215-248-73.hsd1.nj.comcast.net[US/Ocean City NJ]~i','01/15/18, MaxMind fail'), -- XXX move to swt-user
-('s~c-73-215-248-73\\.hsd1\\.nj\\.comcast\\.net.us.Marmora NJ.~!THVV c-73-215-248-73.hsd1.nj.comcast.net[US/Ocean City NJ]~i','04/10/18, MaxMind fail'); -- XXX move to swt-user
--- ('s~c-73-215-248-73\\.hsd1\\.nj\\.comcast\\.net.us/Ocean View NJ.~!THVV c-73-215-248-73.hsd1.nj.comcast.net[US/Ocean City NJ]~i','02/11/17, MaxMind fail'), -- XXX move to swt-user
--- ('s~c-73-215-248-73\\.hsd1\\.nj\\.comcast\\.net.us/Philadelphia PA.~c-73-215-248-73.hsd1.nj.comcast.net[US/Ocean City NJ]~i','10/10/16, MaxMind fail'), -- XXX move to swt-user
--- ('s~c-73-215-248-73\\.hsd1\\.nj\\.comcast\\.net.us/Newtown PA.~c-73-215-248-73.hsd1.nj.comcast.net[US/Ocean City NJ]~i','8/5/16, MaxMind fail'); -- XXX move to swt-user
--- 
+('s~c-73-215-248-82\\.hsd1\\.nj\\.comcast\\.net.us.Marmora NJ.~!THVV c-73-215-248-82.hsd1.nj.comcast.net[US/Marmora NJ]~i','10/30/23'), -- 2023-10-30
+('s~c-73-215-248-82\\.hsd1\\.nj\\.comcast\\.net.us.Cape May Court House NJ.~!THVV c-73-215-248-82.hsd1.nj.comcast.net[US/Cape May Court House NJ]~i','MaxMind'); -- 2023-11 21
 
 -- transformations logvisits.pl applies to raw web log referrer domain
 -- each one is a Perl substitute command
