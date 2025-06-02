@@ -17,7 +17,7 @@ and password. Create $HOME/.my.cnf with that info.
 Switch to the "master" branch and click "Code" to clone the repo to 
 a directory install-swt.
 Install install-swt/expandfile in your $PATH.
-Install expandfile.pm, readbinsql.pm, readbinxml.pm in your $PERL5LIB.
+Install expandfile.pm, readbindsql.pm, readbindxml.pm in your $PERL5LIB.
 Install CPAN modules LWP::Simple, Term::ANSIColor, DBI, DBD::mysql, XML::LibXML, XML::Simple in your $PERL5LIB
 
 Run the configure script by doing
